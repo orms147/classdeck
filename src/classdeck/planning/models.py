@@ -33,9 +33,9 @@ class OutlineSection(Strict):
     span_refs: list[SpanRef] = []
     notes: str = ""
     review: bool = False
-    """A period-2 warm-up that reviews the previous period: its ``span_refs`` are the dialogue
+    """A period-2 presentation that reviews the previous period: its ``span_refs`` are the dialogue
     and pattern spans of activities 1-2, and the drafter opens it with vocabulary and pattern
-    blocks built from them (``docs/planning.md``, "Period 2 opens with a review")."""
+    blocks built from them (``docs/planning.md``, "Period 2 shape")."""
 
 
 class Outline(Strict):

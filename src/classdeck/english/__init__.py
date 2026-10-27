@@ -24,7 +24,9 @@ from classdeck.english.validators import (
     CheckOutcome,
     apply_outcomes,
     english_text_of,
+    fill_glosses,
     fill_ipa,
+    gloss_present,
     grammar_scope,
     has_failures,
     ipa_present,
@@ -38,6 +40,7 @@ from classdeck.english.validators import (
     timing,
     vocab_level,
     warnings,
+    wording_kept,
 )
 
 __all__ = [
@@ -57,7 +60,9 @@ __all__ = [
     "PhaseSpec",
     "apply_outcomes",
     "english_text_of",
+    "fill_glosses",
     "fill_ipa",
+    "gloss_present",
     "grammar_scope",
     "has_failures",
     "infer",
@@ -76,4 +81,5 @@ __all__ = [
     "timing",
     "vocab_level",
     "warnings",
+    "wording_kept",
 ]

@@ -219,6 +219,8 @@ def _render_block(block: Block, sources: Sources | None) -> list[str]:
                     line += f" — {t(item.meaning_vi)}"
                 if item.image is not None:
                     line += f" (picture: {_picture_note(item.image, index, sources)})"
+                elif item.generated_picture:
+                    line += " (generated picture)"
                 body.append(line)
         case SentencePatternBlock():
             content = block.content

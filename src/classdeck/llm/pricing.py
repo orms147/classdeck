@@ -12,6 +12,12 @@ from classdeck.llm.base import Usage
 PRICES: dict[str, tuple[float, float]] = {
     # OpenRouter list prices, read on 2026-10-28 (USD per 1M input / output tokens).
     # Add the judge model you configure; unknown models report cost_usd = None, never a guess.
+    # Meta Model API list prices (USD per 1M input / output tokens), read on 2026-10-28.
+    "muse-spark-1.3": (1.25, 4.25),
+    "muse-spark-1.3-contributor": (0.10, 0.20),
+    "muse-spark-1.2": (1.25, 4.25),
+    "muse-spark-1.1": (1.25, 4.25),
+    "muse-wonder-1.0": (4.00, 20.00),
     "openai/gpt-6-luna": (0.10, 0.50),
     "openai/gpt-6-luna-pro": (0.10, 0.50),
     "openai/gpt-5.6-luna": (0.20, 1.20),
@@ -27,3 +33,12 @@ def estimate_cost_usd(model: str, usage: Usage) -> float | None:
         return None
     input_price, output_price = price
     return (usage.input_tokens * input_price + usage.output_tokens * output_price) / 1_000_000
+
+
+# model ID -> USD per generated image
+IMAGE_PRICES: dict[str, float] = {"muse-image-1.0": 0.01}
+
+
+def estimate_image_cost_usd(model: str, count: int) -> float | None:
+    price = IMAGE_PRICES.get(model)
+    return None if price is None else price * count

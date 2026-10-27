@@ -9,6 +9,8 @@ from typing import Any
 import pytest
 
 from classdeck.curriculum import load_curriculum
+from classdeck.english.rules import load_activity_templates
+from classdeck.english.validators import FUNCTION_WORDS, allowed_forms, tokenize, word_forms
 from classdeck.ingest import ingest
 from classdeck.lesson import (
     ActivityBlock,
@@ -211,12 +213,28 @@ def test_objectives_come_first_one_per_outcome(template_lesson: Lesson, outline:
         assert not any(isinstance(b, ObjectiveBlock) for b in blocks_of(template_lesson, index))
 
 
-def test_warm_up_has_one_generated_game(template_lesson: Lesson) -> None:
-    game = only(blocks_of(template_lesson, 0), ActivityBlock)
+def test_first_warm_up_is_a_generated_tpr_without_the_new_language(
+    template_lesson: Lesson,
+) -> None:
+    """Lesson 1, period 1 teaches the pattern for the first time: no pattern game, no greeting."""
+    warm_up = only(blocks_of(template_lesson, 0), ActivityBlock)
+    assert warm_up.content.type is ActivityType.TPR
+    assert warm_up.provenance is Provenance.GENERATED
+    assert warm_up.sources == []
+    assert warm_up.content.skills and warm_up.content.teacher_steps
+    assert 3 <= len(warm_up.content.student_steps) <= 5
+    pupil = " ".join([warm_up.content.instructions, *warm_up.content.student_steps]).lower()
+    assert not {"hello", "hi", "i'm", "goodbye", "bye"} & set(pupil.replace(".", " ").split())
+    assert "stand up" in pupil and "sit down" in pupil and "clap" in pupil
+
+
+def test_later_warm_up_is_a_generated_pattern_game(document: SourceDocument) -> None:
+    lesson = draft_lesson(period_two(document), [document], CURRICULUM)
+    game = only(blocks_of(lesson, 0), ActivityBlock)
     assert game.content.type is ActivityType.GAME
     assert game.provenance is Provenance.GENERATED
     assert game.sources == []
-    assert game.content.skills and game.content.teacher_steps and game.content.student_steps
+    assert "Hello, I'm ___." in game.content.instructions
 
 
 def test_presentation_dialogue(template_lesson: Lesson) -> None:
@@ -378,22 +396,29 @@ def test_period_two_opens_with_a_review_of_the_previous_period(document: SourceD
     lesson = draft_lesson(period_two(document), [document], CURRICULUM)
     assert [section.id for section in lesson.sections] == [
         "s_warm_up",
+        "s_presentation",
         "s_practice",
         "s_practice_2",
         "s_production",
         "s_wrap_up",
     ]
+    assert [section.minutes for section in lesson.sections] == [4, 8, 8, 7, 6, 2]
     warm_up = blocks_of(lesson, 0)
     assert [b.kind for b in warm_up] == [
         BlockKind.OBJECTIVE,
         BlockKind.OBJECTIVE,
+        BlockKind.ACTIVITY,
+    ]
+    assert only(warm_up, ActivityBlock).content.type is ActivityType.GAME
+    review = blocks_of(lesson, 1)
+    assert [b.kind for b in review] == [
         BlockKind.VOCABULARY,
         BlockKind.SENTENCE_PATTERN,
         BlockKind.ACTIVITY,
     ]
-    vocabulary = only(warm_up, VocabularyBlock)
-    pattern = only(warm_up, SentencePatternBlock)
-    game = only(warm_up, ActivityBlock)
+    vocabulary = only(review, VocabularyBlock)
+    pattern = only(review, SentencePatternBlock)
+    game = only(review, ActivityBlock)
     assert [item.word for item in vocabulary.content.items] == ["hello", "hi"]
     assert {c.span_id for c in vocabulary.sources} == {"p1.s4", "p1.s5", "p1.s7", "p1.s8"}
     assert all(c.page == 1 for c in vocabulary.sources)
@@ -401,18 +426,19 @@ def test_period_two_opens_with_a_review_of_the_previous_period(document: SourceD
     assert pattern.content.pattern == "Hello, I'm ___."
     assert pattern.content.examples == ["Hello, I'm Ha."]
     assert [c.span_id for c in pattern.sources] == ["p1.s4", "p1.s7"]
-    assert game.content.type is ActivityType.GAME
-    assert game.sources == []  # the game is ours even though it reviews cited spans
-    assert game.provenance is Provenance.GENERATED
+    assert game.content.type is ActivityType.LOOK_LISTEN_REPEAT
+    assert game.content.title == "Say it again"
+    assert game.sources == []  # the repeat activity is ours even though it reviews cited spans
+    assert game.provenance is Provenance.DERIVED  # it depends on the words and pattern it repeats
     assert set(game.depends_on) >= {vocabulary.id, pattern.id}
-    assert "Hello, I'm ___." in game.content.instructions
+    assert "Hello, I'm ___." in " ".join(game.content.student_steps)
     assert not any(isinstance(b, DialogueBlock) for b in lesson.blocks.values())
-    for index, activity_type in zip(range(1, 4), PERIOD_TWO_TYPES, strict=True):
+    for index, activity_type in zip(range(2, 5), PERIOD_TWO_TYPES, strict=True):
         drilled = only(blocks_of(lesson, index), ActivityBlock)
         assert drilled.content.type is activity_type
         assert pattern.id in drilled.depends_on
         assert drilled.provenance is Provenance.DERIVED
-    summary = only(blocks_of(lesson, 4), SummaryBlock)
+    summary = only(blocks_of(lesson, 5), SummaryBlock)
     assert summary.content.bullets == ["hello, hi", "Hello, I'm ___."]
     assert summary.depends_on == [vocabulary.id, pattern.id]
     assert Lesson.model_validate(lesson.model_dump(mode="json")) == lesson
@@ -443,14 +469,14 @@ def test_period_two_without_earlier_activities_has_no_review_and_a_unit_summary(
 
 def test_review_blocks_and_with_review(document: SourceDocument) -> None:
     second = period_two(document)
-    context = build_context(second, 0, [document], CURRICULUM)
+    context = build_context(second, 1, [document], CURRICULUM)
     review = TemplateDrafter().review_blocks(context)
     assert [b.kind for b in review] == [BlockKind.VOCABULARY, BlockKind.SENTENCE_PATTERN]
     assert reply_problems(DraftSection(blocks=review), context) == []
-    # the template drafter alone writes the game; draft_lesson prepends the review
+    # the template drafter alone writes "Say it again"; draft_lesson prepends the review
     alone = TemplateDrafter().draft_section(context)
-    assert [b.kind for b in alone.blocks] == [BlockKind.ACTIVITY]
-    assert alone.blocks[0].span_ids == []
+    assert alone.blocks[-1].kind is BlockKind.ACTIVITY
+    assert alone.blocks[-1].content["title"] == "Say it again"
     proposal = DraftSection(
         blocks=[
             DraftBlock(kind=BlockKind.DIALOGUE, content=DIALOGUE),
@@ -477,7 +503,8 @@ def test_model_path_prepends_the_review_and_reports_only_model_blocks(
 ) -> None:
     second = period_two(document)
     script = [
-        reply(block("activity", activity("game", "Hello chain"))),
+        reply(block("activity", activity("game", "Quick chain"))),
+        reply(block("activity", activity("look_listen_repeat", "Hello chain"))),
         reply(block("activity", activity("listen_and_do", "Listen and tick"), span_ids=["p2.s2"])),
         reply(block("activity", activity("look_complete_read", "Complete"), span_ids=["p2.s4"])),
         reply(block("activity", activity("song", "Sing"), span_ids=["p2.s6"])),
@@ -485,16 +512,18 @@ def test_model_path_prepends_the_review_and_reports_only_model_blocks(
     provider = MockProvider(responses=script)
     lesson, report = draft_lesson_report(second, [document], CURRICULUM, provider)
     warm_up = blocks_of(lesson, 0)
-    vocabulary = only(warm_up, VocabularyBlock)
-    pattern = only(warm_up, SentencePatternBlock)
-    game = only(warm_up, ActivityBlock)
+    assert only(warm_up, ActivityBlock).content.title == "Quick chain"
+    review = blocks_of(lesson, 1)
+    vocabulary = only(review, VocabularyBlock)
+    pattern = only(review, SentencePatternBlock)
+    game = only(review, ActivityBlock)
     assert game.content.title == "Hello chain"
     assert game.depends_on[:2] == [vocabulary.id, pattern.id]
-    activities = [only(blocks_of(lesson, i), ActivityBlock) for i in range(4)]
+    activities = [only(blocks_of(lesson, i), ActivityBlock) for i in range(5)]
     assert report.model_block_ids == {a.id for a in activities}
     assert vocabulary.id not in report.model_block_ids
     assert pattern.id not in report.model_block_ids
-    prompt = provider.calls[0]["messages"][0]["content"]
+    prompt = provider.calls[1]["messages"][0]["content"]
     assert "engine has already built the vocabulary and sentence_pattern" in prompt
     assert "[p1.s4] Hello, I'm Ha." in prompt
     assert "ALLOWED WORDS" in prompt
@@ -505,7 +534,7 @@ def test_model_path_prepends_the_review_and_reports_only_model_blocks(
     assert "teacher_steps" in allowed and "any English" in allowed
 
 
-def test_model_review_warm_up_keeps_only_its_uncited_game(document: SourceDocument) -> None:
+def test_model_review_keeps_only_its_uncited_activity(document: SourceDocument) -> None:
     """A reply that writes the review blocks itself must not duplicate the engine's."""
     second = period_two(document)
     chatty = reply(
@@ -518,14 +547,15 @@ def test_model_review_warm_up_keeps_only_its_uncited_game(document: SourceDocume
         block("activity", activity("game", "Hello chain"), span_ids=["p1.s4"], depends_on=[0, 1]),
     )
     script = [
+        reply(block("activity", activity("game", "Quick chain"))),
         chatty,
         reply(block("activity", activity("listen_and_do", "Listen and tick"), span_ids=["p2.s2"])),
         reply(block("activity", activity("look_complete_read", "Complete"), span_ids=["p2.s4"])),
         reply(block("activity", activity("song", "Sing"), span_ids=["p2.s6"])),
     ]
     lesson, report = draft_lesson_report(second, [document], CURRICULUM, MockProvider(script))
-    warm_up = blocks_of(lesson, 0)
-    assert [b.kind for b in warm_up[2:]] == [
+    warm_up = blocks_of(lesson, 1)
+    assert [b.kind for b in warm_up] == [
         BlockKind.VOCABULARY,
         BlockKind.SENTENCE_PATTERN,
         BlockKind.ACTIVITY,
@@ -534,30 +564,31 @@ def test_model_review_warm_up_keeps_only_its_uncited_game(document: SourceDocume
     assert [item.meaning_vi for item in vocabulary.content.items] == [""] * 2  # the engine's
     game = only(warm_up, ActivityBlock)
     assert game.content.title == "Hello chain"
-    assert game.sources == [] and game.provenance is Provenance.GENERATED
+    assert game.sources == [] and game.provenance is Provenance.DERIVED
     assert set(game.depends_on) >= {vocabulary.id, only(warm_up, SentencePatternBlock).id}
     assert game.id in report.model_block_ids
     assert vocabulary.id not in report.model_block_ids
     assert not any(isinstance(b, DialogueBlock) for b in lesson.blocks.values())
 
 
-def test_model_review_warm_up_without_a_game_uses_the_template_game(
+def test_model_review_without_an_activity_uses_the_template_activity(
     document: SourceDocument,
 ) -> None:
     second = period_two(document)
     only_vocabulary = reply(block("vocabulary", {"items": [{"word": "hello"}]}, span_ids=["p1.s4"]))
     script = [
+        reply(block("activity", activity("game", "Quick chain"))),
         only_vocabulary,
         reply(block("activity", activity("listen_and_do", "Listen and tick"), span_ids=["p2.s2"])),
         reply(block("activity", activity("look_complete_read", "Complete"), span_ids=["p2.s4"])),
         reply(block("activity", activity("song", "Sing"), span_ids=["p2.s6"])),
     ]
     lesson, report = draft_lesson_report(second, [document], CURRICULUM, MockProvider(script))
-    game = only(blocks_of(lesson, 0), ActivityBlock)
+    game = only(blocks_of(lesson, 1), ActivityBlock)
     template_game = TemplateDrafter().draft_section(
-        build_context(second, 0, [document], CURRICULUM)
+        build_context(second, 1, [document], CURRICULUM)
     )
-    assert game.content.title == template_game.blocks[0].content["title"]
+    assert game.content.title == template_game.blocks[-1].content["title"] == "Say it again"
     assert game.id not in report.model_block_ids  # the template wrote it
     assert game.sources == []
 
@@ -759,10 +790,21 @@ def test_reply_problems(document: SourceDocument, outline: Outline) -> None:
 def test_model_warm_up_prompt_asks_for_no_new_language(
     document: SourceDocument, outline: Outline
 ) -> None:
-    context = build_context(outline, 0, [document], CURRICULUM)
-    prompt = ModelDrafter(MockProvider(responses=[])).prompt(context)
-    assert "game or song" in prompt
-    assert "no new words or patterns" in prompt
+    # lesson 1, period 1: a TPR warm-up in classroom language, no pattern
+    tpr = ModelDrafter(MockProvider(responses=[])).prompt(
+        build_context(outline, 0, [document], CURRICULUM)
+    )
+    assert "of type tpr" in tpr
+    assert "classroom language only" in tpr
+    assert "must not use it" in tpr
+    # later periods: a review game; the new pattern appears from the presentation onward
+    second = period_two(document)
+    game = ModelDrafter(MockProvider(responses=[])).prompt(
+        build_context(second, 0, [document], CURRICULUM)
+    )
+    assert "game or song" in game
+    assert "no new words or patterns" in game
+    assert "from the presentation onward" in game
 
 
 def test_template_activities_are_derived_and_warm_up_is_generated(template_lesson: Lesson) -> None:
@@ -957,7 +999,7 @@ def test_two_sources_with_clashing_span_ids_stay_distinct() -> None:
 def test_the_song_carries_the_lyric_lines_verbatim(document: SourceDocument) -> None:
     """docs/planning.md, "Lyrics and options": song and chant lines are cited, not paraphrased."""
     lesson = draft_lesson(period_two(document), [document], CURRICULUM)
-    song = only(blocks_of(lesson, 3), ActivityBlock)
+    song = only(blocks_of(lesson, 4), ActivityBlock)
     assert song.content.type is ActivityType.SONG
     assert song.content.instructions == "Sing together:"
     assert song.content.student_steps == [
@@ -972,13 +1014,13 @@ def test_the_song_carries_the_lyric_lines_verbatim(document: SourceDocument) -> 
 
 def test_options_and_gaps_are_copied_into_the_steps(document: SourceDocument) -> None:
     lesson = draft_lesson(period_two(document), [document], CURRICULUM)
-    tick = only(blocks_of(lesson, 1), ActivityBlock)
+    tick = only(blocks_of(lesson, 2), ActivityBlock)
     assert tick.content.student_steps == [
         "Listen. Tick: a. Hello, I'm Duc. b. Hi, I'm Lan.",
         "Check your answers with a friend.",
     ]
     assert [c.span_id for c in tick.sources] == ["p2.s2", "p2.s3"]
-    complete = only(blocks_of(lesson, 2), ActivityBlock)
+    complete = only(blocks_of(lesson, 3), ActivityBlock)
     assert complete.content.student_steps == [
         "Complete: Hello, I'm _____. Hi, _____. I'm _____.",
         "Read the sentences aloud.",
@@ -1018,7 +1060,7 @@ def test_other_activities_keep_their_template_steps(
     lesson = draft_lesson(outline, [document], CURRICULUM)
     practice = only(blocks_of(lesson, 2), ActivityBlock)
     assert practice.content.instructions.startswith("Listen and point.")
-    assert practice.content.student_steps[0] == "Listen and point to the picture."
+    assert practice.content.student_steps[0] == "Listen and point to the picture the teacher says."
 
 
 def test_the_lesson_three_review_includes_the_phonics_of_activity_one(
@@ -1028,11 +1070,11 @@ def test_the_lesson_three_review_includes_the_phonics_of_activity_one(
         [document], CURRICULUM, unit_id="ta3.u1", lesson_no=3, period=2, grade=3
     )
     lesson = draft_lesson(second, [document], CURRICULUM)
-    warm_up = blocks_of(lesson, 0)
-    phonics = only(warm_up, PhonicsBlock)
+    review = blocks_of(lesson, 1)
+    phonics = only(review, PhonicsBlock)
     assert (phonics.content.sound, phonics.content.words) == ("/h/", ["hello", "hi"])
     assert phonics.sources and phonics.provenance is Provenance.EXTRACTED
-    game = only(warm_up, ActivityBlock)
+    game = only(review, ActivityBlock)
     assert phonics.id in game.depends_on
     summary = only(blocks_of(lesson, len(lesson.sections) - 1), SummaryBlock)
     assert "/h/: hello, hi" in summary.content.bullets
@@ -1046,10 +1088,8 @@ def test_model_prompts_demand_warm_up_rules_and_copied_lines(
 ) -> None:
     provider = MockProvider(responses=list(SCRIPT))
     draft_lesson(outline, [document], CURRICULUM, provider)
-    warm_up = provider.calls[0]["messages"][0]["content"]
-    assert "concrete rules in 3 to 5 student steps" in warm_up
-    assert "who starts" in warm_up and "how the game ends" in warm_up
-    assert "Never write a vague step" in warm_up
+    first = provider.calls[0]["messages"][0]["content"]
+    assert "3 to 5 student steps" in first and "who gives the commands" in first
     for call in provider.calls:
         prompt = call["messages"][0]["content"]
         assert "Sing together:" in prompt and "Chant together:" in prompt
@@ -1057,10 +1097,173 @@ def test_model_prompts_demand_warm_up_rules_and_copied_lines(
     production = provider.calls[3]["messages"][0]["content"]
     assert "copied word for word" in production
     review_provider = MockProvider(
-        responses=[reply(block("activity", activity("game", "Chain")))] * 4
+        responses=[reply(block("activity", activity("game", "Chain")))] * 5
     )
     draft_lesson(period_two(document), [document], CURRICULUM, review_provider)
-    assert (
-        "concrete rules in 3 to 5 student steps"
-        in review_provider.calls[0]["messages"][0]["content"]
+    warm_up = review_provider.calls[0]["messages"][0]["content"]
+    assert "concrete rules in 3 to 5 student steps" in warm_up
+    assert "who starts" in warm_up and "how the game ends" in warm_up
+    assert "Never write a vague step" in warm_up
+    review = review_provider.calls[1]["messages"][0]["content"]
+    assert "look_listen_repeat" in review and "Say it again" in review
+
+
+def test_practice_and_production_prompts_demand_concrete_steps_and_answer_keys(
+    document: SourceDocument, outline: Outline
+) -> None:
+    provider = MockProvider(responses=list(SCRIPT))
+    draft_lesson(outline, [document], CURRICULUM, provider)
+    for call in provider.calls[2:4]:  # practice, production
+        prompt = call["messages"][0]["content"]
+        assert "what to point at or show" in prompt
+        assert "who speaks first" in prompt
+        assert "how many rounds" in prompt
+        assert "how to check" in prompt
+        assert "3 to 5 concrete imperatives" in prompt
+        assert "Answer key:" in prompt
+    for call in provider.calls:
+        prompt = call["messages"][0]["content"]
+        assert "write I'm, never I am" in prompt
+        assert "do not introduce a pattern or phrase" in prompt.lower()
+
+
+# --- answer keys -------------------------------------------------------------------------------
+
+
+def teacher_steps_of(lesson: Lesson, index: int) -> list[str]:
+    return only(blocks_of(lesson, index), ActivityBlock).content.teacher_steps
+
+
+def test_template_tick_and_gap_fill_activities_end_with_an_answer_key(
+    document: SourceDocument,
+) -> None:
+    """The public fixture, page 2: "4. Listen and tick." (options a/b) and "5. Look, complete
+    and read." (a gap-fill line); the keys come from the dialogue and pattern of page 1."""
+    lesson = draft_lesson(period_two(document), [document], CURRICULUM)
+    tick = teacher_steps_of(lesson, 2)
+    assert tick[-1].startswith(
+        "Answer key: a. Hello, I'm Duc."
+    )  # the option that matches the pattern
+    assert "b. Hi" not in tick[-1]
+    assert sum("Answer key" in step for step in tick) == 1
+    gap = teacher_steps_of(lesson, 3)
+    assert gap[-1] == "Answer key: Hello, I'm Ha. Hi, Ha. I'm Tien."
+    # the other activities get none
+    for index in (0, 1, 4):
+        assert not any("Answer key" in step for step in teacher_steps_of(lesson, index))
+
+
+def test_an_answer_key_that_cannot_be_derived_asks_for_the_audio() -> None:
+    notes = make_document(
+        [
+            ("list_item", "1. Look, listen and repeat."),
+            ("paragraph", "Hello, I'm Ha."),
+            ("paragraph", "Hi, Ha. I'm Tien."),
+            ("list_item", "4. Listen and tick."),
+            ("paragraph", "a. Bye, Lan. b. Bye, Duc."),
+            ("list_item", "5. Look, complete and read."),
+            ("paragraph", "My friend is _____."),
+            ("list_item", "6. Let's sing."),
+            ("paragraph", "Hello, hello, hello!"),
+        ]
     )
+    second = build_skeleton([notes], CURRICULUM, unit_id="ta3.u1", lesson_no=1, period=2, grade=3)
+    lesson = draft_lesson(second, [notes], CURRICULUM)
+    fallback = "Play the audio twice; check the answers together on the board."
+    assert teacher_steps_of(lesson, 2)[-1] == fallback  # no option matches the lesson's language
+    assert teacher_steps_of(lesson, 3)[-1] == fallback  # the gap is not in the dialogue or pattern
+
+
+def test_a_gap_fill_key_uses_the_pattern_and_the_dialogue_names() -> None:
+    notes = make_document(
+        [
+            ("list_item", "1. Look, listen and repeat."),
+            ("paragraph", "Hi, I'm Tien."),
+            ("paragraph", "Hi, Tien. I'm Ha."),
+            ("list_item", "4. Listen and tick."),
+            ("paragraph", "a. Hello, I'm Lan. b. Bye, Lan."),
+            ("list_item", "5. Look, complete and read."),
+            ("paragraph", "Hello, I'm _____."),
+            ("list_item", "6. Let's sing."),
+            ("paragraph", "Hello, hello, hello!"),
+        ]
+    )
+    second = build_skeleton([notes], CURRICULUM, unit_id="ta3.u1", lesson_no=1, period=2, grade=3)
+    lesson = draft_lesson(second, [notes], CURRICULUM)
+    assert teacher_steps_of(lesson, 3)[-1] == "Answer key: Hello, I'm Tien."
+    assert teacher_steps_of(lesson, 2)[-1].startswith("Answer key: a. Hello, I'm Lan.")
+
+
+def test_a_section_without_spans_gets_the_audio_step() -> None:
+    notes = make_document([("list_item", "1. Look, listen and repeat."), ("paragraph", "Hello.")])
+    second = build_skeleton([notes], CURRICULUM, unit_id="ta3.u1", lesson_no=1, period=2, grade=3)
+    lesson = draft_lesson(second, [notes], CURRICULUM)
+    assert teacher_steps_of(lesson, 2)[-1].startswith("Play the audio twice")
+    assert teacher_steps_of(lesson, 3)[-1].startswith("Play the audio twice")
+
+
+def test_the_model_path_gets_an_answer_key_when_the_reply_has_none(
+    document: SourceDocument,
+) -> None:
+    keyed = activity(
+        "listen_and_do",
+        "Listen and tick",
+        teacher_steps=["Play the audio.", "Answer key: b. Hi, I'm Lan."],
+    )
+    bare = activity("look_complete_read", "Complete")
+    script = [
+        reply(block("activity", activity("game", "Quick chain"))),
+        reply(block("activity", activity("look_listen_repeat", "Say it again"))),
+        reply(block("activity", keyed, span_ids=["p2.s2"])),
+        reply(block("activity", bare, span_ids=["p2.s4"])),
+        reply(block("activity", activity("song", "Sing"), span_ids=["p2.s6"])),
+    ]
+    lesson = draft_lesson(period_two(document), [document], CURRICULUM, MockProvider(script))
+    assert teacher_steps_of(lesson, 2) == ["Play the audio.", "Answer key: b. Hi, I'm Lan."]
+    assert teacher_steps_of(lesson, 3)[0] == "Model it with one pupil."
+    assert teacher_steps_of(lesson, 3)[-1] == "Answer key: Hello, I'm Ha. Hi, Ha. I'm Tien."
+    assert not any("Answer key" in step for step in teacher_steps_of(lesson, 4))
+
+
+# --- concrete practice steps --------------------------------------------------------------------
+
+
+def test_template_practice_steps_name_who_starts_how_many_rounds_and_how_to_check(
+    document: SourceDocument, outline: Outline
+) -> None:
+    lesson = draft_lesson(outline, [document], CURRICULUM)
+    point_and_say = only(blocks_of(lesson, 2), ActivityBlock).content
+    teacher = " ".join(point_and_say.teacher_steps)
+    assert "picture card" in teacher and "point" in teacher
+    assert "Pupil A" in teacher and "starts" in teacher
+    assert "two rounds" in teacher and "Swap" in teacher
+    assert "Walk around" in teacher  # how to check
+    assert "Hello, I'm ___." in teacher
+    assert 3 <= len(point_and_say.student_steps) <= 5
+    assert any("Pupil A" in step for step in point_and_say.student_steps)
+    talk = only(blocks_of(lesson, 3), ActivityBlock).content
+    teacher = " ".join(talk.teacher_steps)
+    assert "Pupil A" in teacher and "speaks first" in teacher
+    assert "two rounds" in teacher and "swap" in teacher
+    assert "Walk around" in teacher and "act out" in teacher
+    assert 3 <= len(talk.student_steps) <= 5
+    assert any("two times" in step for step in talk.student_steps)
+
+
+def test_touched_template_pupil_text_stays_inside_the_grade_three_words(
+    template_lesson: Lesson,
+) -> None:
+    allowed = allowed_forms(template_lesson, CURRICULUM) | FUNCTION_WORDS
+    templates = load_activity_templates()
+    for kind in (ActivityType.LISTEN_POINT_SAY, ActivityType.LETS_TALK, ActivityType.TPR):
+        template = templates[kind]
+        texts = [template.instructions_template, *template.student_steps]
+        outside = {
+            token.surface
+            for text in texts
+            for token in tokenize(text.replace("{{pattern}}", "").replace("{{words}}", ""))
+            if len(token.surface) > 1
+            and not token.proper
+            and not any(form in allowed for form in word_forms(token.surface))
+        }
+        assert outside == set(), (kind, outside)

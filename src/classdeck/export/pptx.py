@@ -31,6 +31,7 @@ from pptx.util import Emu, Inches, Pt
 from classdeck.export.source_map import (
     AI_ADDED_BADGE,
     AI_ADDED_NOTE,
+    AI_PICTURE_CAPTION,
     PROVENANCE_LABEL,
     build_source_map,
     collect_warnings,
@@ -430,8 +431,13 @@ class _DeckBuilder:
         span = document.find_span(citation.page, citation.span_id) if document else None
         if span is None or span.kind is not SpanKind.IMAGE or not span.image_path:
             return None
+        return self._file_under_root(span.image_path)
+
+    def _file_under_root(self, relative: str) -> Path | None:
+        if self.image_root is None:
+            return None
         root = self.image_root.resolve()
-        path = (root / span.image_path).resolve()
+        path = (root / relative).resolve()
         return path if path.is_relative_to(root) and path.is_file() else None
 
     # -- framing slides
@@ -562,8 +568,22 @@ class _DeckBuilder:
             slide = self._content_slide(title, [block], first=index == 0, notes=notes)
 
             picture = self._resolve_image(item.image)
+            generated = False
+            if picture is None and item.generated_picture:
+                picture = self._file_under_root(item.generated_picture)
+                generated = picture is not None
             if picture is not None:
                 _add_picture(slide, picture, (7.9, BODY_TOP, 4.83, 5.1), alt=item.word)
+                if generated:
+                    _add_text(
+                        slide,
+                        (7.9, 6.5, 4.83, 0.35),
+                        AI_PICTURE_CAPTION,
+                        size=18,
+                        color=MUTED,
+                        align=PP_ALIGN.CENTER,
+                        name="AI picture caption",
+                    )
                 box, align = (MARGIN, BODY_TOP, 7.0, 5.1), PP_ALIGN.LEFT
             else:
                 box, align = (MARGIN, BODY_TOP, CONTENT_WIDTH, 5.1), PP_ALIGN.CENTER

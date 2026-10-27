@@ -16,10 +16,12 @@ import pytest
 
 from classdeck.curriculum import load_curriculum
 from classdeck.english.validators import (
+    GLOSS_PRESENT,
     GRAMMAR_SCOPE,
     PATTERN_USED,
     TIMING,
     VOCAB_LEVEL,
+    WORDING_KEPT,
     has_failures,
     warnings,
 )
@@ -33,6 +35,7 @@ from classdeck.lesson import (
     Provenance,
     SentencePatternBlock,
     SourceDocument,
+    SummaryBlock,
     VocabularyBlock,
     find_dangling_citations,
 )
@@ -123,6 +126,10 @@ def test_offline_lessons_are_valid_checked_and_cite_only_real_spans(
     for block in lesson.blocks.values():
         if isinstance(block, VocabularyBlock):
             assert all(item.ipa for item in block.content.items)  # run_all filled the IPA
+            assert all(item.meaning_vi for item in block.content.items)  # ... and the glosses
+            assert status(block, GLOSS_PRESENT) is CheckStatus.PASS
+        if isinstance(block, ActivityBlock | SummaryBlock):
+            assert status(block, WORDING_KEPT) is CheckStatus.PASS
     assert all(block_id is None or block_id in lesson.blocks for block_id, _ in warnings(lesson))
 
 
@@ -134,8 +141,10 @@ def test_period_one_is_grounded_as_the_template_promises(period_one: Lesson) -> 
     assert only(presentation, ActivityBlock).provenance is Provenance.DERIVED
 
 
-def test_period_two_warm_up_reviews_page_one_and_the_rest_is_derived(period_two: Lesson) -> None:
-    warm_up = blocks_of(period_two, 0)
+def test_period_two_presentation_reviews_page_one_and_the_rest_is_derived(
+    period_two: Lesson,
+) -> None:
+    warm_up = blocks_of(period_two, 1)
     vocabulary = only(warm_up, VocabularyBlock)
     pattern = only(warm_up, SentencePatternBlock)
     for block in (vocabulary, pattern):
@@ -144,11 +153,12 @@ def test_period_two_warm_up_reviews_page_one_and_the_rest_is_derived(period_two:
         assert status(block, CITATION_SUPPORTED) is CheckStatus.PASS
     assert [item.word for item in vocabulary.content.items] == ["hello", "hi"]
     assert pattern.content.pattern == "Hello, I'm ___."
-    game = only(warm_up, ActivityBlock)
-    assert game.provenance is Provenance.GENERATED
-    assert game.sources == []
+    repeat = only(warm_up, ActivityBlock)
+    assert repeat.provenance is Provenance.DERIVED
+    assert repeat.sources == []
+    assert only(blocks_of(period_two, 0), ActivityBlock).provenance is Provenance.GENERATED
     assert grounded_ratio(period_two) >= 0.5
-    for index in range(1, 4):  # textbook activities 4-6
+    for index in range(2, 5):  # textbook activities 4-6
         drilled = only(blocks_of(period_two, index), ActivityBlock)
         assert drilled.provenance is Provenance.DERIVED
         assert pattern.id in drilled.depends_on
@@ -374,10 +384,10 @@ def test_the_wrap_up_has_a_recap_activity_that_does_not_dilute_grounding(
 
 
 def test_period_two_activities_are_grounded_by_their_copied_lines(period_two: Lesson) -> None:
-    for index in range(1, 4):
+    for index in range(2, 5):
         activity_block = only(blocks_of(period_two, index), ActivityBlock)
         assert status(activity_block, CITATION_SUPPORTED) is CheckStatus.PASS
-    song = only(blocks_of(period_two, 3), ActivityBlock)
+    song = only(blocks_of(period_two, 4), ActivityBlock)
     assert song.content.instructions == "Sing together:"
     assert grounded_ratio(period_two) >= 0.8
 

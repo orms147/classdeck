@@ -156,6 +156,15 @@ def prompt_rules(grade: int, curriculum: Curriculum | None = None) -> str:
         "Picture-driven: when a vocabulary item has a picture on the page, reference the image "
         "span; do not describe the picture in words on the slide.",
         "Vietnamese is allowed only in meaning_vi and in teacher notes.",
+        "Keep the textbook's wording: copy the unit's patterns and dialogue lines exactly, "
+        "contractions included (write I'm, never I am), and do not introduce a pattern or phrase "
+        "that the unit does not teach.",
+        "The new pattern is taught from the presentation onward: a warm-up recycles earlier "
+        "language or is a TPR in classroom language.",
+        "Practice and production activities need concrete steps: teacher_steps say what to "
+        "point at or show, who speaks first, how many rounds and how to check; student_steps are "
+        "3 to 5 concrete imperatives. A listen_and_do or look_complete_read activity ends its "
+        "teacher_steps with an 'Answer key: ...' step.",
     ]
     return "\n".join(f"- {rule}" for rule in rules)
 

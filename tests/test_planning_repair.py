@@ -14,7 +14,13 @@ from typing import Any
 import pytest
 
 from classdeck.curriculum import load_curriculum
-from classdeck.english.validators import GRAMMAR_SCOPE, VOCAB_LEVEL, allowed_forms, run_all
+from classdeck.english.validators import (
+    GRAMMAR_SCOPE,
+    VOCAB_LEVEL,
+    WORDING_KEPT,
+    allowed_forms,
+    run_all,
+)
 from classdeck.ingest import ingest
 from classdeck.lesson import (
     ActivityBlock,
@@ -679,3 +685,54 @@ def test_the_repair_prompt_demands_concrete_steps(
     assert "never replace a concrete step by a vague one" in prompt
     assert "name the object, the action and who speaks" in prompt
     assert "Play the game" in prompt
+
+
+# --- english.wording_kept ----------------------------------------------------------------------
+
+
+def test_a_written_out_contraction_is_listed_and_repaired(
+    document: SourceDocument, sources: dict[str, SourceDocument]
+) -> None:
+    """The textbook writes "I'm": an activity that says "I am" is a candidate whose problem
+    names the offending phrase, and a reply that puts the contraction back is accepted."""
+    outline = build_skeleton(
+        [document], CURRICULUM, unit_id="ta3.u1", lesson_no=1, period=1, grade=3
+    )
+    drafted = draft_lesson(outline, [document], CURRICULUM)
+    game = warm_up_game(drafted)
+    game.content.instructions = "Take the ball. Say: Hello, I am Ha."
+    game.content.student_steps = ["Stand in a circle.", "Say: Hello, I am Ha.", "Pass the ball."]
+    flagged = checked(drafted, sources)
+    game = warm_up_game(flagged)
+    detail = warn_detail(game, WORDING_KEPT)
+    assert detail is not None and '"I am"' in detail and "I'm" in detail
+    assert warn_detail(game, VOCAB_LEVEL) is None  # the level checks are clean: only the wording
+    assert [b.id for b in offending_blocks(flagged, {game.id})] == [game.id]
+
+    provider = MockProvider(
+        responses=[
+            reply_for(
+                game,
+                instructions="Take the ball. Say: Hello, I'm Ha.",
+                student_steps=["Stand in a circle.", "Say: Hello, I'm Ha.", "Pass the ball."],
+            )
+        ]
+    )
+    repaired, report = repair_lesson(
+        flagged, CURRICULUM, provider, sources=sources, model_block_ids={game.id}
+    )
+    assert report.replaced == [game.id]
+    assert '"I am"' in prompt_of(provider)  # the problem, with the offending phrase
+    assert "put the contraction back" in prompt_of(provider)
+    final = checked(repaired, sources)
+    assert warn_detail(warm_up_game(final), WORDING_KEPT) is None
+
+    # a reply that keeps writing it out is no improvement and is dropped
+    stubborn = MockProvider(
+        responses=[reply_for(game, student_steps=list(game.content.student_steps))]
+    )
+    kept, report = repair_lesson(
+        flagged, CURRICULUM, stubborn, sources=sources, model_block_ids={game.id}
+    )
+    assert report.replaced == [] and game.id in report.kept
+    assert warm_up_game(kept).content.student_steps == game.content.student_steps

@@ -55,9 +55,17 @@ REVIEW_ACTIVITIES = 2
 
 BM25_SPANS_PER_SECTION = 6
 WARM_UP_ACTIVITY = ActivityType.GAME
+FIRST_PERIOD_WARM_UP_ACTIVITY = ActivityType.TPR
+"""Lesson 1, period 1 introduces the unit's pattern, so its warm-up drills none of it: TPR."""
 WARM_UP_TITLE = "Warm-up"
-REVIEW_TITLE = "Warm-up: review"
+TPR_WARM_UP_TITLE = "Warm-up: listen and do"
+REVIEW_TITLE = "Review: say it again"
 WRAP_UP_TITLE = "Wrap-up"
+
+PERIOD_TWO_PHASES: tuple[Phase, ...] = (Phase.PRACTICE, Phase.PRACTICE, Phase.PRODUCTION)
+"""Phases of the three textbook activities of a period 2 that opens with a review."""
+PERIOD_TWO_MINUTES: tuple[int, ...] = (4, 8, 8, 7, 6, 2)
+"""Warm-up, review, activities 4-6, wrap-up: 35 minutes (scaled for another period length)."""
 
 _DEFAULT_MINUTES: dict[Phase, int] = {spec.phase: spec.default_minutes for spec in PHASES}
 
@@ -226,30 +234,37 @@ def _review_refs(chunks: Mapping[int, Chunk], docs: Mapping[str, SourceDocument]
     return refs
 
 
-def _warm_up(
-    chunks: Mapping[int, Chunk],
-    docs: Mapping[str, SourceDocument],
-    *,
-    lesson_no: int,
-    period: int,
-) -> OutlineSection:
-    """The warm-up section: a review of activities 1-2 in period 2, a plain game otherwise."""
-    section = OutlineSection(
+def _warm_up(*, lesson_no: int, period: int) -> OutlineSection:
+    """The warm-up section: a TPR in lesson 1, period 1, else a pattern game; no new language.
+
+    Lesson 1, period 1 is the first time the unit's pattern appears, so its warm-up uses
+    classroom language only (``tpr``); the pattern game belongs to later periods, when the
+    pattern has been taught.
+    """
+    if lesson_no == 1 and period == 1:
+        return OutlineSection(
+            phase=Phase.WARM_UP,
+            title=TPR_WARM_UP_TITLE,
+            minutes=0,
+            activity_type=FIRST_PERIOD_WARM_UP_ACTIVITY,
+            notes="Classroom-language TPR only; the pattern is first taught in the presentation.",
+        )
+    return OutlineSection(
         phase=Phase.WARM_UP, title=WARM_UP_TITLE, minutes=0, activity_type=WARM_UP_ACTIVITY
     )
-    if period <= 1:
-        return section
-    refs = _review_refs(chunks, docs)
-    if not refs:
-        logger.info(
-            "lesson %d, period %d: the sources hold no text for activities 1-%d, so the warm-up "
-            "opens without a review",
-            lesson_no,
-            period,
-            REVIEW_ACTIVITIES,
-        )
-        return section
-    return section.model_copy(update={"title": REVIEW_TITLE, "span_refs": refs, "review": True})
+
+
+def _review_section(refs: list[SpanRef]) -> OutlineSection:
+    """The presentation of a period 2: the words and pattern of activities 1-2, said again."""
+    return OutlineSection(
+        phase=Phase.PRESENTATION,
+        title=REVIEW_TITLE,
+        minutes=0,
+        activity_type=ActivityType.LOOK_LISTEN_REPEAT,
+        span_refs=refs,
+        review=True,
+        notes="Review of the previous period's words and pattern; no new language.",
+    )
 
 
 def build_skeleton(
@@ -280,6 +295,19 @@ def build_skeleton(
 
     chunks_by_number = _lesson_chunks(sources, lesson_no)
 
+    review_refs: list[SpanRef] = []
+    if period > 1:
+        review_refs = _review_refs(chunks_by_number, docs)
+        if not review_refs:
+            logger.info(
+                "lesson %d, period %d: the sources hold no text for activities 1-%d, so the "
+                "period opens without a review",
+                lesson_no,
+                period,
+                REVIEW_ACTIVITIES,
+            )
+    reviewing = bool(review_refs)
+
     content: list[OutlineSection] = []
     content_templates: list[ActivityTemplate] = []
     for index, activity_type in enumerate(shape):
@@ -295,7 +323,7 @@ def build_skeleton(
             span_refs = bm25_rank_all(sources, template.title_template, k=BM25_SPANS_PER_SECTION)
         content.append(
             OutlineSection(
-                phase=phase_for(activity_type),
+                phase=PERIOD_TWO_PHASES[index] if reviewing else phase_for(activity_type),
                 title=title,
                 minutes=0,
                 activity_type=activity_type,
@@ -310,13 +338,17 @@ def build_skeleton(
     ]
 
     sections = [
-        _warm_up(chunks_by_number, docs, lesson_no=lesson_no, period=period),
+        _warm_up(lesson_no=lesson_no, period=period),
+        *([_review_section(review_refs)] if reviewing else []),
         *content,
         OutlineSection(phase=Phase.WRAP_UP, title=WRAP_UP_TITLE, minutes=0),
     ]
-    minutes = scale_minutes(
-        [_DEFAULT_MINUTES[section.phase] for section in sections], curriculum.period_minutes
+    defaults = (
+        list(PERIOD_TWO_MINUTES)
+        if reviewing
+        else [_DEFAULT_MINUTES[section.phase] for section in sections]
     )
+    minutes = scale_minutes(defaults, curriculum.period_minutes)
     sections = [
         section.model_copy(update={"minutes": value})
         for section, value in zip(sections, minutes, strict=True)

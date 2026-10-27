@@ -197,6 +197,8 @@ class VocabItem(Strict):
     meaning_vi: str | None = None
     example: str | None = None
     image: Citation | None = None
+    # A generated flashcard picture (path relative to the image root); see `classdeck illustrate`.
+    generated_picture: str | None = None
 
 
 class VocabularyContent(Strict):

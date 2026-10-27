@@ -52,11 +52,22 @@ def main(
     """ClassDeck command-line interface."""
 
 
-def _settings(provider: str | None = None) -> Settings:
+def _settings(
+    provider: str | None = None, endpoint: str | None = None, model_id: str | None = None
+) -> Settings:
+    """Effective settings for one command: provider override, then the endpoint profile."""
     settings = get_settings()
     if provider:
         settings = settings.model_copy(update={"provider": provider})
-    return settings
+    try:
+        return settings.resolved(endpoint, model_id)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/]")
+        raise typer.Exit(2) from exc
+
+
+ENDPOINT_HELP = "Named endpoint profile: meta | openrouter | deepseek (overrides MODEL_API_*)."
+MODEL_HELP = "Model id on the endpoint (default: the profile's or CLASSDECK_MODEL)."
 
 
 def _generator(settings: Settings, *, use_cache: bool = True) -> Any:
@@ -192,13 +203,15 @@ def config() -> None:
 @app.command()
 def ping(
     no_cache: bool = typer.Option(False, "--no-cache", help="Bypass the response cache."),
+    endpoint: str | None = typer.Option(None, "--endpoint", help=ENDPOINT_HELP),
+    model_id: str | None = typer.Option(None, "--model", help=MODEL_HELP),
 ) -> None:
     """Send one tiny request to the configured endpoint to confirm the key works."""
     from classdeck.llm.base import LLMError, Message
     from classdeck.llm.factory import build_provider
 
     try:
-        provider = build_provider(get_settings(), use_cache=not no_cache)
+        provider = build_provider(_settings(None, endpoint, model_id), use_cache=not no_cache)
         response = provider.complete(
             [Message(role="user", content="Reply with the single word: pong")],
             temperature=0.0,
@@ -255,11 +268,13 @@ def plan(
     out: Path | None = typer.Option(None, help="Outline JSON path (default <workdir>/outlines/)."),
     no_refine: bool = typer.Option(False, "--no-refine", help="Skeleton only, no model call."),
     provider: str | None = typer.Option(None, help="Override CLASSDECK_PROVIDER (api|mock)."),
+    endpoint: str | None = typer.Option(None, "--endpoint", help=ENDPOINT_HELP),
+    model_id: str | None = typer.Option(None, "--model", help=MODEL_HELP),
 ) -> None:
     """Outline one 35-minute period against the curriculum."""
     from classdeck.planning import outline as build_outline
 
-    settings = _settings(provider)
+    settings = _settings(provider, endpoint, model_id)
     sources = _load_sources(settings, doc_id)
     if len(sources) != len(doc_id):
         raise typer.Exit(1)
@@ -295,6 +310,8 @@ def plan(
 def draft(
     outline: Path = typer.Argument(..., exists=True, help="Outline JSON from `plan`."),
     provider: str | None = typer.Option(None, help="Override CLASSDECK_PROVIDER (api|mock)."),
+    endpoint: str | None = typer.Option(None, "--endpoint", help=ENDPOINT_HELP),
+    model_id: str | None = typer.Option(None, "--model", help=MODEL_HELP),
     no_repair: bool = typer.Option(
         False, "--no-repair", help="Skip the repair round for blocks that fail the level checks."
     ),
@@ -302,7 +319,7 @@ def draft(
     """Draft the lesson, verify grounding, run the level checks, save it to the store."""
     from classdeck.pipeline import build_lesson
 
-    settings = _settings(provider)
+    settings = _settings(provider, endpoint, model_id)
     plan_ = _load_outline(outline)
     sources = _load_sources(settings, plan_.doc_ids)
     curriculum = _curriculum(settings, plan_.grade, plan_.curriculum.version)
@@ -319,9 +336,11 @@ def draft(
 def check(
     lesson: str = typer.Argument(..., help="Lesson id or path."),
     provider: str | None = typer.Option(None, help="Override CLASSDECK_PROVIDER (api|mock)."),
+    endpoint: str | None = typer.Option(None, "--endpoint", help=ENDPOINT_HELP),
+    model_id: str | None = typer.Option(None, "--model", help=MODEL_HELP),
 ) -> None:
     """Re-run grounding verification and the level checks; print the report and save."""
-    settings = _settings(provider)
+    settings = _settings(provider, endpoint, model_id)
     current, path = _load_lesson(settings, lesson)
     sources = _load_sources(settings, (ref.doc_id for ref in current.sources))
     curriculum = _curriculum(settings, current.grade, current.curriculum.version)
@@ -338,12 +357,14 @@ def edit(
     block: list[str] = typer.Option(..., "--block", "-b", help="Target block id (repeatable)."),
     apply: bool = typer.Option(False, "--apply", help="Accept the proposal and save."),
     provider: str | None = typer.Option(None, help="Override CLASSDECK_PROVIDER (api|mock)."),
+    endpoint: str | None = typer.Option(None, "--endpoint", help=ENDPOINT_HELP),
+    model_id: str | None = typer.Option(None, "--model", help=MODEL_HELP),
 ) -> None:
     """Propose an edit to the selected blocks; preview before/after, affected blocks, checks."""
     from classdeck.editing import EditEngine, EditRejected, EditRequest
     from classdeck.llm import LLMError
 
-    settings = _settings(provider)
+    settings = _settings(provider, endpoint, model_id)
     model = _generator(settings)
     if model is None:
         console.print(
@@ -436,6 +457,80 @@ def redo(lesson: str = typer.Argument(..., help="Lesson id or path.")) -> None:
     _write_text(redo_file, json.dumps(stack, indent=2, ensure_ascii=False))
     _save_lesson(redo_revision(current, revision), path)
     console.print(f"[green]redone[/] {revision.id}")
+
+
+@app.command()
+def illustrate(
+    lesson: str = typer.Argument(..., help="Lesson id or path."),
+    endpoint: str | None = typer.Option(None, "--endpoint", help=ENDPOINT_HELP),
+    image_model: str | None = typer.Option(
+        None, "--image-model", help="Image model id (default: CLASSDECK_IMAGE_MODEL)."
+    ),
+    max_items: int = typer.Option(8, "--max", min=1, help="Most new pictures to generate."),
+    all_items: bool = typer.Option(
+        False, "--all", help="Also draw function words (pronouns, prepositions, ...)."
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Print the plan and price; draw nothing."
+    ),
+    provider: str | None = typer.Option(
+        None, "--provider", help="api | mock (default: CLASSDECK_PROVIDER)."
+    ),
+) -> None:
+    """Draw flashcard pictures for vocabulary items that have no textbook picture."""
+    from classdeck.illustrate import STYLE_GUIDE
+    from classdeck.illustrate import illustrate as run_illustrate
+    from classdeck.llm.base import LLMError
+    from classdeck.llm.images import build_image_provider
+    from classdeck.llm.pricing import estimate_image_cost_usd
+
+    if provider is not None and provider not in ("api", "mock"):
+        console.print("[red]--provider must be api or mock[/]")
+        raise typer.Exit(2)
+    settings = _settings(provider, endpoint)
+    if image_model:
+        settings = settings.model_copy(update={"image_model": image_model})
+    current, path = _load_lesson(settings, lesson)
+    images = _image_root(settings)
+
+    try:
+        image_provider = build_image_provider(settings)
+        plan = run_illustrate(
+            current,
+            provider=image_provider,
+            image_root=images,
+            max_items=max_items,
+            all_items=all_items,
+            dry_run=True,
+        )
+        for word, prompt in zip(plan.words, plan.prompts, strict=True):
+            detail = prompt.removeprefix(STYLE_GUIDE).strip().replace("\n", " | ")
+            console.print(f"  {word} -> {detail[:80]}")
+        estimate = estimate_image_cost_usd(image_provider.model, plan.planned)
+        price = "price unknown" if estimate is None else f"about ${estimate:.2f}"
+        console.print(
+            f"{plan.planned} new picture(s) with {image_provider.model} ({price}); "
+            f"{plan.reused} already on disk, {plan.skipped} over the --max limit"
+        )
+        if dry_run:
+            return
+        report = run_illustrate(
+            current,
+            provider=image_provider,
+            image_root=images,
+            max_items=max_items,
+            all_items=all_items,
+        )
+    except LLMError as exc:
+        console.print(f"[red]illustrate failed:[/] {exc}")
+        raise typer.Exit(1) from exc
+
+    _save_lesson(report.lesson, path)
+    cost = "unknown" if report.cost_usd is None else f"${report.cost_usd:.2f}"
+    console.print(
+        f"generated {report.generated}, reused {report.reused}, skipped {report.skipped}; "
+        f"cost {cost}; lesson -> {path}"
+    )
 
 
 @app.command()
@@ -587,6 +682,8 @@ def _eval_root(cases: Path) -> Path:
 def eval_cmd(
     cases: Path = typer.Argument(..., exists=True, help="A case file or a directory of cases."),
     provider: str | None = typer.Option(None, help="Override CLASSDECK_PROVIDER (api|mock)."),
+    endpoint: str | None = typer.Option(None, "--endpoint", help=ENDPOINT_HELP),
+    model_id: str | None = typer.Option(None, "--model", help=MODEL_HELP),
     report: Path | None = typer.Option(None, help="Write a JSON results file."),
     judge: bool = typer.Option(True, help="Score with the judge model when one is configured."),
 ) -> None:
@@ -594,7 +691,7 @@ def eval_cmd(
     from classdeck.evaluation import load_cases, run_cases
     from classdeck.llm import build_provider
 
-    settings = _settings(provider)
+    settings = _settings(provider, endpoint, model_id)
     model = _generator(settings)
     judge_provider = build_provider(settings, "judge") if judge and model is not None else None
     eval_dir = _eval_root(cases)

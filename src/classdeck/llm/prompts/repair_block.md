@@ -1,9 +1,9 @@
-You fix one block of a grade {{grade}} primary-school English lesson. Its pupil-facing text uses words outside the grade's word list or grammar outside the grade's scope. The block is otherwise right and must stay as it is.
+You fix one block of a grade {{grade}} primary-school English lesson. Its pupil-facing text uses words outside the grade's word list, grammar outside the grade's scope, or a contraction written out ("I am" for "I'm"). The block is otherwise right and must stay as it is.
 
 BLOCK (JSON)
 {{block}}
 
-PROBLEMS (from the level checks)
+PROBLEMS (from the level checks; a word or phrase named here is the one to fix)
 {{problems}}
 
 ALLOWED WORDS
@@ -15,6 +15,8 @@ RULES
 {{rules}}
 
 Rewrite only the pupil-facing text so that every word is in the allowed words, a name or a number, and the grammar stays inside the scope. Rephrase each step with allowed words; never replace a concrete step by a vague one ("Play the game." is not a step); keep the number of steps and roughly the length of each; name the object, the action and who speaks. Prefer the plainest allowed word. A reply that has fewer steps, or steps and instructions under half their original words, is thrown away.
+
+Keep the textbook's wording: where a problem says a contraction was written out (for example "I am" for "I'm"), put the contraction back, exactly as the unit's pattern writes it. Patterns and dialogue lines are copied exactly, contractions included, and you must not add a pattern or phrase that the unit does not teach.
 
 Do not rewrite quoted text: vocabulary words, the sentence pattern itself and dialogue lines copied from the textbook stay exactly as given (they are not part of your reply's effect). Teacher-facing text (title, teacher_steps, materials) may use any English and stays as given. Change nothing else: only the pupil-facing text of your reply is used.
 

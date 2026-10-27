@@ -8,7 +8,7 @@
 
 Done means: a grade-3 *Global Success* unit goes from PDF to an HTML deck that looks good on a projector (plus PPTX + DOCX) from the command line, with grounding verification, level checks, and at least one scripted edit with dependency flagging, all covered by eval cases — and the same result is reachable with no API key through the prompt packs.
 
-Status: every item below is implemented and covered by tests. The offline (template) pipeline passes all 20 eval cases over nine self-written units (grades 3–5, curriculum seeds for all three grades). With a real model (`openai/gpt-6-luna` via OpenRouter and an independent judge model from another family) the two public cases pass with zero out-of-list words and an independent judge mean of 3.3/5 (up from 2.6 before the repair round and the period-2 review). Still open: runs on real textbook pages (private fixtures), the teacher study, Vietnamese glosses in template drafts, and answer keys for listening tasks.
+Status: every item below is implemented and covered by tests. The offline (template) pipeline passes all 20 eval cases over nine self-written units (grades 3–5, curriculum seeds for all three grades). With a real model (`openai/gpt-6-luna` via OpenRouter and an independent judge model from another family) the two public cases pass with zero out-of-list words and an independent judge mean of 3.6/5 (up from 2.6 before the repair round, the period-2 review, glosses, answer keys and the wording check). Still open: runs on real textbook pages (private fixtures), the teacher study, Vietnamese glosses in template drafts, and answer keys for listening tasks.
 
 1. **Lesson model** — Pydantic schema, JSON store, invariants, revisions/undo. (`lesson/`)
 2. **LLM provider** — Meta Model API adapter via the OpenAI-compatible SDK, mock provider, disk cache, structured-output helper, `ping`. (`llm/`)
@@ -38,7 +38,7 @@ Primary English material is pictures and audio as much as text; this phase uses 
 
 - **Scanned pages** — Muse Spark vision: page image → spans with positions, picture descriptions for flashcards.
 - **Audio tracks** — Muse Voice Transcribe: the unit's listening tracks → transcript spans, so *Listen and tick* activities cite the actual script.
-- **Flashcards** — optional illustration generation with Muse Image for words whose page picture is missing or unusable, clearly labelled as generated.
+- **Flashcards** ✅ — `classdeck illustrate` draws a picture for each vocabulary item without a textbook picture (Muse Image 1.0 through the `meta` endpoint; mock provider offline), cached by prompt hash and labelled *AI picture* in teacher mode.
 - Word-level selection in the editor.
 - Teacher study: 3–5 teachers, review sheet, `time_to_ready_min` and `manual_fix_ratio`.
 

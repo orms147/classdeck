@@ -2,10 +2,11 @@
 
 The level checks are deterministic and the drafting model never sees them, so a model-drafted
 period usually ends with a few ``english.vocab_level`` warnings on pupil-facing text and the odd
-``english.grammar_scope`` hit. :func:`repair_lesson` sends each such block -- only blocks the
-model wrote, at most :data:`MAX_REPAIR_BLOCKS` of them, once -- back with the offending words
-and the allowed words, and accepts the reply only when the engine can measure an improvement:
-same id and kind, valid content, strictly fewer offending words and hits (and no more hits),
+``english.grammar_scope`` hit or ``english.wording_kept`` warning (a contraction written out).
+:func:`repair_lesson` sends each such block -- only blocks the model wrote, at most
+:data:`MAX_REPAIR_BLOCKS` of them, once -- back with the offending words and the allowed words,
+and accepts the reply only when the engine can measure an improvement: same id and kind, valid
+content, strictly fewer offending words, hits and written-out contractions (and no more hits),
 no check turned ``fail``. Only the pupil-facing text of the reply is taken: teacher steps,
 timing, skills and every other field of the block (citations, provenance, dependencies, checks,
 teacher note) stay as they were. Cited text is never rewritten: blocks whose provenance is
@@ -33,11 +34,14 @@ from classdeck.english.validators import (
     GRAMMAR_SCOPE,
     VOCAB_LEVEL,
     VOCAB_LEVEL_KINDS,
+    WORDING_KEPT,
     allowed_forms,
+    contraction_expansions,
     grammar_hits,
     steps_present,
     tokenize,
     vocab_offenders,
+    wording_offenders,
 )
 from classdeck.lesson.schema import (
     Block,
@@ -64,7 +68,7 @@ MAX_ROUNDS = 1
 """Each offending block is sent once; a reply that does not improve it is dropped."""
 
 REPAIR_PROMPT = "repair_block"
-REPAIRED_CHECKS: frozenset[str] = frozenset({VOCAB_LEVEL, GRAMMAR_SCOPE})
+REPAIRED_CHECKS: frozenset[str] = frozenset({VOCAB_LEVEL, GRAMMAR_SCOPE, WORDING_KEPT})
 """The checks whose ``warn`` makes a model-written block a repair candidate."""
 
 Sources = Mapping[str, SourceDocument]
@@ -121,13 +125,17 @@ def offences(
     allowed: frozenset[str],
     rules: Iterable[GrammarRule],
     sources: Sources | None,
+    expansions: Mapping[str, str] | None = None,
 ) -> list[str]:
-    """The offending words and grammar hits of ``block``, as the two validators would list them."""
+    """The offending words, grammar hits and written-out contractions of ``block``, as the
+    three validators would list them."""
     found: list[str] = []
     if block.kind in VOCAB_LEVEL_KINDS:
         found.extend(vocab_offenders(block, allowed, sources))
     if block.kind in GRAMMAR_KINDS:
         found.extend(grammar_hits(block, rules))
+    if expansions:
+        found.extend(wording_offenders(block, expansions))
     return found
 
 
@@ -316,9 +324,10 @@ def repair_lesson(
         return result, report
     allowed = allowed_forms(lesson, curriculum)
     rules = curriculum.forbidden_rules()
+    expansions = contraction_expansions(lesson)
     for block in candidates[:max_blocks]:
         report.sent.append(block.id)
-        before = offences(block, allowed, rules, sources)
+        before = offences(block, allowed, rules, sources, expansions)
         prompt = repair_prompt(block, lesson, curriculum, sources)
         messages = [Message(role="user", content=prompt)]
         try:
@@ -340,7 +349,7 @@ def repair_lesson(
         except ValidationError as exc:
             report.kept[block.id] = f"content is not valid {block.kind}: {_first_error(exc)}"
             continue
-        after = offences(candidate, allowed, rules, sources)
+        after = offences(candidate, allowed, rules, sources, expansions)
         if len(after) >= len(before):
             report.kept[block.id] = (
                 f"still {len(after)} offending word(s) or hit(s) (was {len(before)})"

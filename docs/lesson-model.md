@@ -78,7 +78,7 @@ Produced by `ingest/`. A span is the smallest unit a citation can point at.
 
 `blocks` is a map keyed by `block_id`; `sections` hold ordered `block_ids`. This keeps a block's identity independent of its position, so moving a block is a section edit, not a block rewrite.
 
-A *Global Success* unit has three lessons of six activities each, taught over two 35-minute periods per lesson. A `Lesson` here is **one period**: that is what a teacher plans and what a slide deck covers.
+A *Global Success* unit has three lessons of six activities each, taught over two 35-minute periods per lesson. A `Lesson` here is **one period**: that is what a teacher plans and what a slide deck covers. Period 1 has five sections; period 2 has six, with a `presentation` that reviews the previous period (see [planning.md](planning.md#period-2-shape)).
 
 ### Section
 
@@ -165,7 +165,7 @@ An activity the model added on its own, depending on the pattern it drills:
 | kind | content fields | typical provenance |
 |---|---|---|
 | `objective` | `text`, `outcome_ids[]`, `skills[]` | derived (from curriculum) |
-| `vocabulary` | `items[]: {word, ipa, pos, meaning_vi, example, image?}` | extracted / generated |
+| `vocabulary` | `items[]: {word, ipa, pos, meaning_vi, example, image?, generated_picture?}`; an empty `meaning_vi` is filled from the bundled gloss list by the validator step (`english.gloss_present`) | extracted / generated |
 | `sentence_pattern` | `pattern`, `function`, `examples[]`, `notes` | extracted |
 | `dialogue` | `context`, `lines[]: {speaker, text}` | extracted |
 | `phonics` | `sound`, `letters`, `words[]`, `chant_lines[]` | extracted |
@@ -173,6 +173,8 @@ An activity the model added on its own, depending on the pattern it drills:
 | `teacher_note` | `text` | generated |
 | `summary` | `bullets[]` | derived |
 | `image_ref` | `caption`, `alt` (the image itself is the cited span) | extracted |
+
+An `activity` of type `listen_and_do` or `look_complete_read` ends its `teacher_steps` with an answer key (`Answer key: ...`, or a step to play the audio twice and check on the board when the key cannot be derived).
 
 `activity.type` ∈ `look_listen_repeat | listen_point_say | lets_talk | listen_and_do | look_complete_read | read_and_match | lets_write | song | chant | game | role_play | project | tpr | other` — the shapes a *Global Success* lesson is built from, plus the generic ones a teacher adds.
 

@@ -8,6 +8,7 @@ What a teacher gets out of ClassDeck, in order of importance:
 | PPTX | teachers who must hand in or edit PowerPoint | `export/pptx.py` | done, see [english-rules.md](english-rules.md#export-conventions) |
 | DOCX lesson plan | the written plan (two-column Teacher's / Students' activities) | `export/docx.py` | done, see [english-rules.md](english-rules.md#export-conventions) |
 | Prompt packs | teachers with no API key: hand the generative step to a free chat model in the browser | `handoff/` | spec below |
+| Flashcard pictures | vocabulary items without a textbook picture | `classdeck illustrate` (`llm/images.py`) | spec below |
 
 The goal that orders this list: **lessons that look good and feel right for 8–10-year-olds**. A grounded, well-checked lesson that looks like a budget report is not a lesson a teacher will show. The HTML deck is where the visual effort goes; PPTX and DOCX are faithful but plain.
 
@@ -52,6 +53,17 @@ One self-contained file, `<lesson_id>.html`: all CSS and JavaScript inline, ever
 - Rendered from `export/deck_template.html` plus `export/themes/<theme>.css` by a small internal renderer (string substitution and escaped HTML fragments; no template-engine dependency). Every rendered block carries `data-block-id`, `data-kind`, `data-provenance`, so the deck can be checked against the lesson later. Pictures are `<img data-block-id="b_02" data-item="0" alt="hello" src="data:…">` — the same attributes a hand-off deck must use as placeholders, so `check-deck` can embed the real pictures.
 - `export_html(lesson, out_path, *, sources=None, image_root=None, theme="kids") -> Path`; the same `ensure_exportable` gate as the other writers (`fail` blocks the export, `warn` is listed in teacher mode).
 - Tests parse the file: one element per placed block with the right `data-block-id`; images are `data:` URIs and there is no `http://`/`https://` reference; teacher-only elements carry class `teacher`; the fixture deck is under 5 MB.
+
+## Flashcard pictures (`classdeck illustrate`)
+
+Primary-English flashcards live or die by their pictures. The textbook page usually has one scene picture per activity, not one picture per word, so most vocabulary items have no `image` citation and the flashcard slide falls back to word + IPA. `classdeck illustrate` fills that gap with an image model.
+
+- **What it draws.** One picture per vocabulary item that has no cited picture and whose `pos` is a content word (nouns, verbs, adjectives, interjections; pronouns, determiners, prepositions and conjunctions are skipped unless `--all`). The prompt is fixed by a style guide, not by the model: *flat, friendly children's-textbook illustration, a single clear subject for the word, plain white background, bright pastel colours, simple shapes, no text, no letters, no logo*, plus the word, its gloss and its example sentence for disambiguation.
+- **Where it goes.** `<workdir>/images/generated/<sha256(prompt)[:16]>.png`, downscaled to 512 px on the long side and re-encoded as PNG (the API returns up to 1024 px). The item records it in `VocabItem.generated_picture` (path relative to the image root) — a new optional field next to `image`. The hash makes re-runs free and lets two lessons share a picture.
+- **Provenance.** A generated picture is content the model added, so the deck, PPTX and DOCX show it with the same **AI-added** marker as generated text (teacher mode on the deck; a small caption in PPTX/DOCX). The `handoff` deck pack lists it as a generated picture and `check-deck` embeds it like a cited one.
+- **Provider.** The images endpoint of any OpenAI-compatible API (`client.images.generate`), configured by the same endpoint profile as the text model: with `--endpoint meta` it is the Meta Model API's `muse-image-1.0` ($0.01 per image, PNG via `output_format="png"`); `CLASSDECK_IMAGE_MODEL` overrides the model id. Offline (`--provider mock`) a flat placeholder picture with the word on a coloured card is produced, so tests and CI never call the API.
+- **Cost control.** `--max N` (default 8 per lesson), a dry run that prints the prompts and the price before generating (`--dry-run`), and the prompt-hash cache. A typical period (2–6 new words) costs $0.02–0.06.
+- **Not done here.** Pictures for `image_ref` blocks and dialogue scenes (the textbook already has those), and style variations; both are later options.
 
 ## Prompt packs (`handoff/`)
 

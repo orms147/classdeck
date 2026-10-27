@@ -320,6 +320,8 @@ def _picture_citation(
             if item >= len(items):
                 return None, f"the block has no item {item}"
             if items[item].image is None:
+                if items[item].generated_picture:
+                    return None, ""
                 return None, "the item cites no picture"
             return items[item].image, ""
         case ImageRefBlock():
@@ -349,6 +351,24 @@ def _picture_file(
         return None, f"image path {span.image_path!r} escapes image_root"
     if not path.is_file():
         return None, f"image file {span.image_path!r} not found"
+    return path, ""
+
+
+def _generated_file(
+    lesson: Lesson, placeholder: _Placeholder, image_root: Path | None
+) -> tuple[Path | None, str]:
+    """The generated flashcard picture of a vocabulary item, if it lies inside ``image_root``."""
+    if image_root is None:
+        return None, "image_root is needed to embed pictures"
+    block = lesson.blocks[placeholder.block_id]
+    assert isinstance(block, VocabularyBlock)
+    relative = block.content.items[int((placeholder.item or "0").strip())].generated_picture or ""
+    root = Path(image_root).resolve()
+    path = (root / relative).resolve()
+    if not path.is_relative_to(root):
+        return None, f"image path {relative!r} escapes image_root"
+    if not path.is_file():
+        return None, f"image file {relative!r} not found"
     return path, ""
 
 
@@ -432,6 +452,8 @@ def check_deck(
         path = None
         if citation is not None:
             path, problem = _picture_file(citation, sources, image_root)
+        elif not problem:
+            path, problem = _generated_file(lesson, placeholder, image_root)
         if path is None:
             unresolved.append(f"{label}: {problem}")
         elif placeholder.start < 0:

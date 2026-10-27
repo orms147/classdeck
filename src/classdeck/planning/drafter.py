@@ -109,6 +109,16 @@ OPTION_PREFIXES: dict[ActivityType, str] = {
 }
 """Tick-the-picture and gap-fill activities carry the chunk's option or gap lines the same way."""
 
+ANSWER_KEY_TYPES: frozenset[ActivityType] = frozenset(
+    {ActivityType.LISTEN_AND_DO, ActivityType.LOOK_COMPLETE_READ}
+)
+"""Activities with a right answer: the teacher's steps end with an answer key."""
+ANSWER_KEY_LABEL = "Answer key:"
+ANSWER_KEY_FALLBACK = "Play the audio twice; check the answers together on the board."
+
+REVIEW_ACTIVITY_TITLE = "Say it again"
+REVIEW_ACTIVITY_MINUTES = 5
+
 _TAUGHT_KINDS = frozenset(
     {BlockKind.DIALOGUE, BlockKind.VOCABULARY, BlockKind.SENTENCE_PATTERN, BlockKind.PHONICS}
 )
@@ -128,10 +138,43 @@ _WARM_UP_RULES = (
     "ball, cards). Never write a vague step such as 'Play the game.' The template below is the "
     "shape to fall back on: a circle, a ball, one short sentence each."
 )
+_TPR_RULES = (
+    "Use classroom language only (stand up, sit down, clap, jump, wave, point to the board, "
+    "touch the door): this period teaches a new pattern, so the warm-up must not use it, and it "
+    "needs no greeting. Give 3 to 5 student steps, each a concrete action pupils do on the "
+    "teacher's command, and say in the teacher steps who gives the commands and how many rounds "
+    "to run."
+)
+_STEP_RULES = (
+    "Make the steps concrete. teacher_steps say what to point at or show (a picture card, a line "
+    "on the board), who speaks first, how many rounds to run and how to check the answers or the "
+    "talk. student_steps are 3 to 5 concrete imperatives that name the action and who does it "
+    "(for example 'Pupil A: point to a picture and say ...'); never 'Do the activity.'"
+)
+_WORDING_RULE = (
+    "Copy the unit's patterns and the span's dialogue lines exactly, contractions included: write "
+    "I'm, never I am. Do not introduce a pattern or phrase that the unit does not teach (no "
+    "'Nice to meet you' unless it is a unit pattern or in the spans)."
+)
+_ANSWER_KEY_RULE = (
+    "A listen_and_do or look_complete_read activity must end its teacher_steps with a step "
+    "'Answer key: ...' that gives the correct option letter(s) or the completed sentences, "
+    "worked out from the lesson's dialogue and patterns; when the audio decides the answer, give "
+    "your best answer and add 'check it against the audio'."
+)
+_COPIED_LINES_RULE = (
+    "A song or chant activity has the instructions 'Sing together:' or 'Chant together:' and "
+    "the lyric lines of the spans below as its student steps, one line per step, copied word for "
+    "word, citing those spans. A listen_and_do or look_complete_read activity copies the "
+    "spans' option or gap-fill lines into its student steps in the same way ('Listen. Tick: a. "
+    "...', 'Complete: ...') and cites them. " + _ANSWER_KEY_RULE
+)
 _PHASE_GUIDANCE: dict[Phase, str] = {
     Phase.WARM_UP: (
         "Exactly one activity block, of type game or song, that reviews language the pupils "
-        "already know. Introduce no new words or patterns and cite no span. " + _WARM_UP_RULES
+        "already know (earlier units, or the previous period). The new pattern appears only "
+        "from the presentation onward: do not drill it here. Introduce no new words or patterns "
+        "and cite no span. " + _WARM_UP_RULES
     ),
     Phase.PRESENTATION: (
         "Introduce the new language: the dialogue (or the phonics block in a phonics lesson), "
@@ -139,20 +182,31 @@ _PHASE_GUIDANCE: dict[Phase, str] = {
     ),
     Phase.PRACTICE: (
         "One activity that drills the section's pattern and words in controlled practice. "
+        + _STEP_RULES
+        + " "
         + _COPIED_LINES_RULE
     ),
     Phase.PRODUCTION: (
         "One freer activity in which pupils use the pattern and words to communicate. "
+        + _STEP_RULES
+        + " "
         + _COPIED_LINES_RULE
     ),
     Phase.WRAP_UP: "Recap only; the engine writes the summary.",
 }
+_TPR_GUIDANCE = (
+    "Exactly one activity block, of type tpr. It is the warm-up of the period that first "
+    "teaches the unit's pattern, so it uses no new language and none of the unit's words or "
+    "pattern. Cite no span. " + _TPR_RULES
+)
 _REVIEW_GUIDANCE = (
-    "This warm-up reviews the words and the pattern of the previous period, which the spans "
-    "below carry; the engine has already built the vocabulary and sentence_pattern blocks from "
-    "them, so do not write those. Write exactly one activity block, of type game or song, in "
-    "which pupils use these words and this pattern again. Introduce no new language and cite no "
-    "span. " + _WARM_UP_RULES
+    "This section opens the period by reviewing the words and the pattern of the previous "
+    "period, which the spans below carry; the engine has already built the vocabulary and "
+    "sentence_pattern blocks from them, so do not write those. Write exactly one activity "
+    "block, of type look_listen_repeat, titled 'Say it again', in which pupils listen to the "
+    "teacher and repeat these words and this pattern. Introduce no new language and cite no "
+    "span. Give 3 to 5 student steps (who repeats, in what order, how the turn passes) and "
+    "teacher steps that name what to point at or show."
 )
 _PLACEHOLDER = re.compile(r"\{\{\s*(\w+)\s*\}\}")
 _GREETING = re.compile(
@@ -193,6 +247,9 @@ class SectionContext:
     rules: str
     allowed_words: list[str] = field(default_factory=list)
     """``curriculum.word_list(unit_id)`` sorted: what pupil-facing text may use."""
+    reference_lines: list[str] = field(default_factory=list)
+    """Text lines of the outline's other sections (dialogue, frames, lyrics; no headings,
+    instructions, pictures or other exercises' options): what an answer key is worked out from."""
 
     @property
     def qualified(self) -> bool:
@@ -233,6 +290,26 @@ class SectionContext:
         return [(ref, span) for ref, span in self.spans if span.kind is SpanKind.IMAGE]
 
 
+def _reference_lines(outline: Outline, index: int, docs: Mapping[str, SourceDocument]) -> list[str]:
+    """The text lines of every section but ``outline.sections[index]``, in outline order."""
+    lines: dict[str, None] = {}
+    for position, other in enumerate(outline.sections):
+        if position == index or other.activity_type in ANSWER_KEY_TYPES:
+            continue  # another exercise's options are not what the lesson teaches
+        for ref in other.span_refs:
+            span = resolve_ref(docs, ref)
+            if (
+                span is None
+                or span.kind in (SpanKind.HEADING, SpanKind.IMAGE)
+                or instruction_number(span) is not None
+            ):
+                continue
+            for line in span.text.splitlines():
+                if line.strip():
+                    lines[line.strip()] = None
+    return list(lines)
+
+
 def build_context(
     outline: Outline, index: int, sources: Sequence[SourceDocument], curriculum: Curriculum
 ) -> SectionContext:
@@ -262,6 +339,7 @@ def build_context(
         template=template,
         rules=prompt_rules(outline.grade, curriculum),
         allowed_words=sorted(curriculum.word_list(unit.id)),
+        reference_lines=_reference_lines(outline, index, docs),
     )
 
 
@@ -385,6 +463,186 @@ def with_copied_lines(content: ActivityContent, lines: Sequence[str]) -> Activit
     )
 
 
+# --- answer keys -------------------------------------------------------------------------------
+
+_OPTION = re.compile(r"(?:^|\s)([a-d])[.)]\s+")
+_SLOT_RUN = re.compile(r"_{2,}")
+_GAP_WORDS = r"([^\s.,!?_]+(?:\s[^\s.,!?_]+)?)"
+_INTRODUCED_NAME = re.compile(rf"\bI[{_APOSTROPHES}]m\s+([A-Z][a-z]+)")
+
+
+def _normal(text: str) -> str:
+    return " ".join(
+        re.findall(r"[a-z0-9']+", text.lower().replace("\N{RIGHT SINGLE QUOTATION MARK}", "'"))
+    )
+
+
+def _options(lines: Sequence[str]) -> list[tuple[str, str]]:
+    """``a. ... b. ...`` option lines as ``(letter, text)``; empty unless they run a, b, c ..."""
+    text = " ".join(lines)
+    found = list(_OPTION.finditer(text))
+    if len(found) < 2:
+        return []
+    options = [
+        (match.group(1), text[match.end() : found[i + 1].start() if i + 1 < len(found) else None])
+        for i, match in enumerate(found)
+    ]
+    options = [(letter, body.strip()) for letter, body in options]
+    if [letter for letter, _ in options] != list("abcd")[: len(options)]:
+        return []
+    return options
+
+
+def _taught_matchers(context: SectionContext) -> tuple[set[str], list[re.Pattern[str]]]:
+    """Normalised sentences, and regexes of frames and unit patterns, the lesson run teaches."""
+    sentences: set[str] = set()
+    regexes: list[re.Pattern[str]] = []
+    for line in context.reference_lines:
+        if "__" in line:
+            regex = pattern_regex(line)
+            if regex is not None:
+                regexes.append(regex)
+            continue
+        sentences.update(_normal(part) for part in _SENTENCE_END.split(line) if part.strip())
+    for pattern in context.unit.patterns:
+        regex = pattern_regex(pattern.pattern)
+        if regex is not None:
+            regexes.append(regex)
+    return sentences, regexes
+
+
+def _option_key(context: SectionContext, lines: Sequence[str]) -> str:
+    """The options that repeat the lesson's dialogue or pattern, when that singles them out."""
+    options = _options(lines)
+    if not options:
+        return ""
+    sentences, regexes = _taught_matchers(context)
+    matching = [
+        (letter, body)
+        for letter, body in options
+        if _normal(body) in sentences or any(regex.search(body) for regex in regexes)
+    ]
+    if not matching or len(matching) == len(options):
+        return ""
+    answers = " / ".join(f"{letter}. {body}" for letter, body in matching)
+    return f"{answers} (it matches the lesson's dialogue and pattern; confirm it with the audio)"
+
+
+def _gap_regex(line: str) -> re.Pattern[str]:
+    pieces = [re.escape(piece).replace("\\ ", r"\s+") for piece in _SLOT_RUN.split(line.strip())]
+    body = _GAP_WORDS.join(piece.replace("'", f"[{_APOSTROPHES}]") for piece in pieces)
+    return re.compile(rf"(?<!\w){body}", re.IGNORECASE)
+
+
+def _gap_key(context: SectionContext, lines: Sequence[str]) -> str:
+    """Each gap-fill line completed from the dialogue the lesson run teaches, else from the
+    unit's pattern and the names in the dialogue; empty unless every gap line is completed."""
+    gaps = [line for line in lines if _SLOT_RUN.search(line)]
+    if not gaps:
+        return ""
+    taught = " ".join(line for line in context.reference_lines if "__" not in line)
+    names = list(dict.fromkeys(m.group(1) for m in _INTRODUCED_NAME.finditer(taught)))
+    patterns = [r for r in (pattern_regex(p.pattern) for p in context.unit.patterns) if r]
+    answers: list[str] = []
+    for line in gaps:
+        found = _gap_regex(line).search(taught)
+        if found is not None:
+            answers.append(" ".join(found.group(0).split()))
+            continue
+        if not names:
+            return ""
+        pieces = _SLOT_RUN.split(line)
+        filled = pieces[0] + "".join(
+            f"{names[i % len(names)]}{piece}" for i, piece in enumerate(pieces[1:])
+        )
+        if not any(regex.search(filled) for regex in patterns):
+            return ""
+        answers.append(filled)
+    return " / ".join(answers)
+
+
+def answer_key(context: SectionContext, activity_type: ActivityType) -> str:
+    """The teacher step that closes a listen-and-do or gap-fill activity.
+
+    ``Answer key: ...`` when the key can be worked out from the section's option or gap-fill
+    lines and the dialogue and patterns of the lesson run, else a step to play the audio twice
+    and check the answers on the board.
+    """
+    lines = [text for _, text in copied_lines(context, activity_type)]
+    if activity_type is ActivityType.LISTEN_AND_DO:
+        key = _option_key(context, lines)
+    else:
+        key = _gap_key(context, lines)
+    return f"{ANSWER_KEY_LABEL} {key}" if key else ANSWER_KEY_FALLBACK
+
+
+def _has_answer_key(teacher_steps: Sequence[object]) -> bool:
+    return any(isinstance(step, str) and "answer key" in step.lower() for step in teacher_steps)
+
+
+def with_answer_key(content: ActivityContent, step: str) -> ActivityContent:
+    """``content`` with ``step`` appended to its teacher steps, unless it has an answer key."""
+    if _has_answer_key(content.teacher_steps):
+        return content
+    return content.model_copy(update={"teacher_steps": [*content.teacher_steps, step]})
+
+
+def add_answer_keys(reply: DraftSection, context: SectionContext) -> DraftSection:
+    """``reply`` with an answer-key step on every listen-and-do or gap-fill activity lacking one."""
+    blocks: list[DraftBlock] = []
+    for block in reply.blocks:
+        content = block.content
+        try:
+            activity_type = ActivityType(content.get("type"))
+        except ValueError:
+            activity_type = None
+        steps = content.get("teacher_steps")
+        if (
+            block.kind is BlockKind.ACTIVITY
+            and activity_type in ANSWER_KEY_TYPES
+            and isinstance(steps, list)
+            and not _has_answer_key(steps)
+        ):
+            block = block.model_copy(
+                update={
+                    "content": {
+                        **content,
+                        "teacher_steps": [*steps, answer_key(context, activity_type)],
+                    }
+                }
+            )
+        blocks.append(block)
+    return DraftSection(blocks=blocks)
+
+
+def review_activity_content(language: SectionLanguage) -> ActivityContent:
+    """*Say it again*: the presentation of a period 2 repeats the words and the pattern."""
+    template = load_activity_templates()[ActivityType.LOOK_LISTEN_REPEAT]
+    pattern, words = language.pattern_text, language.words_text
+    student_steps = ["Look at the board.", "Listen to the teacher."]
+    if words:
+        student_steps.append(f"Repeat the words: {words}")
+    if pattern:
+        student_steps.append(f"Say the pattern: {pattern}")
+    teacher_steps = [
+        "Point to each word on the board and say it; the class repeats after you.",
+        "Say the pattern and ask the class to repeat it, first together, then row by row: "
+        + (pattern or "a sentence from the last period"),
+        "Ask three pupils to say the pattern alone; correct gently and praise good tries.",
+    ]
+    return ActivityContent(
+        type=ActivityType.LOOK_LISTEN_REPEAT,
+        title=REVIEW_ACTIVITY_TITLE,
+        skills=list(template.default_skills),
+        interaction=template.default_interaction,
+        minutes=REVIEW_ACTIVITY_MINUTES,
+        instructions=f"Listen and repeat: {words}." if words else "Listen and repeat.",
+        teacher_steps=teacher_steps,
+        student_steps=student_steps,
+        competency_tags=["communication"],
+    )
+
+
 # --- drafters ----------------------------------------------------------------------------------
 
 
@@ -426,7 +684,7 @@ class TemplateDrafter:
         return DraftSection(blocks=blocks)
 
     def review_blocks(self, context: SectionContext) -> list[DraftBlock]:
-        """The blocks a review warm-up opens with: the unit words and patterns in its spans.
+        """The blocks a review presentation opens with: the unit words and patterns in its spans.
 
         Built exactly as the presentation drafter builds them, citing the spans they come from;
         empty when the spans carry no unit word and match no unit pattern.
@@ -574,13 +832,17 @@ class TemplateDrafter:
         )
         instruction = context.instruction()
         content = activity_content(filled, activity_type)
+        if context.section.review and context.section.phase is Phase.PRESENTATION:
+            content = review_activity_content(language)
         lines: list[tuple[SpanRef, str]] = []
         if context.section.phase is not Phase.WARM_UP:
             lines = copied_lines(context, activity_type)
         if lines:
             content = with_copied_lines(content, [text for _, text in lines])
-        if context.section.phase is Phase.WARM_UP:
-            span_ids: list[str] = []  # a warm-up game is ours, even when it reviews cited spans
+        if activity_type in ANSWER_KEY_TYPES and context.section.phase is not Phase.WARM_UP:
+            content = with_answer_key(content, answer_key(context, activity_type))
+        if context.section.phase is Phase.WARM_UP or context.section.review:
+            span_ids: list[str] = []  # a warm-up or review activity is ours, even over cited spans
         elif lines:
             cited = [instruction[0]] if instruction is not None else []
             cited.extend(ref for ref, _ in lines)
@@ -598,13 +860,13 @@ class TemplateDrafter:
 
 
 def review_proposal(reply: DraftSection, fallback: DraftSection) -> tuple[DraftSection, bool]:
-    """What a review warm-up takes from a drafter's reply: its one activity, citing nothing.
+    """What a review presentation takes from a drafter's reply: its one activity, citing nothing.
 
     The engine builds the vocabulary and pattern blocks of a review itself
     (:meth:`TemplateDrafter.review_blocks`), so any other block in ``reply`` is dropped, and the
-    game is ours: its proposed citations go, as for the template's. A reply with no activity is
-    replaced by ``fallback``'s (the template drafter's). Returns the proposal and whether it
-    still comes from ``reply``.
+    repeat activity is ours: its proposed citations go, as for the template's. A reply with no
+    activity is replaced by ``fallback``'s (the template drafter's). Returns the proposal and
+    whether it still comes from ``reply``.
     """
     activity = next((block for block in reply.blocks if block.kind is BlockKind.ACTIVITY), None)
     if activity is None:
@@ -742,7 +1004,7 @@ class ModelDrafter:
                 reply_text = reply.model_dump_json()
                 problems = reply_problems(reply, context)
                 if not problems:
-                    return reply
+                    return add_answer_keys(reply, context)
             if attempt == 0:
                 listed = "\n".join(f"- {problem}" for problem in problems)
                 messages = [
@@ -774,6 +1036,11 @@ class ModelDrafter:
         phonics = [f"- {p.sound} ({p.letters}): {', '.join(p.words)}" for p in unit.phonics]
         if context.section.review:
             guidance = _REVIEW_GUIDANCE
+        elif (
+            context.section.phase is Phase.WARM_UP
+            and context.section.activity_type is ActivityType.TPR
+        ):
+            guidance = _TPR_GUIDANCE
         else:
             guidance = _PHASE_GUIDANCE[context.section.phase]
         return load_prompt(
@@ -1012,9 +1279,10 @@ def draft_lesson_report(
     With a provider each section is drafted by the model and falls back to the template drafter
     when its reply fails validation twice; without one every section is template-drafted. The
     wrap-up is always built by the engine, and so are the vocabulary and pattern blocks that
-    open a review warm-up (``OutlineSection.review``). Provenance is a proposal for grounding to
-    confirm: ``extracted`` for cited blocks, ``generated`` for the rest, and ``derived`` for an
-    activity built from a textbook instruction line that depends on the language it drills.
+    open a review presentation (``OutlineSection.review``). Provenance is a proposal for
+    grounding to confirm: ``extracted`` for cited blocks, ``generated`` for the rest, and
+    ``derived`` for an activity built from a textbook instruction line that depends on the
+    language it drills.
     """
     if not outline.sections:
         raise ValueError("the outline has no sections")
@@ -1053,6 +1321,10 @@ def draft_lesson_report(
             if from_model:
                 report.model_block_ids.update(block.id for block in drafted[len(review) :])
             textbook_activities.extend(_instruction_activities(drafted, context))
+            if outline_section.review:
+                textbook_activities.extend(
+                    block.id for block in drafted if isinstance(block, ActivityBlock)
+                )
             section_blocks.extend(drafted)
         for block in section_blocks:
             blocks[block.id] = block

@@ -24,6 +24,7 @@ from classdeck.english.rules import PHASES
 from classdeck.export.source_map import (
     AI_ADDED_BADGE,
     AI_ADDED_NOTE,
+    AI_PICTURE_CAPTION,
     PROVENANCE_LABEL,
     build_source_map,
     collect_warnings,
@@ -49,6 +50,7 @@ from classdeck.lesson import (
     SpanKind,
     SummaryBlock,
     TeacherNoteBlock,
+    VocabItem,
     VocabularyBlock,
 )
 
@@ -371,20 +373,49 @@ class _DeckBuilder:
         span = document.find_span(citation.page, citation.span_id) if document else None
         if span is None or span.kind is not SpanKind.IMAGE or not span.image_path:
             return None
+        return self._file_uri(span.image_path)
+
+    def _file_uri(self, relative: str) -> str | None:
+        """A ``data:`` URI for ``relative`` under ``image_root``; ``None`` when it escapes the root,
+        is missing or is not a known image format."""
+        if self.image_root is None:
+            return None
         root = self.image_root.resolve()
-        path = (root / span.image_path).resolve()
+        path = (root / relative).resolve()
         if not path.is_relative_to(root) or not path.is_file():
             return None
         if path not in self._pictures:
             self._pictures[path] = _data_uri(path.read_bytes())
         return self._pictures[path]
 
-    def _image(self, uri: str, *, block_id: str, item: int, alt: str, class_: str = "") -> str:
+    def _vocab_picture(self, item: VocabItem) -> tuple[str | None, bool]:
+        """The flashcard picture and whether it was generated: the cited textbook picture first,
+        else the item's ``generated_picture``."""
+        uri = self._picture(item.image)
+        if uri:
+            return uri, False
+        if item.generated_picture:
+            uri = self._file_uri(item.generated_picture)
+            if uri:
+                return uri, True
+        return None, False
+
+    def _image(
+        self,
+        uri: str,
+        *,
+        block_id: str,
+        item: int,
+        alt: str,
+        class_: str = "",
+        generated: bool = False,
+    ) -> str:
         return _el(
             "img",
             class_=class_ or None,
             data_block_id=block_id,
             data_item=str(item),
+            data_generated="true" if generated else None,
             alt=alt,
             src=uri,
         )
@@ -524,13 +555,20 @@ class _DeckBuilder:
     def _vocabulary(self, section: Section, block: VocabularyBlock) -> None:
         items = block.content.items
         for index, item in enumerate(items):
-            picture = self._picture(item.image)
+            picture, generated = self._vocab_picture(item)
             reveal = bool(item.meaning_vi)
             inner = ""
             if picture:
                 inner += self._image(
-                    picture, block_id=block.id, item=index, alt=item.word, class_="picture"
+                    picture,
+                    block_id=block.id,
+                    item=index,
+                    alt=item.word,
+                    class_="picture",
+                    generated=generated,
                 )
+                if generated:
+                    inner += _el("span", _esc(AI_PICTURE_CAPTION), class_="ai-picture teacher")
             inner += _el("p", _esc(item.word), class_="word")
             if item.ipa:
                 inner += _el("p", _esc(item.ipa), class_="ipa")
@@ -693,9 +731,15 @@ class _DeckBuilder:
             if not isinstance(vocabulary, VocabularyBlock):
                 continue
             for index, item in enumerate(vocabulary.content.items):
-                picture = self._picture(item.image)
+                picture, generated = self._vocab_picture(item)
                 image = (
-                    self._image(picture, block_id=vocabulary.id, item=index, alt=item.word)
+                    self._image(
+                        picture,
+                        block_id=vocabulary.id,
+                        item=index,
+                        alt=item.word,
+                        generated=generated,
+                    )
                     if picture
                     else ""
                 )

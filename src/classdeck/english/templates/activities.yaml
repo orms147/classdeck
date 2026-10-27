@@ -28,14 +28,16 @@ templates:
     title_template: "Listen, point and say"
     instructions_template: "Listen and point. Then say: {{pattern}}"
     teacher_steps:
-      - "Say a word and point to its picture."
-      - "Model the pattern: {{pattern}}"
-      - "Let pupils point and say in pairs."
-      - "Walk around and listen to the pairs."
+      - "Hold up the first picture card (or point to the first picture in the book), say its word and point to it so that every pupil can see."
+      - "Model the pattern with one confident pupil: you start, the pupil answers. {{pattern}}"
+      - "Say a word and ask the whole class to point to its picture. Do this for every picture on the page."
+      - "Put pupils in pairs. The pupil on the left, Pupil A, starts: Pupil A points to a picture and says the pattern, Pupil B answers. Run two rounds, then say 'Swap!'."
+      - "Walk around and listen. Check that pupils point while they speak; write one common mistake on the board and fix it with the class."
     student_steps:
-      - "Listen and point to the picture."
-      - "Say the pattern to your partner: {{pattern}}"
-      - "Swap roles."
+      - "Listen and point to the picture the teacher says."
+      - "Pupil A: point to a picture and say: {{pattern}}"
+      - "Pupil B: answer your partner."
+      - "Do it two times, then swap roles."
 
   lets_talk:
     default_skills: [speaking, listening]
@@ -44,13 +46,16 @@ templates:
     title_template: "Let's talk"
     instructions_template: "Talk with your partner. Use: {{pattern}}"
     teacher_steps:
-      - "Model a short talk with one pupil."
-      - "Put pupils in pairs."
-      - "Ask a few pairs to act out their talk."
+      - "Show the picture or card for the talk. Model the whole talk with one pupil: you start, the pupil answers."
+      - "Put pupils in pairs. Say who starts: the pupil on the left, Pupil A, speaks first."
+      - "Give the pairs two rounds: Pupil A starts and Pupil B answers, then they swap and talk again. Use: {{pattern}}"
+      - "Walk around, listen and note one good pair and one mistake. Ask two or three pairs to act out their talk for the class."
+      - "Check the talk with the class: write one pair's sentences on the board and read them together."
     student_steps:
-      - "Talk with your partner."
-      - "Use the pattern: {{pattern}}"
-      - "Swap roles and talk again."
+      - "Pupil A: start the talk. Say: {{pattern}}"
+      - "Pupil B: answer your partner."
+      - "Talk two times, then swap roles."
+      - "Show your talk to the class."
 
   listen_and_do:
     default_skills: [listening]
@@ -192,19 +197,22 @@ templates:
       - "Show your work to the class."
 
   tpr:
+    # Classroom language only: this is the warm-up of a period that teaches new language.
     default_skills: [listening]
     default_interaction: whole_class
-    default_minutes: 3
+    default_minutes: 4
     title_template: "Listen and do"
-    instructions_template: "Listen and do the actions: {{words}}."
+    instructions_template: "Listen and do the actions."
     teacher_steps:
-      - "Say a word and do the action."
-      - "Say the words in a new order. Pupils do the actions."
-      - "Ask a pupil to give the commands."
+      - "Say 'Stand up' and do the action. The class copies you. Then say 'Sit down' and do it."
+      - "Give the commands in a new order: clap, jump, touch the door, point to the board, wave. Go a little faster each round."
+      - "Do three rounds, then ask a confident pupil to give the commands. Praise every pupil who listens and moves."
     student_steps:
-      - "Listen to the word."
-      - "Do the action."
-      - "Give a command to the class."
+      - "Listen to the teacher."
+      - "Stand up. Sit down."
+      - "Clap. Jump. Wave."
+      - "Point to the board. Touch the door."
+      - "Say an action. The class does it."
 
   other:
     default_skills: [speaking]

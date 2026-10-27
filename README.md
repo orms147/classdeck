@@ -2,7 +2,7 @@
 
 **Eye-catching, source-grounded lessons for primary-school English teachers.** From a textbook unit to a colourful slide deck pupils enjoy — where every point still traces back to the page it came from, every new word is checked against the grade's scope by code, and the teacher stays in control of every edit.
 
-> Started during the Meta Global AI Developer Hackathon (Oct–Nov 2026), where it ran on the [Meta Model API](https://dev.meta.ai/docs/) (Muse Spark). It is model-agnostic: any OpenAI-compatible endpoint works, and inexpensive models are enough because the pipeline makes few, small calls. It also works with **no API at all** — a prompt pack hands the generative step to the free chat model a teacher already uses in the browser.
+> Started during the Meta Global AI Developer Hackathon (Oct–Nov 2026), where it runs on the [Meta Model API](https://dev.meta.ai/docs/): Muse Spark 1.3 drafts and edits lessons, Muse Image 1.0 draws flashcard pictures (`classdeck illustrate`). It is model-agnostic: any OpenAI-compatible endpoint works, and inexpensive models are enough because the pipeline makes few, small calls. It also works with **no API at all** — a prompt pack hands the generative step to the free chat model a teacher already uses in the browser.
 
 ## The problem
 
@@ -101,6 +101,7 @@ cp .env.example .env                              # optional: set MODEL_API_KEY 
 
 classdeck config                               # effective settings (keys masked)
 classdeck ping                                 # one tiny request to confirm the key works
+classdeck ping --endpoint meta                    # same, on the Meta Model API (META_API_KEY)
 ```
 
 A whole period, offline (no key needed — the deterministic template pipeline):
@@ -121,6 +122,13 @@ With a model (`CLASSDECK_PROVIDER=api`), `plan` refines the outline, `draft` wri
 classdeck edit l_xxxxxx "Reduce new words to four" -b b_xxxxxx        # preview: diff, affected blocks, checks
 classdeck edit l_xxxxxx "Reduce new words to four" -b b_xxxxxx --apply
 classdeck undo l_xxxxxx
+```
+
+Flashcards without a textbook picture can get one drawn by an image model (about $0.01 per picture on the Meta Model API; `--provider mock` draws placeholders offline):
+
+```bash
+classdeck illustrate l_xxxxxx --endpoint meta --dry-run     # list the words and the price
+classdeck illustrate l_xxxxxx --endpoint meta --max 4       # then export again: pictures are marked "AI picture" in teacher mode
 ```
 
 No API key at all? Hand the generative step to a free chat model in the browser:

@@ -810,3 +810,36 @@ def test_embedding_keeps_an_alt_text_that_contains_src(
     )
     assert 'alt="the src=b here"' in result.html
     assert re.search(r'alt="the src=b here" src="data:image/png;base64,[^"]+">', result.html)
+
+
+def test_generated_pictures_are_listed_and_embedded(
+    lesson: Lesson, sources: dict[str, SourceDocument], image_root: Path
+) -> None:
+    from classdeck.illustrate import illustrate
+    from classdeck.llm.images import MockImageProvider
+
+    report = illustrate(lesson, provider=MockImageProvider(), image_root=image_root)
+    drawn = report.lesson
+    assert "- hi /haɪ/ — chào (generated picture)\n" in render_lesson_for_prompt(  # noqa: RUF001
+        drawn, sources=sources
+    )
+
+    tag = placeholder("b_02", 1, "hi")
+    deck = deck_html(drawn, [*block_slides(drawn), tag])
+    result = check_deck(drawn, deck, sources=sources, image_root=image_root)
+    assert result.images_embedded == 1
+    assert result.images_unresolved == []
+    assert tag not in result.html
+    assert 'data-item="1" alt="hi" src="data:image/png;base64,' in result.html
+
+    # Without the generated picture the placeholder stays unresolved, as before.
+    plain = check_deck(lesson, deck, sources=sources, image_root=image_root)
+    assert plain.images_embedded == 0
+    assert plain.images_unresolved == ["b_02 item 1: the item cites no picture"]
+
+    # A generated path that escapes image_root is refused.
+    block = drawn.blocks["b_02"]
+    block.content.items[1].generated_picture = "../x.png"
+    escaped = check_deck(drawn, deck, sources=sources, image_root=image_root)
+    assert escaped.images_embedded == 0
+    assert "escapes image_root" in escaped.images_unresolved[0]

@@ -164,8 +164,8 @@ def _section(context: SectionContext) -> list[str]:
     if section.review:
         lines.append(
             "- review: the engine adds a vocabulary and a sentence_pattern block from the spans "
-            "below; reply with exactly one game or song activity that reviews them and cites "
-            "no span"
+            "below; reply with exactly one look_listen_repeat activity titled 'Say it again' "
+            "that repeats them and cites no span"
         )
     lines.extend(["", 'Source spans ("(image)" marks a picture):', "", "```text"])
     lines.extend(label_span(ref, span) for ref, span in context.spans)

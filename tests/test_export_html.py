@@ -933,3 +933,38 @@ def test_flashcard_with_a_picture_or_a_meaning_is_not_bare(
     assert "bare" not in first.classes and "has-picture" in first.classes
     assert first.find(class_="hint") == []
     assert "bare" not in second.classes and "reveal" in second.classes
+
+
+def test_generated_picture_is_embedded_with_a_teacher_caption(
+    tmp_path: Path, lesson: Lesson, sources: dict[str, SourceDocument], image_root: Path
+) -> None:
+    from classdeck.illustrate import illustrate
+    from classdeck.llm.images import MockImageProvider
+
+    report = illustrate(lesson, provider=MockImageProvider(), image_root=image_root)
+    path = export_html(report.lesson, tmp_path / "gen.html", sources=sources, image_root=image_root)
+    deck = load(path)
+    second = deck.slide_of("b_02", 1)
+    image = second.one("img")
+    assert image.attrs["data-block-id"] == "b_02"
+    assert image.attrs["data-item"] == "1"
+    assert image.attrs["data-generated"] == "true"
+    assert (image.attrs["src"] or "").startswith("data:image/png;base64,")
+    caption = second.one(class_="ai-picture")
+    assert "teacher" in caption.classes
+    assert caption.text() == "AI picture"
+    # The cited textbook picture is not marked as generated.
+    first = deck.slide_of("b_02")
+    assert "data-generated" not in first.one("img").attrs
+    assert first.find(class_="ai-picture") == []
+    assert "http://" not in path.read_text(encoding="utf-8")
+
+
+def test_generated_picture_outside_image_root_is_ignored(
+    tmp_path: Path, lesson: Lesson, sources: dict[str, SourceDocument], image_root: Path
+) -> None:
+    block = lesson.blocks["b_02"]
+    block.content.items[1].generated_picture = "../outside.png"
+    (tmp_path / "outside.png").write_bytes(write_png(tmp_path / "scratch").read_bytes())
+    deck = load(export_html(lesson, tmp_path / "x.html", sources=sources, image_root=image_root))
+    assert deck.slide_of("b_02", 1).find("img") == []

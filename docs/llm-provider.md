@@ -20,9 +20,14 @@ The provider speaks the Chat Completions format through the `openai` Python SDK 
 | one `edit --apply` | `openai/gpt-6-luna` | ≈ 3k / 0.5k | < $0.001 |
 | `eval` of one public case with scripted edits | `openai/gpt-6-luna` + an independent judge model ($2 / $10 per M class) | ≈ 13k / 3.5k + judge | ≈ $0.003 + judge ≈ $0.015 |
 
-A teacher drafting one period a day on the daily default spends well under one US cent per period; the judge is the only non-trivial cost and is used only in evaluation.
+| `eval` of one public case, generator `muse-spark-1.3` (Meta Model API, $1.25 / $4.25 per M) | same judge | ≈ 30k / 50k (the output includes the model's reasoning tokens) | ≈ $0.25 + judge |
+| one flashcard picture, `muse-image-1.0` | — | — | $0.01 |
+
+A teacher drafting one period a day on the daily default spends well under one US cent per period; the judge is the only non-trivial cost and is used only in evaluation. Muse Spark 1.3 scores about the same as the daily default on the judge rubric (3.5 vs 3.6 mean on the two public cases) but costs roughly thirty times more per period because its output tokens include reasoning; `muse-spark-1.3-contributor` is priced like the daily default but lets the provider train on the prompts, which teachers' material should not be used for.
 
 Reasoning-style models (DeepSeek v4.1 flash among them) may return an empty `content` when `max_tokens` is tiny because the budget is spent on reasoning; `ping` uses a small but sufficient budget for that reason.
+
+Three profiles are built in (`config.ENDPOINTS`): `meta` (Meta Model API, key `META_API_KEY`, default `muse-spark-1.3`), `openrouter` (`OPENROUTER_API_KEY`, default `openai/gpt-6-luna`) and `deepseek` (`DEEPSEEK_API_KEY`, default `deepseek-chat`). Select one with `CLASSDECK_ENDPOINT` or per command with `--endpoint meta --model muse-spark-1.2`; without a profile, `MODEL_API_*` apply and a missing `MODEL_API_KEY` is taken from the profile whose base URL matches.
 
 The pipeline is designed so that a cheap model is enough — few calls, small prompts, deterministic fallbacks (see [output-formats.md → Token economy](output-formats.md#token-economy-on-api-runs)). With no API key at all, the prompt packs in `handoff/` move the generative step to a free chat model in the browser.
 

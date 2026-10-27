@@ -168,3 +168,50 @@ def test_draft_passes_the_repair_switch_to_the_pipeline(
     assert runner.invoke(app, ["draft", str(outline)]).exit_code == 0
     assert runner.invoke(app, ["draft", str(outline), "--no-repair"]).exit_code == 0
     assert seen == [True, False]
+
+
+def test_ping_with_named_endpoint_but_no_key_fails_cleanly(offline_workdir: Path) -> None:
+    result = runner.invoke(app, ["ping", "--endpoint", "meta"])
+    assert result.exit_code == 1
+    assert "ping failed" in result.output
+
+
+def test_unknown_endpoint_is_reported(offline_workdir: Path) -> None:
+    result = runner.invoke(app, ["ping", "--endpoint", "nope"])
+    assert result.exit_code == 2
+    assert "unknown endpoint" in result.output
+
+
+def test_illustrate_then_export_offline(offline_workdir: Path) -> None:
+    runner.invoke(app, ["ingest", str(FIXTURE)])
+    doc_id = next((offline_workdir / "sources").glob("*.json")).stem
+    runner.invoke(app, ["plan", doc_id, "--grade", "3", "--unit", "ta3.u1"])
+    outline = next((offline_workdir / "outlines").glob("*.outline.json"))
+    draft = runner.invoke(app, ["draft", str(outline)])
+    assert draft.exit_code == 0, draft.output
+    lesson_id = re.search(r"\bl_[0-9a-f]{6}\b", draft.output).group(0)
+    lesson_path = offline_workdir / "lessons" / f"{lesson_id}.lesson.json"
+    before = lesson_path.read_text(encoding="utf-8")
+
+    dry = runner.invoke(app, ["illustrate", lesson_id, "--provider", "mock", "--dry-run"])
+    assert dry.exit_code == 0, dry.output
+    assert "new picture(s)" in dry.output
+    assert lesson_path.read_text(encoding="utf-8") == before
+    assert not (offline_workdir / "images" / "generated").exists()
+
+    result = runner.invoke(app, ["illustrate", lesson_id, "--provider", "mock", "--max", "1"])
+    assert result.exit_code == 0, result.output
+    assert "generated 1" in result.output
+    assert len(list((offline_workdir / "images" / "generated").glob("*.png"))) == 1
+    assert lesson_path.read_text(encoding="utf-8").count('"generated_picture": "generated/') == 1
+
+    again = runner.invoke(app, ["illustrate", lesson_id, "--provider", "mock", "--max", "2"])
+    assert again.exit_code == 0, again.output
+    assert "generated 1" in again.output  # the picture drawn first is not drawn again
+    assert lesson_path.read_text(encoding="utf-8").count('"generated_picture": "generated/') == 2
+
+    result = runner.invoke(app, ["export", lesson_id])
+    assert result.exit_code == 0, result.output
+    html = (offline_workdir / "exports" / lesson_id / "lesson.html").read_text(encoding="utf-8")
+    assert html.count('data-generated="true"') >= 2
+    assert "AI picture" in html and "http" not in html.lower()

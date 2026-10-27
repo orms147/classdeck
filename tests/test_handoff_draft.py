@@ -262,7 +262,7 @@ def test_a_period_two_review_is_built_by_the_engine_not_the_reply(
     second = outline(
         [document], curriculum, unit_id="ta3.u1", lesson_no=1, period=2, grade=3, provider=None
     )
-    assert second.sections[0].review is True
+    assert second.sections[1].review is True
     chatty = {
         "blocks": [
             {
@@ -273,27 +273,28 @@ def test_a_period_two_review_is_built_by_the_engine_not_the_reply(
             activity("Hello chain", span_ids=["p1.s4"], depends_on=[0]),
         ]
     }
-    entries = [chatty] + [
+    entries = [{"blocks": [activity("Quick game")]}, chatty] + [
         {"blocks": [] if section.phase is Phase.WRAP_UP else [activity("Hello game")]}
-        for section in second.sections[1:]
+        for section in second.sections[2:]
     ]
     result = import_draft(second, [document], curriculum, json.dumps(entries))
     lesson = result.lesson
-    warm_up = [lesson.blocks[block_id] for block_id in lesson.sections[0].block_ids]
-    assert [b.kind for b in warm_up if b.kind != "objective"] == [
+    warm_up = [lesson.blocks[block_id] for block_id in lesson.sections[1].block_ids]
+    assert [b.kind for b in warm_up] == [
         "vocabulary",
         "sentence_pattern",
         "activity",
     ]
     vocabulary = next(b for b in warm_up if b.kind == "vocabulary")
-    assert [item.meaning_vi for item in vocabulary.content.items] == ["", ""]  # built by the engine
+    # built by the engine: the glosses come from the bundled list, not from the reply
+    assert [item.meaning_vi for item in vocabulary.content.items] == ["xin chào", "chào"]
     game = next(b for b in warm_up if isinstance(b, ActivityBlock))
     assert game.content.title == "Hello chain"
     assert game.sources == []
-    assert result.section_reports[0].status == "model"
-    only_game = [{"blocks": [chatty["blocks"][0]]}, *entries[1:]]
+    assert result.section_reports[1].status == "model"
+    only_game = [entries[0], {"blocks": [chatty["blocks"][0]]}, *entries[2:]]
     template = import_draft(second, [document], curriculum, json.dumps(only_game))
-    assert template.section_reports[0].status == "template"
+    assert template.section_reports[1].status == "template"
 
 
 def test_an_outline_without_sections_is_rejected(

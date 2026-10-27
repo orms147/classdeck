@@ -47,6 +47,8 @@ VOCAB_LEVEL = "english.vocab_level"
 GRAMMAR_SCOPE = "english.grammar_scope"
 SKILL_COVERAGE = "english.skill_coverage"
 IPA_PRESENT = "english.ipa_present"
+GLOSS_PRESENT = "english.gloss_present"
+WORDING_KEPT = "english.wording_kept"
 PATTERN_USED = "english.pattern_used"
 STEPS_PRESENT = "english.steps_present"
 TIMING = "english.timing"
@@ -58,6 +60,8 @@ OWNED_CHECKS: frozenset[str] = frozenset(
         GRAMMAR_SCOPE,
         SKILL_COVERAGE,
         IPA_PRESENT,
+        GLOSS_PRESENT,
+        WORDING_KEPT,
         PATTERN_USED,
         STEPS_PRESENT,
         TIMING,
@@ -452,6 +456,159 @@ def ipa_present(
     return outcomes
 
 
+# --- english.gloss_present ---------------------------------------------------------------------
+
+
+@lru_cache(maxsize=1)
+def gloss_dictionary() -> Mapping[str, str]:
+    """The bundled Vietnamese glosses: lower-cased word to a short primary-school gloss."""
+    resource = resources.files("classdeck.english").joinpath("data", "gloss_vi.json")
+    raw = json.loads(resource.read_text(encoding="utf-8"))
+    return MappingProxyType({k.lower(): v for k, v in raw.items() if not k.startswith("_")})
+
+
+def lookup_gloss(word: str) -> str | None:
+    """A gloss for a word, or for a phrase whose every word is known (glosses joined)."""
+    dictionary = gloss_dictionary()
+    key = word.strip().lower()
+    if key in dictionary:
+        return dictionary[key]
+    parts = re.findall(r"[^\W\d_]+(?:'[^\W\d_]+)*", key)
+    if len(parts) > 1 and all(part in dictionary for part in parts):
+        return " ".join(dictionary[part] for part in parts)
+    return None
+
+
+def fill_glosses(lesson: Lesson) -> Lesson:
+    """A copy of the lesson with ``meaning_vi`` filled from the bundled list where it is empty.
+
+    A gloss a drafter or a teacher wrote is never overwritten.
+    """
+    result = lesson.model_copy(deep=True)
+    for block in result.blocks.values():
+        if isinstance(block, VocabularyBlock):
+            for item in block.content.items:
+                if not (item.meaning_vi and item.meaning_vi.strip()):
+                    item.meaning_vi = lookup_gloss(item.word) or item.meaning_vi
+    return result
+
+
+def gloss_present(
+    lesson: Lesson, curriculum: Curriculum, *, sources: Sources | None = None
+) -> list[CheckOutcome]:
+    """Report vocabulary items that still have no Vietnamese gloss (run :func:`fill_glosses`)."""
+    outcomes: list[CheckOutcome] = []
+    for block in _blocks(lesson):
+        if not isinstance(block, VocabularyBlock):
+            continue
+        missing = [item.word for item in block.content.items if not (item.meaning_vi or "").strip()]
+        if missing:
+            detail = f"no Vietnamese gloss for: {', '.join(missing)}"
+            outcomes.append(_outcome(block.id, GLOSS_PRESENT, CheckStatus.WARN, detail))
+        else:
+            outcomes.append(_outcome(block.id, GLOSS_PRESENT, CheckStatus.PASS))
+    return outcomes
+
+
+# --- english.wording_kept ----------------------------------------------------------------------
+
+_CONTRACTED = re.compile(
+    rf"(?<!\w)(?:(\w+)[{_APOSTROPHES}](m|re|ve|ll|s)|(\w+)n[{_APOSTROPHES}]t)(?!\w)",
+    re.IGNORECASE,
+)
+_SUFFIX_EXPANSION = {"m": "am", "re": "are", "ve": "have", "ll": "will", "s": "is"}
+_S_STEMS = frozenset(
+    {"it", "that", "what", "who", "where", "how", "there", "here", "he", "she", "when", "why"}
+)
+"""Stems whose ``'s`` is a contraction of ``is``; elsewhere ``'s`` is a possessive."""
+
+
+def _expand(match: re.Match[str]) -> str | None:
+    """The written-out form of a contraction match, or ``None`` for a possessive ``'s``."""
+    if match.group(3) is not None:
+        stem = match.group(3)
+        if stem.lower() == "ca":
+            return "can not"
+        if stem.lower() == "wo":
+            return "will not"
+        return f"{stem} not"
+    stem, suffix = match.group(1), match.group(2).lower()
+    if stem.lower() == "let" and suffix == "s":
+        return f"{stem} us"
+    if suffix == "s" and stem.lower() not in _S_STEMS:
+        return None
+    return f"{stem} {_SUFFIX_EXPANSION[suffix]}"
+
+
+def _phrase_regex(phrase: str) -> re.Pattern[str]:
+    body = r"\s+".join(re.escape(part) for part in phrase.split())
+    return re.compile(rf"(?<!\w){body}(?!\w)", re.IGNORECASE)
+
+
+def contraction_expansions(lesson: Lesson) -> dict[str, str]:
+    """Written-out form (lower-cased) to the contraction the lesson's sentence patterns use.
+
+    ``{"i am": "I'm"}`` for the pattern ``Hello, I'm ___.``. A form that the lesson's own
+    patterns or dialogue lines write out (a unit that teaches both ``I'm`` and ``I am``) is
+    left out: the textbook uses it.
+    """
+    taught = [
+        text
+        for block in _blocks(lesson)
+        if isinstance(block, SentencePatternBlock | DialogueBlock)
+        for text in english_text_of(block)
+    ]
+    found: dict[str, str] = {}
+    for block in _blocks(lesson):
+        if isinstance(block, SentencePatternBlock):
+            for match in _CONTRACTED.finditer(block.content.pattern):
+                expanded = _expand(match)
+                if expanded is not None:
+                    found.setdefault(expanded.lower(), match.group(0))
+    return {
+        phrase: contraction
+        for phrase, contraction in found.items()
+        if not any(_phrase_regex(phrase).search(text) for text in taught)
+    }
+
+
+def wording_offenders(block: Block, expansions: Mapping[str, str]) -> list[str]:
+    """The written-out contractions (``I am``) in the pupil text of an activity or summary."""
+    if not expansions or not isinstance(block, ActivityBlock | SummaryBlock):
+        return []
+    offenders: list[str] = []
+    for text in pupil_text_of(block):
+        for phrase in expansions:
+            found = _phrase_regex(phrase).search(text)
+            if found:
+                shown = " ".join(found.group(0).split())
+                if shown not in offenders:
+                    offenders.append(shown)
+    return offenders
+
+
+def wording_kept(
+    lesson: Lesson, curriculum: Curriculum, *, sources: Sources | None = None
+) -> list[CheckOutcome]:
+    """Pupil text must keep the contractions the lesson's patterns use (``I'm``, not ``I am``)."""
+    expansions = contraction_expansions(lesson)
+    outcomes: list[CheckOutcome] = []
+    for block in _blocks(lesson):
+        if not isinstance(block, ActivityBlock | SummaryBlock):
+            continue
+        offenders = wording_offenders(block, expansions)
+        if offenders:
+            parts = []
+            for shown in offenders:
+                taught = expansions.get(" ".join(shown.lower().split()), "")
+                parts.append(f'"{shown}" (the unit writes "{taught}")')
+            detail = f"contraction written out in pupil text: {', '.join(parts)}"
+            outcomes.append(_outcome(block.id, WORDING_KEPT, CheckStatus.WARN, detail))
+        else:
+            outcomes.append(_outcome(block.id, WORDING_KEPT, CheckStatus.PASS))
+    return outcomes
+
+
 # --- english.pattern_used ----------------------------------------------------------------------
 
 
@@ -621,6 +778,8 @@ ALL_VALIDATORS: list[Validator] = [
     grammar_scope,
     skill_coverage,
     ipa_present,
+    gloss_present,
+    wording_kept,
     pattern_used,
     steps_present,
     timing,
@@ -654,13 +813,13 @@ def apply_outcomes(lesson: Lesson, outcomes: Iterable[CheckOutcome]) -> Lesson:
 
 
 def run_all(lesson: Lesson, curriculum: Curriculum, *, sources: Sources | None = None) -> Lesson:
-    """Fill missing IPA, run every validator and store the results on a new lesson.
+    """Fill missing IPA and glosses, run every validator and store the results on a new lesson.
 
     Results of the validators are replaced wholesale, so a check that no longer applies to a
     block (for example after it moved to another phase) does not linger; results from other
     stages, such as ``grounding.*``, are kept.
     """
-    filled = fill_ipa(lesson)
+    filled = fill_glosses(fill_ipa(lesson))
     outcomes: list[CheckOutcome] = []
     for validator in ALL_VALIDATORS:
         outcomes.extend(validator(filled, curriculum, sources=sources))

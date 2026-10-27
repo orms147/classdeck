@@ -25,6 +25,7 @@ from classdeck.lesson import (
 
 AI_ADDED_BADGE = "AI-added"
 AI_ADDED_NOTE = "AI-added — check before teaching"
+AI_PICTURE_CAPTION = "AI picture"
 PROVENANCE_LABEL: dict[Provenance, str] = {
     Provenance.EXTRACTED: "Source",
     Provenance.DERIVED: "Derived",

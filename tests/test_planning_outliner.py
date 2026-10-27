@@ -114,11 +114,24 @@ def test_presentation_section_maps_activity_one(document: SourceDocument) -> Non
 def test_framing_sections_have_no_outcomes_or_spans(document: SourceDocument) -> None:
     result = skeleton(document)
     warm_up, wrap_up = result.sections[0], result.sections[-1]
-    assert (warm_up.title, warm_up.activity_type) == ("Warm-up", ActivityType.GAME)
+    # lesson 1, period 1 teaches the pattern for the first time: its warm-up is a TPR
+    assert (warm_up.title, warm_up.activity_type) == (
+        "Warm-up: listen and do",
+        ActivityType.TPR,
+    )
     assert (wrap_up.title, wrap_up.activity_type) == ("Wrap-up", None)
     for section in (warm_up, wrap_up):
         assert section.outcome_ids == []
         assert section.span_refs == []
+
+
+def test_warm_up_is_a_tpr_only_in_the_first_period_of_lesson_one(document: SourceDocument) -> None:
+    assert skeleton(document, 1, 1).sections[0].activity_type is ActivityType.TPR
+    # later periods keep the pattern game: the pattern has been taught by then
+    for lesson_no, period in ((1, 2), (2, 1), (2, 2), (3, 1), (3, 2)):
+        warm_up = skeleton(document, lesson_no, period).sections[0]
+        assert (warm_up.title, warm_up.activity_type) == ("Warm-up", ActivityType.GAME)
+        assert warm_up.review is False
 
 
 def test_activity_types_follow_the_lesson_shape(document: SourceDocument) -> None:
@@ -133,47 +146,52 @@ def test_period_two_maps_chunks_four_to_six(document: SourceDocument) -> None:
     result = skeleton(document, period=2)
     assert [section.phase for section in result.sections] == [
         Phase.WARM_UP,
+        Phase.PRESENTATION,
         Phase.PRACTICE,
         Phase.PRACTICE,
         Phase.PRODUCTION,
         Phase.WRAP_UP,
     ]
-    assert [section.title for section in result.sections[1:4]] == [
+    assert [section.title for section in result.sections[2:5]] == [
         "4. Listen and tick.",
         "5. Look, complete and read.",
         "6. Let's sing.",
     ]
-    assert all(ref.page == 2 for section in result.sections[1:] for ref in section.span_refs)
-    assert refs(result, 1) == ["p2.s1", "p2.s2", "p2.s3"]
+    assert all(ref.page == 2 for section in result.sections[2:] for ref in section.span_refs)
+    assert refs(result, 2) == ["p2.s1", "p2.s2", "p2.s3"]
     assert result.total_minutes() == 35
-    assert [section.minutes for section in result.sections] == [5, 11, 11, 6, 2]
+    # warm-up 4, review 8, activities 4-5 together 15, activity 6 in 6, wrap-up 2
+    assert [section.minutes for section in result.sections] == [4, 8, 8, 7, 6, 2]
     assert result.curriculum.period == 2
 
 
-def test_period_two_warm_up_reviews_the_dialogue_and_pattern_spans(
+def test_period_two_presentation_reviews_the_dialogue_and_pattern_spans(
     document: SourceDocument,
 ) -> None:
-    """Period 2 opens with a review: the text spans of activities 1-2, no headings, instructions
-    or images (docs/planning.md, "Period 2 opens with a review")."""
+    """Period 2 has a presentation stage that reviews: the text spans of activities 1-2, no
+    headings, instructions or images (docs/planning.md, "Period 2 shape")."""
     result = skeleton(document, period=2)
-    warm_up = result.sections[0]
-    assert warm_up.review is True
-    assert warm_up.title == "Warm-up: review"
+    warm_up, review = result.sections[0], result.sections[1]
+    assert (warm_up.phase, warm_up.review, warm_up.span_refs) == (Phase.WARM_UP, False, [])
     assert warm_up.activity_type is ActivityType.GAME
-    assert warm_up.outcome_ids == []
-    assert refs(result, 0) == ["p1.s4", "p1.s5", "p1.s7", "p1.s8"]
-    assert all(ref.page == 1 for ref in warm_up.span_refs)
-    assert [span_text(document, ref) for ref in warm_up.span_refs] == [
+    assert review.review is True
+    assert review.phase is Phase.PRESENTATION
+    assert review.title == "Review: say it again"
+    assert review.activity_type is ActivityType.LOOK_LISTEN_REPEAT
+    assert review.outcome_ids == []
+    assert refs(result, 1) == ["p1.s4", "p1.s5", "p1.s7", "p1.s8"]
+    assert all(ref.page == 1 for ref in review.span_refs)
+    assert [span_text(document, ref) for ref in review.span_refs] == [
         "Hello, I'm Ha.",
         "Hi, Ha. I'm Tien.",
         "Hello, I'm ___.",
         "Hi, ___. I'm ___.",
     ]
-    # period 1 keeps the plain warm-up; the field round-trips through JSON
-    first = skeleton(document).sections[0]
-    assert first.review is False
-    assert first.span_refs == []
-    assert Outline.model_validate_json(result.model_dump_json()).sections[0].review is True
+    # period 1 keeps its shape; the field round-trips through JSON
+    first = skeleton(document)
+    assert [section.phase for section in first.sections] == PHASES_PERIOD_1
+    assert not any(section.review for section in first.sections)
+    assert Outline.model_validate_json(result.model_dump_json()).sections[1].review is True
 
 
 def test_review_is_skipped_when_the_source_has_no_earlier_activities(
@@ -215,15 +233,15 @@ def test_missing_chunk_gives_template_title_and_no_spans() -> None:
     result = build_skeleton(
         [document], CURRICULUM, unit_id="ta3.u1", lesson_no=1, period=2, grade=3
     )
-    assert [section.title for section in result.sections[1:4]] == [
+    assert [section.title for section in result.sections[2:5]] == [
         "Listen and tick",
         "Look, complete and read",
         "Let's sing",
     ]
-    assert all(section.span_refs == [] for section in result.sections[1:])
+    assert all(section.span_refs == [] for section in result.sections[2:])
     # activity 1 alone is enough to review
-    assert result.sections[0].review is True
-    assert refs(result, 0) == ["p1.s2"]
+    assert result.sections[1].review is True
+    assert refs(result, 1) == ["p1.s2"]
 
 
 def test_outcomes_fall_back_to_the_skills_when_no_chunk_mentions_one(
@@ -355,9 +373,18 @@ def test_every_shape_times_to_the_period(
 ) -> None:
     result = skeleton(document, lesson_no, period)
     assert result.total_minutes() == 35
-    assert len(result.sections) == 5
+    assert len(result.sections) == (6 if period == 2 else 5)
     assert result.sections[0].phase is Phase.WARM_UP
     assert result.sections[-1].phase is Phase.WRAP_UP
+    if period == 2:
+        phases = [section.phase for section in result.sections]
+        assert phases[1:] == [
+            Phase.PRESENTATION,
+            Phase.PRACTICE,
+            Phase.PRACTICE,
+            Phase.PRODUCTION,
+            Phase.WRAP_UP,
+        ]
 
 
 # --- refinement --------------------------------------------------------------------------------
@@ -561,17 +588,17 @@ def test_refine_prompt_names_the_title_and_outcome_rules(document: SourceDocumen
     assert "no span teaches" in prompt
 
 
-def test_refine_keeps_the_spans_of_a_review_warm_up(document: SourceDocument) -> None:
+def test_refine_keeps_the_spans_of_a_review_presentation(document: SourceDocument) -> None:
     base = skeleton(document, period=2)
-    assert base.sections[0].review is True
+    assert base.sections[1].review is True
     # a span of the next section moved into the review ...
     into = payload(base)
-    moved = into["sections"][1]["span_ids"].pop(0)
-    into["sections"][0]["span_ids"].append(moved)
+    moved = into["sections"][2]["span_ids"].pop(0)
+    into["sections"][1]["span_ids"].append(moved)
     # ... and one of the review moved out of it
     out = payload(base)
-    gone = out["sections"][0]["span_ids"].pop()
-    out["sections"][1]["span_ids"].insert(0, gone)
+    gone = out["sections"][1]["span_ids"].pop()
+    out["sections"][2]["span_ids"].insert(0, gone)
     for bad, span in ((into, moved), (out, gone)):
         provider = MockProvider(responses=[json.dumps(bad), json.dumps(bad)])
         result = refine_outline(base, [document], CURRICULUM, provider)
@@ -580,13 +607,13 @@ def test_refine_keeps_the_spans_of_a_review_warm_up(document: SourceDocument) ->
         assert "a review section keeps exactly its spans" in feedback
         assert span in provider.calls[0]["messages"][0]["content"]
     good = payload(base)
-    good["sections"][0]["title"] = "Hello again"
+    good["sections"][1]["title"] = "Hello again"
     result = refine_outline(
         base, [document], CURRICULUM, MockProvider(responses=[json.dumps(good)])
     )
-    assert result.sections[0].title == "Hello again"
-    assert result.sections[0].review is True
-    assert refs(result, 0) == refs(base, 0)
+    assert result.sections[1].title == "Hello again"
+    assert result.sections[1].review is True
+    assert refs(result, 1) == refs(base, 1)
 
 
 def test_refine_prompt_names_the_review_rule(document: SourceDocument) -> None:

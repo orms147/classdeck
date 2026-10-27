@@ -120,7 +120,7 @@ def test_usage_meter_sums_billed_tokens_only() -> None:
 
 def test_cost_is_none_for_unknown_model_or_usage(monkeypatch: pytest.MonkeyPatch) -> None:
     usage = Usage(input_tokens=1_000_000, output_tokens=500_000)
-    assert estimate_cost_usd("muse-spark-1.3", usage) is None
+    assert estimate_cost_usd("not-a-priced-model", usage) is None
     monkeypatch.setitem(pricing.PRICES, "priced", (2.0, 8.0))
     assert estimate_cost_usd("priced", usage) == pytest.approx(6.0)
     assert estimate_cost_usd("priced", Usage(input_tokens=5)) is None

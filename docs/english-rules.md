@@ -5,7 +5,9 @@ Everything that is specific to primary-school English — how a period is struct
 ```
 english/
   rules.py        phases, timing, block kinds, prompt fragments, grounding thresholds
-  validators.py   deterministic level checks (word list, grammar scope, skills, IPA, timing, pattern use)
+  validators.py   deterministic level checks (word list, grammar scope, skills, IPA, glosses,
+                  wording, timing, pattern use)
+  data/           ipa_core.json (pronunciations), gloss_vi.json (Vietnamese glosses)
   dependencies.py how depends_on edges are inferred between block kinds
   presets.py      quick edit instructions shown in the editor
   templates/      activity templates by Global Success activity type
@@ -32,13 +34,15 @@ Period 1 of a lesson usually covers activities 1–3, period 2 activities 4–6.
 
 | phase | default minutes | what goes in it |
 |---|---|---|
-| `warm_up` | 5 | review game, song or chant from the previous lesson; lead-in to the topic |
+| `warm_up` | 5 | review game, song or chant, or a TPR in classroom language; **no new pattern or word**: lesson 1, period 1 uses a `tpr` warm-up, later periods a pattern game on language already taught |
 | `presentation` | 10 | *Look, listen and repeat* — dialogue, new vocabulary, target pattern |
 | `practice` | 12 | *Listen, point and say*, *Listen and tick*, *Look, complete and read* — controlled practice |
 | `production` | 6 | *Let's talk*, role play, game, project — freer use of the pattern |
 | `wrap_up` | 2 | recap, homework, praise |
 
 Minutes are defaults the outliner starts from; the `english.timing` check keeps the sum at 35 ± 2.
+
+**Period 2** of a lesson has its own skeleton (see [planning.md](planning.md#period-2-shape)): warm-up 4 min, a `presentation` of 8 min that reviews the previous period (vocabulary, pattern and phonics blocks plus a short *Say it again* repeat activity), `practice` for activities 4 and 5 (8 + 7 min), `production` for activity 6 (6 min) and a 2-minute wrap-up.
 
 ## Block kinds
 
@@ -54,6 +58,9 @@ See [lesson-model.md](lesson-model.md#block-kinds). The drafter may emit: `objec
 - Instructions for pupils are short (≤ 12 words), one action each.
 - Picture-driven: when a vocabulary item has a picture on the page, reference the image span; do not describe the picture in words on the slide.
 - Vietnamese is allowed only in `meaning_vi` and in teacher notes.
+- Keep the textbook's wording: patterns and dialogue lines are copied exactly, contractions included (*I'm*, never *I am*); no pattern or phrase the unit does not teach is introduced.
+- The new pattern is taught from the presentation onward; a warm-up recycles earlier language or is a TPR in classroom language.
+- Practice and production steps are concrete: `teacher_steps` say what to point at or show, who speaks first, how many rounds and how to check; `student_steps` are 3 to 5 concrete imperatives. A `listen_and_do` or `look_complete_read` activity ends its `teacher_steps` with an `Answer key: ...` step.
 
 The drafter and repair prompts add the **allowed words** to these rules: `curriculum.word_list(unit_id)` (grade list ∪ classroom language ∪ unit words), with the statement that pupil-facing text may use only these words, pupils' names and numbers, and that `teacher_steps` may use any English. The list is the one `english.vocab_level` checks against (see [planning.md](planning.md#repair-round)).
 
@@ -69,6 +76,8 @@ All validators are deterministic (no model call). They run after drafting and af
 | `english.grammar_scope` | `sentence_pattern, dialogue, activity` | Regex patterns per grade from curriculum config `grammar_scope.forbidden` (e.g. `\b(has|have|had) \w+ed\b`, `\b(was|were|is|are) \w+ed by\b`). | `warn` |
 | `english.skill_coverage` | lesson | Every skill named in the period's outcomes has ≥ 1 activity. | `warn` |
 | `english.ipa_present` | `vocabulary` | Every item has `ipa`; the validator fills it from a bundled dictionary when the model omitted it, and warns only if still missing. | `warn` |
+| `english.gloss_present` | `vocabulary` | Every item has a Vietnamese `meaning_vi`; the validator step first fills empty glosses from the bundled `data/gloss_vi.json` (`fill_glosses`, lower-cased lookup, a phrase falls back to its words' glosses joined; a gloss someone wrote is kept) and warns, listing the items, only when one is still missing. The list covers every word of the grade 3-5 word lists and unit vocabularies. | `warn` |
+| `english.wording_kept` | `activity, summary` | For every `sentence_pattern` of the lesson that contains a contraction (*I'm, it's, what's, let's, don't ...*), the pupil-facing text (activity instructions and student steps, summary bullets) must not write it out (*I am, it is, what is, let us, do not ...*). A form the lesson's own patterns or dialogue write out is left alone; a possessive *'s* is not a contraction. The offending phrase is named in the detail (`contraction written out in pupil text: "I am" (the unit writes "I'm")`), which is how the [repair round](planning.md#repair-round) sees it. | `warn` |
 | `english.pattern_used` | `activity` in `practice`/`production` | The activity text or steps contain the target pattern from a `sentence_pattern` block in the lesson (slot-filled match). Sets the `depends_on` edge when found. | `warn` |
 | `english.steps_present` | `activity` | `teacher_steps` and `student_steps` non-empty, ≥ 1 skill. | `fail` |
 | `english.timing` | lesson | Sum of section minutes within 35 ± 2. | `warn` |

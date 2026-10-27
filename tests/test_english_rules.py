@@ -108,7 +108,7 @@ def test_every_shape_activity_lands_in_a_known_phase() -> None:
 def test_prompt_rules_is_a_bullet_list_with_the_core_rules() -> None:
     text = rules.prompt_rules(3)
     lines = text.splitlines()
-    assert len(lines) == 7
+    assert len(lines) == 10
     assert all(line.startswith("- ") for line in lines)
     assert "imperatives" in text
     assert "perfect tenses" in text
@@ -118,6 +118,9 @@ def test_prompt_rules_is_a_bullet_list_with_the_core_rules() -> None:
     assert "meaning_vi" in text
     assert "`sources: []`" in text
     assert "image span" in text
+    assert "write I'm, never I am" in text  # the textbook's wording is kept
+    assert "TPR in classroom language" in text  # the warm-up does not drill the new pattern
+    assert "Answer key" in text and "how many rounds" in text
 
 
 def test_prompt_rules_scope_line_depends_on_the_grade() -> None:

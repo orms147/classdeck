@@ -122,6 +122,8 @@ def test_all_validators_run_in_the_documented_order() -> None:
         "grammar_scope",
         "skill_coverage",
         "ipa_present",
+        "gloss_present",
+        "wording_kept",
         "pattern_used",
         "steps_present",
         "timing",
@@ -132,6 +134,8 @@ def test_all_validators_run_in_the_documented_order() -> None:
         "english.grammar_scope",
         "english.skill_coverage",
         "english.ipa_present",
+        "english.gloss_present",
+        "english.wording_kept",
         "english.pattern_used",
         "english.steps_present",
         "english.timing",
@@ -810,3 +814,70 @@ def test_warnings_list_the_lesson_first_then_blocks_in_order() -> None:
     assert found[0] == (None, "english.timing")
     assert found[1:] == [("b_02", "english.vocab_level")]
     assert all(check.status is WARN for _, check in v.warnings(done))
+
+
+# --- english.wording_kept ----------------------------------------------------------------------
+
+
+def test_wording_kept_passes_when_activities_keep_the_contraction() -> None:
+    results = by_block(v.wording_kept(clean_lesson(), CURRICULUM))
+    assert set(results) == {"b_07", "b_08"}  # the activity and the summary
+    assert all(result.status is PASS for result in results.values())
+
+
+def test_wording_kept_names_the_written_out_contraction() -> None:
+    lesson = clean_lesson()
+    content: Any = lesson.blocks["b_07"].content
+    content.instructions = "Pass the ball. Say: Hello, I am Ha."
+    content.student_steps = ["Say 'Hello, I am Duc.'", "Pass it on."]
+    content.teacher_steps = ["Tell pupils that I am is the long form."]  # the teacher's text
+    result = by_block(v.wording_kept(lesson, CURRICULUM))["b_07"]
+    assert result.status is WARN
+    assert result.name == "english.wording_kept"
+    assert result.detail == 'contraction written out in pupil text: "I am" (the unit writes "I\'m")'
+    done = v.run_all(lesson, CURRICULUM)
+    assert ("b_07", "english.wording_kept") in {(b, c.name) for b, c in v.warnings(done)}
+
+
+def test_wording_kept_checks_the_summary_too() -> None:
+    lesson = clean_lesson()
+    lesson.blocks["b_08"].content.bullets = ["hello, hi", "Hello, I am ___."]
+    result = by_block(v.wording_kept(lesson, CURRICULUM))["b_08"]
+    assert result.status is WARN and '"I am"' in (result.detail or "")
+
+
+def test_wording_kept_leaves_a_form_the_lesson_teaches() -> None:
+    lesson = clean_lesson()
+    add_block(
+        lesson,
+        "s_presentation",
+        {
+            "id": "b_20",
+            "kind": "dialogue",
+            "content": {"lines": [{"speaker": "Ha", "text": "I am Ha."}]},
+        },
+    )
+    content: Any = lesson.blocks["b_07"].content
+    content.student_steps = ["Say 'Hello, I am Duc.'"]
+    assert v.contraction_expansions(lesson) == {}
+    assert by_block(v.wording_kept(lesson, CURRICULUM))["b_07"].status is PASS
+
+
+@pytest.mark.parametrize(
+    ("pattern", "expected"),
+    [
+        ("Hello, I'm ___.", {"i am": "I'm"}),
+        ("What's your name?", {"what is": "What's"}),
+        ("It's a ___.", {"it is": "It's"}),
+        ("Let's play.", {"let us": "Let's"}),
+        ("I don't like ___.", {"do not": "don't"}),
+        ("They aren't ___.", {"are not": "aren't"}),
+        ("This is Ha's ___.", {}),  # a possessive, not a contraction
+        ("Nice to meet you.", {}),
+    ],
+)
+def test_contraction_expansions_of_a_pattern(pattern: str, expected: dict[str, str]) -> None:
+    lesson = clean_lesson()
+    lesson.blocks["b_03"].content.pattern = pattern
+    found = v.contraction_expansions(lesson)
+    assert found == expected
