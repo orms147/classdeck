@@ -735,5 +735,112 @@ def eval_compare(
     console.print(compare(before, after))
 
 
+# --------------------------------------------------------------------------- one-shot run
+
+
+@app.command()
+def run(
+    file: Path = typer.Argument(..., exists=True, readable=True, help="PDF, DOCX or PPTX."),
+    grade: int = typer.Option(..., min=3, max=5),
+    unit: str = typer.Option(..., help="Curriculum unit id, e.g. ta3.u2"),
+    lesson: int = typer.Option(1, min=1, max=3),
+    period: int = typer.Option(1, min=1, max=2),
+    provider: str | None = typer.Option(None, help="Override CLASSDECK_PROVIDER (api|mock)."),
+    endpoint: str | None = typer.Option(None, "--endpoint", help=ENDPOINT_HELP),
+    model_id: str | None = typer.Option(None, "--model", help=MODEL_HELP),
+    pictures: bool = typer.Option(
+        True, "--pictures/--no-pictures", help="Draw flashcard pictures for words without one."
+    ),
+    max_pictures: int = typer.Option(4, "--max-pictures", min=0),
+    open_deck: bool = typer.Option(True, "--open/--no-open", help="Open the deck in a browser."),
+    no_refine: bool = typer.Option(False, "--no-refine", help="Skeleton outline, no model call."),
+    no_repair: bool = typer.Option(False, "--no-repair", help="Skip the repair round."),
+) -> None:
+    """One shot: ingest -> plan -> draft -> pictures -> export, then open the deck."""
+    import webbrowser
+
+    from classdeck.export import ExportBlocked, export_docx, export_html, export_pptx
+    from classdeck.ingest import UnsupportedFormat
+    from classdeck.ingest import ingest as ingest_file
+    from classdeck.llm.base import LLMError
+    from classdeck.pipeline import build_lesson
+    from classdeck.planning import outline as build_outline
+
+    settings = _settings(provider, endpoint, model_id)
+    model = _generator(settings)
+    where = "offline template pipeline" if model is None else f"{model.name} / {model.model}"
+    console.print(
+        f"[bold]ClassDeck[/] grade {grade}, {unit}, lesson {lesson}, period {period}: {where}"
+    )
+
+    try:
+        console.print("[1/5] ingest")
+        doc = ingest_file(file, image_dir=_image_root(settings))
+        store, sources_store = _stores(settings)
+        sources_store.save(doc)
+        curriculum = _curriculum(settings, grade)
+
+        console.print("[2/5] outline")
+        plan_ = build_outline(
+            [doc],
+            curriculum,
+            unit_id=unit,
+            lesson_no=lesson,
+            period=period,
+            grade=grade,
+            provider=None if no_refine else model,
+        )
+        _write_text(
+            settings.workdir / "outlines" / f"{unit}-l{lesson}-p{period}.outline.json",
+            plan_.model_dump_json(indent=2),
+        )
+
+        console.print("[3/5] draft, grounding and level checks")
+        result = build_lesson(plan_, {doc.doc_id: doc}, curriculum, model, repair=not no_repair)
+        path = store.save(result)
+
+        if pictures and max_pictures > 0:
+            from classdeck.illustrate import illustrate as run_illustrate
+            from classdeck.llm.images import build_image_provider
+
+            console.print("[4/5] flashcard pictures")
+            report = run_illustrate(
+                result,
+                provider=build_image_provider(settings),
+                image_root=_image_root(settings),
+                max_items=max_pictures,
+            )
+            result = report.lesson
+            path = _save_lesson(result, path)
+            cost = "" if report.cost_usd is None else f", about ${report.cost_usd:.2f}"
+            console.print(f"      {report.generated} drawn, {report.reused} reused{cost}")
+        else:
+            console.print("[4/5] flashcard pictures skipped")
+
+        console.print("[5/5] export")
+        target = settings.workdir / "exports" / result.id
+        target.mkdir(parents=True, exist_ok=True)
+        sources = {doc.doc_id: doc}
+        images = _image_root(settings)
+        deck = export_html(result, target / "lesson.html", sources=sources, image_root=images)
+        export_pptx(result, target / "lesson.pptx", sources=sources, image_root=images)
+        export_docx(result, target / "lesson.docx", sources=sources, curriculum=curriculum)
+    except (UnsupportedFormat, LLMError, ExportBlocked, KeyError) as exc:
+        console.print(f"[red]run failed:[/] {exc}")
+        raise typer.Exit(1) from exc
+
+    _print_blocks(result)
+    _print_warnings(result)
+    console.print(f"lesson [green]{result.id}[/] -> {path}")
+    console.print(f"deck   -> {deck}")
+    console.print(f"slides -> {target / 'lesson.pptx'}")
+    console.print(f"plan   -> {target / 'lesson.docx'}")
+    console.print(
+        "Open the deck: arrows move, tap reveals, T = teacher mode, N = notes, F = fullscreen."
+    )
+    if open_deck:
+        webbrowser.open(deck.resolve().as_uri())
+
+
 if __name__ == "__main__":
     app()

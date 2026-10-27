@@ -224,3 +224,16 @@ def test_console_is_utf8_on_import() -> None:
 
     cli_module._utf8_console()  # idempotent; must never raise
     assert (sys.stdout.encoding or "").lower().replace("-", "") == "utf8"
+
+
+def test_run_does_the_whole_pipeline_offline(offline_workdir: Path) -> None:
+    args = ["run", str(FIXTURE), "--grade", "3", "--unit", "ta3.u1", "--no-open"]
+    result = runner.invoke(app, [*args, "--max-pictures", "1"])
+    assert result.exit_code == 0, result.output
+    exports = list((offline_workdir / "exports").glob("*/lesson.html"))
+    assert len(exports) == 1
+    html = exports[0].read_text(encoding="utf-8")
+    assert "data-block-id" in html
+    assert (exports[0].parent / "lesson.pptx").is_file()
+    assert (exports[0].parent / "lesson.docx").is_file()
+    assert "[5/5] export" in result.output

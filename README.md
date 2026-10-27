@@ -93,6 +93,16 @@ Phase 1 (core library + CLI) is functional end to end: the public fixture goes f
 
 ## Quick start
 
+One command does everything — ingest, outline, draft, checks, flashcard pictures, export — and opens the deck:
+
+```bash
+pip install -e .
+cp .env.example .env                       # put a key in META_API_KEY or OPENROUTER_API_KEY
+classdeck run eval/fixtures/public/gs3-unit2.pdf --grade 3 --unit ta3.u2 --endpoint meta
+```
+
+Add `--provider mock` to try it with no key at all (template pipeline, placeholder pictures). The pieces behind it:
+
 ```bash
 # Python 3.12+
 python -m venv .venv && . .venv/bin/activate      # Windows: .venv\Scripts\activate
