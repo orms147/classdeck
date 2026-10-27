@@ -1,0 +1,264 @@
+{
+  "id": "gs4-unit1",
+  "grade": 4,
+  "unit": 1,
+  "title": "My friends and me",
+  "series": "classdeck-sample",
+  "notes": "Original sample unit for ta4.u1: ability with can, describing a friend, like + -ing. Invented characters and wording.",
+  "lessons": [
+    {
+      "no": 1,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Look, listen and repeat.",
+          "type": "look_listen_repeat",
+          "picture": {
+            "scene": "a girl and a boy talking in the school playground near a tree",
+            "style": "scene"
+          },
+          "lines": [
+            "Hi, Mi. Can you swim?",
+            "Yes, I can. Can you swim?",
+            "No, I can't. But I can ride a bike."
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen, point and say.",
+          "type": "listen_point_say",
+          "pattern": "I can ___.",
+          "items": [
+            {
+              "word": "swim"
+            },
+            {
+              "word": "ride"
+            },
+            {
+              "word": "climb"
+            },
+            {
+              "word": "cook"
+            }
+          ],
+          "lines": [
+            "Can you ___? Yes, I can. / No, I can't."
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's talk.",
+          "type": "lets_talk",
+          "lines": [
+            "Can you swim? Can you cook?",
+            "Yes, I can. / No, I can't."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Listen and tick.",
+          "type": "listen_and_do",
+          "picture": {
+            "scene": "a boy riding a bike and a girl swimming",
+            "style": "card"
+          },
+          "options": [
+            "a. Khoa can swim.",
+            "b. Khoa can ride a bike.",
+            "c. Khoa can climb."
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Look, complete and read.",
+          "type": "look_complete_read",
+          "lines": [
+            "Mi can _____.",
+            "Khoa can _____ a bike.",
+            "Can you climb? Yes, I _____."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Let's sing.",
+          "type": "song",
+          "lines": [
+            "I can swim, swim, swim.",
+            "I can climb, climb, climb.",
+            "Can you swim? Can you climb?",
+            "Yes, I can! Yes, I can!"
+          ]
+        }
+      ]
+    },
+    {
+      "no": 2,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Look, listen and repeat.",
+          "type": "look_listen_repeat",
+          "picture": {
+            "scene": "two girls reading a book under a tree in the park",
+            "style": "scene"
+          },
+          "lines": [
+            "This is my friend Vy. She is kind.",
+            "Hello! I like drawing. Do you like drawing?",
+            "No, I like singing."
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen, point and say.",
+          "type": "listen_point_say",
+          "pattern": "She likes ___.",
+          "items": [
+            {
+              "word": "drawing"
+            },
+            {
+              "word": "singing"
+            },
+            {
+              "word": "reading"
+            },
+            {
+              "word": "swimming"
+            }
+          ],
+          "lines": [
+            "I like ___. He likes ___."
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's talk.",
+          "type": "lets_talk",
+          "lines": [
+            "What do you like doing?",
+            "I like ___. My friend likes ___."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Listen and number.",
+          "type": "listen_and_do",
+          "picture": {
+            "scene": "a girl drawing a picture and a boy singing",
+            "style": "card"
+          },
+          "options": [
+            "a. Vy likes drawing.",
+            "b. Tien likes singing.",
+            "c. Duc likes swimming."
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Look, complete and read.",
+          "type": "look_complete_read",
+          "lines": [
+            "Vy is kind. She likes _____.",
+            "Tien is funny. He likes _____.",
+            "I like _____."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Let's play.",
+          "type": "game",
+          "lines": [
+            "Pick a friend. Do not say the name.",
+            "She is tall. She likes singing.",
+            "Your team guesses: Is it Vy?",
+            "Yes, it is. / No, it isn't."
+          ]
+        }
+      ]
+    },
+    {
+      "no": 3,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Listen and repeat.",
+          "type": "phonics",
+          "picture": {
+            "scene": "a cat and a cook with a big pot",
+            "style": "card"
+          },
+          "sound": "/k/",
+          "letters": "c",
+          "words": [
+            "can",
+            "cook",
+            "cat"
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen and circle.",
+          "type": "listen_and_do",
+          "options": [
+            "a. can / cat",
+            "b. cook / book",
+            "c. sing / sit"
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's chant.",
+          "type": "chant",
+          "lines": [
+            "Can, can, I can!",
+            "I can cook and I can climb.",
+            "Can, can, you can!",
+            "You can swim and you can sing."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Read and match.",
+          "type": "read_and_match",
+          "picture": {
+            "scene": "two girls talking near a tree",
+            "style": "card"
+          },
+          "pairs": [
+            [
+              "Can you swim?",
+              "Yes, I can."
+            ],
+            [
+              "What does Vy like doing?",
+              "She likes drawing."
+            ],
+            [
+              "Is Khoa tall?",
+              "No, he isn't."
+            ]
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Let's write.",
+          "type": "lets_write",
+          "lines": [
+            "I can _____ and _____.",
+            "I like _____."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Project.",
+          "type": "project",
+          "lines": [
+            "Draw your friend and write two sentences with can and likes."
+          ]
+        }
+      ]
+    }
+  ]
+}

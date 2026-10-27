@@ -1,0 +1,67 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "classdeck"
+version = "0.1.0"
+description = "Source-grounded lesson and slide generation for primary-school English teachers"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.12"
+authors = [{ name = "orms147" }]
+keywords = ["education", "lesson-planning", "llm", "grounding", "meta-model-api"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Education",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Education",
+]
+dependencies = [
+  "pydantic>=2.8",
+  "pydantic-settings>=2.4",
+  "openai>=1.50",
+  "typer>=0.12",
+  "rich>=13.7",
+  "pyyaml>=6.0",
+  "jsonpatch>=1.33",
+  "pymupdf>=1.24",
+  "python-docx>=1.1",
+  "python-pptx>=1.0",
+  "rank-bm25>=0.2.2",
+  "simplemma>=1.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.2", "ruff>=0.6", "mypy>=1.11", "types-PyYAML"]
+api = ["fastapi>=0.115", "uvicorn[standard]>=0.30", "python-multipart>=0.0.9"]
+
+[project.scripts]
+classdeck = "classdeck.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/classdeck"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = ["RUF012"]
+
+[tool.ruff.lint.per-file-ignores]
+# typer declares CLI parameters through calls in argument defaults by design.
+"src/classdeck/cli.py" = ["B008"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.mypy]
+python_version = "3.12"
+packages = ["classdeck"]
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true

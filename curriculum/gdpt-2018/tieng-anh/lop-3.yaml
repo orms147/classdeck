@@ -1,0 +1,517 @@
+# Seed data — structure complete; content to be checked line by line against the official programme (Thông tư 32/2018/TT-BGDĐT). See docs/curriculum-config.md.
+version: gdpt-2018
+subject: tieng-anh
+grade: 3
+language: en
+status: seed
+period_minutes: 35
+
+vocabulary:
+  level: pre-A1
+  words:                          # quote yes / no / on: unquoted, YAML reads them as booleans
+    # greetings and politeness
+    - hello
+    - hi
+    - goodbye
+    - bye
+    - good
+    - morning
+    - afternoon
+    - please
+    - thank
+    - fine
+    - nice
+    - meet
+    - name
+    - friend
+    # articles, pronouns, function words
+    - a
+    - an
+    - the
+    - and
+    - this
+    - that
+    - it
+    - my
+    - your
+    - his
+    - her
+    - i
+    - you
+    - he
+    - she
+    - we
+    - they
+    - is
+    - are
+    - am
+    - not
+    - "yes"
+    - "no"
+    # question words
+    - what
+    - who
+    - where
+    - how
+    - many
+    - old
+    # numbers
+    - one
+    - two
+    - three
+    - four
+    - five
+    - six
+    - seven
+    - eight
+    - nine
+    - ten
+    - eleven
+    - twelve
+    - thirteen
+    - fourteen
+    - fifteen
+    - sixteen
+    - seventeen
+    - eighteen
+    - nineteen
+    - twenty
+    # colours
+    - red
+    - blue
+    - green
+    - yellow
+    - black
+    - white
+    - orange
+    - pink
+    - brown
+    # classroom
+    - book
+    - pen
+    - pencil
+    - ruler
+    - bag
+    - desk
+    - chair
+    - board
+    - school
+    - classroom
+    - teacher
+    - student
+    - door
+    - window
+    - letter
+    # family
+    - family
+    - mother
+    - father
+    - brother
+    - sister
+    # body
+    - head
+    - face
+    - eye
+    - ear
+    - nose
+    - mouth
+    - hand
+    - arm
+    - leg
+    - body
+    # toys and games
+    - toy
+    - ball
+    - doll
+    - kite
+    - robot
+    - car
+    - bike
+    # pets and animals
+    - cat
+    - dog
+    - bird
+    - fish
+    - rabbit
+    - duck
+    # food and drink
+    - apple
+    - banana
+    - bread
+    - egg
+    - rice
+    - cake
+    - milk
+    - water
+    # weather
+    - sunny
+    - rainy
+    - hot
+    - cold
+    # common verbs
+    - have
+    - like
+    - play
+    - go
+    - come
+    - see
+    - look
+    - listen
+    - say
+    - point
+    - touch
+    - open
+    - close
+    - sit
+    - stand
+    - draw
+    - sing
+    - dance
+    - read
+    - write
+    - spell
+    - eat
+    - drink
+    # common adjectives
+    - big
+    - small
+    - happy
+    - sad
+    - tall
+    - short
+    # position
+    - up
+    - down
+    - in
+    - "on"
+  classroom_language:             # instruction language pupils hear every lesson; receptive, not new words
+    - "listen"
+    - "look"
+    - "point"
+    - "say"
+    - "repeat"
+    - "read"
+    - "write"
+    - "match"
+    - "tick"
+    - "circle"
+    - "number"
+    - "complete"
+    - "draw"
+    - "colour"
+    - "sing"
+    - "chant"
+    - "play"
+    - "game"
+    - "games"
+    - "pair"
+    - "pairs"
+    - "partner"
+    - "partners"
+    - "group"
+    - "groups"
+    - "team"
+    - "teams"
+    - "turn"
+    - "turns"
+    - "role"
+    - "roles"
+    - "swap"
+    - "change"
+    - "again"
+    - "start"
+    - "stop"
+    - "ready"
+    - "go"
+    - "finish"
+    - "finished"
+    - "line"
+    - "lines"
+    - "row"
+    - "board"
+    - "picture"
+    - "pictures"
+    - "card"
+    - "cards"
+    - "flashcard"
+    - "flashcards"
+    - "audio"
+    - "pattern"
+    - "sentence"
+    - "sentences"
+    - "word"
+    - "words"
+    - "question"
+    - "questions"
+    - "answer"
+    - "answers"
+    - "tap"
+    - "click"
+    - "next"
+    - "back"
+    - "remember"
+    - "try"
+    - "practise"
+    - "practice"
+    - "check"
+    - "correct"
+    - "wrong"
+    - "quiet"
+    - "quietly"
+    - "loud"
+    - "loudly"
+    - "slowly"
+    - "quickly"
+    - "together"
+    - "everyone"
+    - "everybody"
+    - "class"
+    - "teacher"
+    - "friend"
+    - "friends"
+    - "student"
+    - "students"
+    - "pupil"
+    - "pupils"
+    - "lesson"
+    - "unit"
+    - "page"
+    - "book"
+    - "open"
+    - "close"
+    - "sit"
+    - "stand"
+    - "up"
+    - "down"
+    - "hand"
+    - "hands"
+    - "please"
+    - "sorry"
+    - "thank"
+    - "thanks"
+    - "well"
+    - "done"
+    - "good"
+    - "great"
+    - "job"
+    - "ok"
+    - "okay"
+    - "yes"
+    - "no"
+    - "time"
+    - "minute"
+    - "minutes"
+    - "count"
+    - "show"
+    - "tell"
+    - "ask"
+    - "choose"
+    - "pick"
+    - "find"
+    - "put"
+    - "give"
+    - "take"
+    - "use"
+    - "make"
+    - "let"
+    - "song"
+    - "songs"
+    - "aloud"
+    - "action"
+    - "actions"
+    - "rule"
+    - "rules"
+    - "mime"
+    - "act"
+    - "clap"
+    - "jump"
+    - "run"
+    - "walk"
+    - "wave"
+    - "nod"
+    - "shake"
+    - "order"
+    - "first"
+    - "second"
+    - "third"
+    - "last"
+    - "then"
+    - "now"
+    - "example"
+    - "talk"
+    - "project"
+    - "catch"
+    - "pass"
+    - "sound"
+    - "sounds"
+    - "rhythm"
+    - "letters"
+    - "greet"
+    - "greeting"
+    - "reply"
+    - "player"
+    - "players"
+    - "introduce"
+    - "frame"
+    - "frames"
+    - "blank"
+    - "gap"
+    - "trace"
+    - "copy"
+    - "tune"
+    - "melody"
+    - "beat"
+    - "verse"
+    - "spelling"
+
+grammar_scope:
+  allowed:                        # documentation for the prompt; not machine-checked
+    - "present simple with be and have"
+    - "imperatives"
+    - "this / that"
+    - "What's …? / How …?"
+    - "numbers 1–20"
+  forbidden:                      # regexes checked by english.grammar_scope (case-insensitive)
+    - id: perfect
+      pattern: '(?:\b(?:has|have|had)(?:n[\x27’]t)?|[\x27’]ve)(?:\s+(?:not|never|already|just|ever))?\s+(?:been|done|gone|eaten|seen|taken|given|written|broken|chosen|spoken|known|shown|driven|fallen|forgotten|begun|drunk|sung|swum|worn|torn|woken|grown|drawn|thrown|flown|blown|ridden|hidden|bitten|stolen|frozen|beaten|made|found|lost|met|heard|told|said|bought|brought|thought|taught|caught|left|felt|kept|slept|built|sent|spent|won|held|read|run|come|become|put|sat|stood|\w{3,}ed)\b'
+      note: "perfect tenses"
+    - id: passive
+      pattern: '(?:\b(?:am|is|are|was|were|be|been|being)(?:n[\x27’]t)?|[\x27’](?:s|re))(?:\s+not)?\s+(?:been|done|gone|eaten|seen|taken|given|written|broken|chosen|spoken|known|shown|driven|fallen|forgotten|begun|drunk|sung|swum|worn|torn|woken|grown|drawn|thrown|flown|blown|ridden|hidden|bitten|stolen|frozen|beaten|made|found|lost|met|heard|told|said|bought|brought|thought|taught|caught|left|felt|kept|slept|built|sent|spent|won|held|read|run|come|become|put|sat|stood|\w{3,}ed)\s+by\b'
+      note: "passive voice"
+    - id: past
+      pattern: '\b(?:(?:was|were|did|had)(?:n[\x27’]t)?|went|saw|came|ate|took|gave|said|told|found|bought|brought|thought|ran|sat|stood|wrote|drank|slept|swam|sang|drew|flew|met|knew|felt|kept|heard|won|got)\b'
+      note: "past simple (grade 5 only)"
+
+textbooks:                        # optional; maps known books to units when one is uploaded
+  - series: global-success
+    volume: 1
+
+units:
+  - id: ta3.u1
+    title: "Hello"
+    textbook_units: [ { series: global-success, unit: 1 } ]
+    lessons: 3
+    outcomes:
+      - id: ta3.u1.o1
+        text: Greet and respond to greetings using Hello / Hi.
+        skills: [listening, speaking]
+        keywords: [greet, hello, hi]
+      - id: ta3.u1.o2
+        text: Introduce oneself using "I'm …".
+        skills: [speaking]
+        keywords: [introduce, name]
+      - id: ta3.u1.o3
+        text: Say goodbye using Goodbye / Bye.
+        skills: [speaking]
+        keywords: [goodbye, bye]
+    vocabulary: [hello, hi, goodbye, bye, nice, meet]
+    patterns:
+      - { pattern: "Hello, I'm ___.", function: introducing oneself }
+      - { pattern: "Nice to meet you.", function: responding to an introduction }
+    phonics:
+      - { sound: "/b/", letters: "b", words: [ball, bye] }
+      - { sound: "/h/", letters: "h", words: [hello, hi] }
+
+  - id: ta3.u2
+    title: "Our names"
+    textbook_units: [ { series: global-success, unit: 2 } ]
+    lessons: 3
+    outcomes:
+      - id: ta3.u2.o1
+        text: Ask and answer about names using "What's your name?" / "My name's …".
+        skills: [listening, speaking]
+        keywords: [ask, answer, name, what]
+      - id: ta3.u2.o2
+        text: Ask and answer about spelling a name using "How do you spell your name?".
+        skills: [listening, speaking]
+        keywords: [spell, name, letters, alphabet]
+      - id: ta3.u2.o3
+        text: Read and write the letters of a short name.
+        skills: [reading, writing]
+        keywords: [read, write, letter, name]
+    vocabulary: [name, my, your, what, how, spell, letter]
+    patterns:
+      - { pattern: "What's your name?", function: asking for a name }
+      - { pattern: "My name's ___.", function: giving one's name }
+      - { pattern: "How do you spell your name?", function: asking for a spelling }
+    phonics:
+      - { sound: "/l/", letters: "l", words: [leg, like] }
+      - { sound: "/n/", letters: "n", words: [name, nice] }
+
+  - id: ta3.u3
+    title: "Our friends"
+    textbook_units: [ { series: global-success, unit: 3 } ]
+    lessons: 3
+    outcomes:
+      - id: ta3.u3.o1
+        text: Introduce a friend using "This is …".
+        skills: [listening, speaking]
+        keywords: [introduce, friend, this]
+      - id: ta3.u3.o2
+        text: Ask and answer about who someone is using "Is that …?" / "Yes, it is." / "No, it isn't.".
+        skills: [listening, speaking]
+        keywords: [ask, answer, that, "yes", "no"]
+      - id: ta3.u3.o3
+        text: Read and match short sentences about friends.
+        skills: [reading]
+        keywords: [read, match, friend, sentence]
+    vocabulary: [friend, this, that, "yes", "no", it, not]
+    patterns:
+      - { pattern: "This is ___.", function: introducing a friend }
+      - { pattern: "Is that ___?", function: asking who someone is }
+      - { pattern: "Yes, it is. / No, it isn't.", function: giving a short answer }
+    phonics:
+      - { sound: "/f/", letters: "f", words: [friend, fine] }
+      - { sound: "/t/", letters: "t", words: [Tony, ten] }
+
+  - id: ta3.u4
+    title: "Our bodies"
+    textbook_units: [ { series: global-success, unit: 4 } ]
+    lessons: 3
+    outcomes:
+      - id: ta3.u4.o1
+        text: Name parts of the face and body.
+        skills: [listening, speaking]
+        keywords: [body, face, eye, ear, nose, mouth, hand, name]
+      - id: ta3.u4.o2
+        text: Follow and give simple commands about body parts, e.g. "Touch your nose.".
+        skills: [listening, speaking]
+        keywords: [command, touch, point, body, nose]
+      - id: ta3.u4.o3
+        text: Say what one has using "I have …" for body parts.
+        skills: [speaking, writing]
+        keywords: [have, body, eye, hand, write]
+    vocabulary: [face, eye, ear, nose, mouth, hand, arm, leg]
+    patterns:
+      - { pattern: "This is my ___.", function: showing a part of the body }
+      - { pattern: "Touch your ___.", function: giving a command }
+      - { pattern: "I have two ___.", function: saying how many }
+    phonics:
+      - { sound: "/m/", letters: "m", words: [my, mouth] }
+      - { sound: "/n/", letters: "n", words: [nose, nine] }
+
+  - id: ta3.u5
+    title: "My hobbies"
+    textbook_units: [ { series: global-success, unit: 5 } ]
+    lessons: 3
+    outcomes:
+      - id: ta3.u5.o1
+        text: Name common hobbies and games.
+        skills: [listening, speaking]
+        keywords: [hobby, game, name, badminton, football]
+      - id: ta3.u5.o2
+        text: Ask and answer about likes using "Do you like …?" / "Yes, I do." / "No, I don't.".
+        skills: [listening, speaking]
+        keywords: [ask, answer, like, hobby]
+      - id: ta3.u5.o3
+        text: Say what one likes using "I like …".
+        skills: [speaking, writing]
+        keywords: [like, say, write, hobby]
+    vocabulary: [hobby, like, badminton, football, chess, play]
+    patterns:
+      - { pattern: "Do you like ___?", function: asking about likes }
+      - { pattern: "Yes, I do. / No, I don't.", function: giving a short answer }
+      - { pattern: "I like ___.", function: saying what one likes }
+    phonics:
+      - { sound: "/b/", letters: "b", words: [badminton, ball] }
+      - { sound: "/tʃ/", letters: "ch", words: [chess, chair] }

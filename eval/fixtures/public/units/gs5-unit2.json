@@ -1,0 +1,266 @@
+{
+  "id": "gs5-unit2",
+  "grade": 5,
+  "unit": 2,
+  "title": "Last weekend",
+  "series": "classdeck-sample",
+  "notes": "Original grade 5 sample unit for ta5.u2. Invented characters An, Khoa and Mi; wording written for this repository.",
+  "lessons": [
+    {
+      "no": 1,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Look, listen and repeat.",
+          "type": "look_listen_repeat",
+          "picture": {
+            "scene": "two children talk about the weekend in the school yard",
+            "style": "scene"
+          },
+          "lines": [
+            "An: What did you do last weekend, Khoa?",
+            "Khoa: I visited my grandmother. We cooked fish.",
+            "An: I watched TV and played football."
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen, point and say.",
+          "type": "listen_point_say",
+          "pattern": "I ___ last weekend.",
+          "items": [
+            {
+              "word": "watched TV"
+            },
+            {
+              "word": "cleaned"
+            },
+            {
+              "word": "played"
+            },
+            {
+              "word": "cooked"
+            }
+          ],
+          "lines": [
+            "What did you do last weekend?",
+            "I ___ last weekend."
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's talk.",
+          "type": "lets_talk",
+          "lines": [
+            "What did you do last weekend?",
+            "I visited my ___."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Listen and tick.",
+          "type": "listen_and_do",
+          "options": [
+            "a. I cleaned my room.",
+            "b. I visited a farm.",
+            "c. I played football."
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Look, complete and read.",
+          "type": "look_complete_read",
+          "lines": [
+            "Khoa visited his _____.",
+            "An cleaned her _____."
+          ],
+          "picture": {
+            "scene": "a boy visits his grandmother at her house",
+            "style": "scene"
+          }
+        },
+        {
+          "no": 6,
+          "instruction": "Let's sing.",
+          "type": "song",
+          "lines": [
+            "Last weekend, last weekend, what did you do?",
+            "I watched TV, and I cleaned too!",
+            "Last weekend, last weekend, what did you see?",
+            "I saw a big cat in a tall green tree!"
+          ]
+        }
+      ]
+    },
+    {
+      "no": 2,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Look, listen and repeat.",
+          "type": "look_listen_repeat",
+          "picture": {
+            "scene": "two children talk about a trip to the park",
+            "style": "scene"
+          },
+          "lines": [
+            "Mi: Did you go to the park, An?",
+            "An: Yes, I did. I went with my cousin.",
+            "Mi: Did you play football?",
+            "An: No, I did not. We flew a kite."
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen, point and say.",
+          "type": "listen_point_say",
+          "pattern": "I went to the ___.",
+          "items": [
+            {
+              "word": "zoo"
+            },
+            {
+              "word": "park"
+            },
+            {
+              "word": "market"
+            },
+            {
+              "word": "library"
+            }
+          ],
+          "lines": [
+            "Did you go to the ___?",
+            "Yes, I did. / No, I did not."
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's talk.",
+          "type": "lets_talk",
+          "lines": [
+            "Did you go to the zoo last weekend?",
+            "Yes, I did. / No, I did not."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Listen and number.",
+          "type": "listen_and_do",
+          "options": [
+            "a. Khoa went to the zoo.",
+            "b. Khoa saw a big bird.",
+            "c. Khoa ate noodles."
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Look, complete and read.",
+          "type": "look_complete_read",
+          "lines": [
+            "_____ you visit your aunt?",
+            "Yes, I _____. / No, I _____ not."
+          ],
+          "picture": {
+            "scene": "children at the zoo on a sunny day",
+            "style": "scene"
+          }
+        },
+        {
+          "no": 6,
+          "instruction": "Let's play.",
+          "type": "game",
+          "lines": [
+            "Ask three friends.",
+            "Did you play football last weekend?",
+            "Tick yes or no.",
+            "Tell the class."
+          ]
+        }
+      ]
+    },
+    {
+      "no": 3,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Listen and repeat.",
+          "type": "phonics",
+          "sound": "/t/",
+          "letters": "ed",
+          "words": [
+            "watched",
+            "cooked",
+            "jumped"
+          ],
+          "picture": {
+            "scene": "children clapping and watching TV with a ball",
+            "style": "scene"
+          }
+        },
+        {
+          "no": 2,
+          "instruction": "Listen and circle.",
+          "type": "listen_and_do",
+          "options": [
+            "a. played / plays",
+            "b. went / go",
+            "c. watched / watch"
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's chant.",
+          "type": "chant",
+          "lines": [
+            "Watched, watched, I watched TV.",
+            "Cooked, cooked, I cooked for you.",
+            "Played, played, I played all day.",
+            "Jumped, jumped, I jumped up and down."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Read and match.",
+          "type": "read_and_match",
+          "pairs": [
+            [
+              "What did you do?",
+              "I cleaned my room."
+            ],
+            [
+              "Did you go to the zoo?",
+              "Yes, I did."
+            ],
+            [
+              "Where did you go?",
+              "I went to the market."
+            ]
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Let's write.",
+          "type": "lets_write",
+          "lines": [
+            "Last weekend, I _____.",
+            "I did not _____.",
+            "My friend _____."
+          ],
+          "picture": {
+            "scene": "a child writing about the weekend at a desk",
+            "style": "scene"
+          }
+        },
+        {
+          "no": 6,
+          "instruction": "Project.",
+          "type": "project",
+          "lines": [
+            "Make a weekend poster. Draw three pictures and write a sentence for each."
+          ]
+        }
+      ]
+    }
+  ]
+}

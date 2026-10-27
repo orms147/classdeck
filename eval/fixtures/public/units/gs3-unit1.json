@@ -1,0 +1,271 @@
+{
+  "id": "gs3-unit1",
+  "grade": 3,
+  "unit": 1,
+  "title": "Hello",
+  "series": "classdeck-sample",
+  "notes": "Original grade-3 practice unit in the usual three-lesson shape. All wording is invented.",
+  "lessons": [
+    {
+      "no": 1,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Look, listen and repeat.",
+          "type": "look_listen_repeat",
+          "picture": {
+            "scene": "two children say hello at the school gate",
+            "style": "scene"
+          },
+          "lines": [
+            "Duc: Hello! I'm Duc.",
+            "Lan: Hi, Duc. I'm Lan."
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen, point and say.",
+          "type": "listen_point_say",
+          "pattern": "Hello, I'm ___.",
+          "items": [
+            {
+              "word": "Lan"
+            },
+            {
+              "word": "Duc"
+            },
+            {
+              "word": "Khoa"
+            },
+            {
+              "word": "Mi"
+            }
+          ],
+          "lines": [
+            "Hello, I'm Khoa.",
+            "Hi, Khoa. I'm Mi."
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's talk.",
+          "type": "lets_talk",
+          "lines": [
+            "Say hello to your partner.",
+            "Say your name."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Listen and tick.",
+          "type": "listen_and_do",
+          "picture": {
+            "scene": "three children wave in the classroom",
+            "style": "scene"
+          },
+          "options": [
+            "a. Hello, I'm Vy.",
+            "b. Hi, I'm Quang.",
+            "c. Hello, I'm An."
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Look, complete and read.",
+          "type": "look_complete_read",
+          "lines": [
+            "Hello, I'm _____.",
+            "Hi, _____. I'm Thu."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Let's sing.",
+          "type": "song",
+          "lines": [
+            "Hello, hello, I'm Mi.",
+            "Hi, hi, hi, I'm Vy.",
+            "Hello, hello, hello to you!",
+            "Hi, hi, hi, hello to you!"
+          ]
+        }
+      ]
+    },
+    {
+      "no": 2,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Look, listen and repeat.",
+          "type": "look_listen_repeat",
+          "picture": {
+            "scene": "two friends meet in the sunny school yard",
+            "style": "scene"
+          },
+          "lines": [
+            "Khoa: Hello, I'm Khoa.",
+            "Mi: Hi, Khoa. I'm Mi.",
+            "Khoa: Nice to meet you, Mi.",
+            "Mi: Nice to meet you, Khoa."
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen, point and say.",
+          "type": "listen_point_say",
+          "pattern": "Nice to meet you.",
+          "items": [
+            {
+              "word": "Quang"
+            },
+            {
+              "word": "Thu"
+            },
+            {
+              "word": "An"
+            },
+            {
+              "word": "Vy"
+            }
+          ],
+          "lines": [
+            "Hello, I'm Quang.",
+            "Nice to meet you, Thu."
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's talk.",
+          "type": "lets_talk",
+          "lines": [
+            "Say hello. Say your name.",
+            "Say: Nice to meet you."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Listen and number.",
+          "type": "listen_and_do",
+          "picture": {
+            "scene": "two girls and a boy in the classroom",
+            "style": "scene"
+          },
+          "options": [
+            "a. Hello, I'm Duc. Nice to meet you.",
+            "b. Hi, I'm Lan. Nice to meet you."
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Look, complete and read.",
+          "type": "look_complete_read",
+          "lines": [
+            "Hello, I'm _____.",
+            "Nice to meet you, _____."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Let's play.",
+          "type": "game",
+          "lines": [
+            "Stand up. Walk and say hello.",
+            "Say your name. Say: Nice to meet you.",
+            "Find a friend. Swap.",
+            "Sit down. Good job!"
+          ]
+        }
+      ]
+    },
+    {
+      "no": 3,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Listen and repeat.",
+          "type": "phonics",
+          "letters": "b",
+          "sound": "/b/",
+          "items": [
+            {
+              "word": "bye"
+            },
+            {
+              "word": "ball"
+            },
+            {
+              "word": "book"
+            },
+            {
+              "word": "bag"
+            }
+          ],
+          "lines": [
+            "h   /h/   hello   hi   hand   head"
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen and circle.",
+          "type": "listen_and_do",
+          "options": [
+            "a. bye",
+            "b. hi",
+            "c. ball"
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's chant.",
+          "type": "chant",
+          "lines": [
+            "Hi, hi, hi, my hand, my head.",
+            "Hello, hello, a book and a bag.",
+            "Bye, bye, bye, a big blue ball.",
+            "Bye, bye, bye, hello and hi!"
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Read and match.",
+          "type": "read_and_match",
+          "picture": {
+            "scene": "children show name cards in the classroom",
+            "style": "scene"
+          },
+          "pairs": [
+            [
+              "Hello, I'm Lan.",
+              "Hi, Lan. I'm Duc."
+            ],
+            [
+              "Nice to meet you.",
+              "Hi, nice to meet you."
+            ],
+            [
+              "Goodbye, Duc.",
+              "Bye, Lan."
+            ]
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Let's write.",
+          "type": "lets_write",
+          "lines": [
+            "Write: Hello, I'm _____.",
+            "Write: Bye, _____."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Project.",
+          "type": "project",
+          "lines": [
+            "Make a name card. Write your name. Say hello to a friend."
+          ]
+        }
+      ]
+    }
+  ]
+}

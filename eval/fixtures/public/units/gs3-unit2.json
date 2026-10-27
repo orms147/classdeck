@@ -1,0 +1,274 @@
+{
+  "id": "gs3-unit2",
+  "grade": 3,
+  "unit": 2,
+  "title": "Our names",
+  "series": "classdeck-sample",
+  "notes": "Original grade-3 practice unit in the usual three-lesson shape. All wording is invented.",
+  "lessons": [
+    {
+      "no": 1,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Look, listen and repeat.",
+          "type": "look_listen_repeat",
+          "picture": {
+            "scene": "two girls talk in the classroom",
+            "style": "scene"
+          },
+          "lines": [
+            "Vy: Hello. What's your name?",
+            "An: My name's An. What's your name?",
+            "Vy: My name's Vy."
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen, point and say.",
+          "type": "listen_point_say",
+          "pattern": "My name's ___.",
+          "items": [
+            {
+              "word": "Thu"
+            },
+            {
+              "word": "Quang"
+            },
+            {
+              "word": "Mi"
+            },
+            {
+              "word": "Khoa"
+            }
+          ],
+          "lines": [
+            "What's your name?",
+            "My name's Thu."
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's talk.",
+          "type": "lets_talk",
+          "lines": [
+            "Ask your partner: What's your name?",
+            "Say: My name's ___."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Listen and tick.",
+          "type": "listen_and_do",
+          "picture": {
+            "scene": "children say their names in the classroom",
+            "style": "scene"
+          },
+          "options": [
+            "a. My name's Thu.",
+            "b. My name's Mi.",
+            "c. My name's Lan."
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Look, complete and read.",
+          "type": "look_complete_read",
+          "lines": [
+            "What's your name?",
+            "My name's _____.",
+            "Hello, _____. Nice to meet you."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Let's sing.",
+          "type": "song",
+          "lines": [
+            "What's your name? What's your name?",
+            "My name's Lan, my name's Lan.",
+            "Hello, Lan! Hello, Lan!",
+            "Nice to meet you, Lan."
+          ]
+        }
+      ]
+    },
+    {
+      "no": 2,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Look, listen and repeat.",
+          "type": "look_listen_repeat",
+          "picture": {
+            "scene": "a boy and a girl talk at their desks",
+            "style": "scene"
+          },
+          "lines": [
+            "Duc: What's your name?",
+            "Mi: My name's Mi.",
+            "Duc: How do you spell your name?",
+            "Mi: M-I."
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen, point and say.",
+          "type": "listen_point_say",
+          "pattern": "How do you spell your name?",
+          "items": [
+            {
+              "word": "Ha"
+            },
+            {
+              "word": "An"
+            },
+            {
+              "word": "Vy"
+            },
+            {
+              "word": "Mi"
+            }
+          ],
+          "lines": [
+            "How do you spell your name?",
+            "A-N."
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's talk.",
+          "type": "lets_talk",
+          "lines": [
+            "Ask your partner. How do you spell your name?",
+            "Spell it. Write it."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Listen and number.",
+          "type": "listen_and_do",
+          "picture": {
+            "scene": "children write letters on the board",
+            "style": "scene"
+          },
+          "options": [
+            "a. M-I",
+            "b. A-N",
+            "c. V-Y"
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Look, complete and read.",
+          "type": "look_complete_read",
+          "lines": [
+            "My name's Lan. L-A-N.",
+            "My name's Tien. _-_-_-_."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Let's play.",
+          "type": "game",
+          "lines": [
+            "Play a spelling game.",
+            "Spell a name. Your partner writes the letters.",
+            "Check the name.",
+            "Swap."
+          ]
+        }
+      ]
+    },
+    {
+      "no": 3,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Listen and repeat.",
+          "type": "phonics",
+          "letters": "l",
+          "sound": "/l/",
+          "items": [
+            {
+              "word": "Lan"
+            },
+            {
+              "word": "leg"
+            },
+            {
+              "word": "look"
+            },
+            {
+              "word": "letter"
+            }
+          ],
+          "lines": [
+            "n   /n/   name   nice   nose   nine"
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen and circle.",
+          "type": "listen_and_do",
+          "options": [
+            "a. name",
+            "b. letter",
+            "c. look"
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's chant.",
+          "type": "chant",
+          "lines": [
+            "L, l, l, look and listen.",
+            "Leg, leg, letter, Lan.",
+            "N, n, n, my name, my name.",
+            "Nose, nine, nice, name."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Read and match.",
+          "type": "read_and_match",
+          "picture": {
+            "scene": "a girl holds a name card in the classroom",
+            "style": "scene"
+          },
+          "pairs": [
+            [
+              "What's your name?",
+              "My name's Duc."
+            ],
+            [
+              "How do you spell it?",
+              "D-U-C."
+            ],
+            [
+              "Hello, I'm Mi.",
+              "Hi, Mi. Nice to meet you."
+            ]
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Let's write.",
+          "type": "lets_write",
+          "lines": [
+            "Write: My name's _____.",
+            "Write the letters: _ _ _ _."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Project.",
+          "type": "project",
+          "lines": [
+            "Make a name card. Write the letters of your name."
+          ]
+        }
+      ]
+    }
+  ]
+}

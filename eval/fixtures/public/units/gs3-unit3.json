@@ -1,0 +1,273 @@
+{
+  "id": "gs3-unit3",
+  "grade": 3,
+  "unit": 3,
+  "title": "Our friends",
+  "series": "classdeck-sample",
+  "notes": "Original grade-3 practice unit in the usual three-lesson shape. All wording is invented.",
+  "lessons": [
+    {
+      "no": 1,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Look, listen and repeat.",
+          "type": "look_listen_repeat",
+          "picture": {
+            "scene": "three friends meet in the school yard",
+            "style": "scene"
+          },
+          "lines": [
+            "Thu: Hello, Mi. This is my friend, Quang.",
+            "Mi: Hi, Quang. Nice to meet you.",
+            "Quang: Nice to meet you, Mi."
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen, point and say.",
+          "type": "listen_point_say",
+          "pattern": "This is ___.",
+          "items": [
+            {
+              "word": "Quang"
+            },
+            {
+              "word": "Vy"
+            },
+            {
+              "word": "An"
+            },
+            {
+              "word": "Khoa"
+            }
+          ],
+          "lines": [
+            "This is Quang.",
+            "This is my friend, Vy."
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's talk.",
+          "type": "lets_talk",
+          "lines": [
+            "Show a picture of a friend.",
+            "Say: This is my friend."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Listen and tick.",
+          "type": "listen_and_do",
+          "picture": {
+            "scene": "a girl shows a friend to the class",
+            "style": "scene"
+          },
+          "options": [
+            "a. This is Duc.",
+            "b. This is Khoa.",
+            "c. This is Tien."
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Look, complete and read.",
+          "type": "look_complete_read",
+          "lines": [
+            "This is my friend, _____.",
+            "This is _____."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Let's sing.",
+          "type": "song",
+          "lines": [
+            "This is my friend, this is my friend.",
+            "Hello, hello, hello, friend!",
+            "This is Mi, this is Mi.",
+            "Hello, hello, hello, Mi!"
+          ]
+        }
+      ]
+    },
+    {
+      "no": 2,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Look, listen and repeat.",
+          "type": "look_listen_repeat",
+          "picture": {
+            "scene": "two friends look at a girl in the school yard",
+            "style": "scene"
+          },
+          "lines": [
+            "Duc: Is that Lan?",
+            "Thu: Yes, it is. That is Lan.",
+            "Duc: Is that Tien?",
+            "Thu: No, it isn't. That is Khoa."
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen, point and say.",
+          "type": "listen_point_say",
+          "pattern": "Is that ___?",
+          "items": [
+            {
+              "word": "Lan"
+            },
+            {
+              "word": "Tien"
+            },
+            {
+              "word": "Khoa"
+            },
+            {
+              "word": "Mi"
+            }
+          ],
+          "lines": [
+            "Is that Lan? Yes, it is.",
+            "Is that Mi? No, it isn't."
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's talk.",
+          "type": "lets_talk",
+          "lines": [
+            "Point to a friend. Ask: Is that ___?",
+            "Answer: Yes, it is. / No, it isn't."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Listen and tick.",
+          "type": "listen_and_do",
+          "picture": {
+            "scene": "children point at friends in the yard",
+            "style": "scene"
+          },
+          "options": [
+            "a. Is that Vy? Yes, it is.",
+            "b. Is that Vy? No, it isn't.",
+            "c. Is that An? Yes, it is."
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Look, complete and read.",
+          "type": "look_complete_read",
+          "lines": [
+            "Is that Duc? _____, it is.",
+            "Is that Mi? _____, it isn't."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Let's play.",
+          "type": "game",
+          "lines": [
+            "Stand in two teams.",
+            "Show a picture card.",
+            "Ask: Is that ___?",
+            "Answer: Yes, it is. / No, it isn't."
+          ]
+        }
+      ]
+    },
+    {
+      "no": 3,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Listen and repeat.",
+          "type": "phonics",
+          "letters": "f",
+          "sound": "/f/",
+          "items": [
+            {
+              "word": "friend"
+            },
+            {
+              "word": "fine"
+            },
+            {
+              "word": "fish"
+            },
+            {
+              "word": "face"
+            }
+          ],
+          "lines": [
+            "t   /t/   ten   two   toy   touch"
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen and circle.",
+          "type": "listen_and_do",
+          "options": [
+            "a. friend",
+            "b. fish",
+            "c. ten"
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's chant.",
+          "type": "chant",
+          "lines": [
+            "F, f, f, friend and fish.",
+            "T, t, t, ten and two.",
+            "This is my friend, nice and fine.",
+            "That is my friend, one, two, three."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Read and match.",
+          "type": "read_and_match",
+          "picture": {
+            "scene": "a boy draws his friend in the classroom",
+            "style": "scene"
+          },
+          "pairs": [
+            [
+              "This is Quang.",
+              "Hi, Quang."
+            ],
+            [
+              "Is that Thu?",
+              "Yes, it is."
+            ],
+            [
+              "Is that Duc?",
+              "No, it isn't."
+            ]
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Let's write.",
+          "type": "lets_write",
+          "lines": [
+            "This is my friend, _____.",
+            "Is that _____? Yes, it is."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Project.",
+          "type": "project",
+          "lines": [
+            "Draw a friend. Write the name. Say: This is my friend."
+          ]
+        }
+      ]
+    }
+  ]
+}

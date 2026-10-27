@@ -1,0 +1,22 @@
+# Public case: self-written sample unit (eval/fixtures/public/gs4-unit1.pdf), grade 4, Unit 1 My friends and me, Lesson 3 (phonics), Period 1.
+# Runs in CI with the mock provider (deterministic) and on demand with a real provider.
+# The mock grounds only the phonics and picture blocks of a lesson-3 page, hence the lower grounding bound.
+id: en4-u1-l3-p1
+grade: 4
+curriculum: { version: gdpt-2018, unit_id: ta4.u1, lesson_no: 3, period: 1 }
+source: fixtures/public/gs4-unit1.pdf
+pages: [5, 6]
+expect:
+  min_grounded_ratio: 0.50
+  max_vocab_violations: 0
+  max_grammar_violations: 0
+  must_cover_outcomes: [ta4.u1.o3]
+  must_cover_skills: [listening, speaking]
+  timing_ok: true
+edits:
+  - target_kind: phonics
+    instruction: "Use only the first two sound words"
+    expect: { edit_locality: true }
+  - target_kind: activity
+    instruction: "Make it a pair-work activity"
+    expect: { changed_blocks: 1, interaction: pairs }

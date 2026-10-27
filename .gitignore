@@ -1,0 +1,40 @@
+# --- secrets ---
+.env
+.env.*
+!.env.example
+
+# --- copyrighted / private evaluation material (keep the folder, never its contents) ---
+eval/fixtures/private/*
+!eval/fixtures/private/.gitkeep
+eval/results/
+.cache/
+
+# --- generated lesson artifacts ---
+out/
+*.lesson.json.bak
+
+# --- python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# --- node / web ---
+node_modules/
+web/dist/
+web/.vite/
+
+# --- os / editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

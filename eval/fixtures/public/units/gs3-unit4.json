@@ -1,0 +1,273 @@
+{
+  "id": "gs3-unit4",
+  "grade": 3,
+  "unit": 4,
+  "title": "Our bodies",
+  "series": "classdeck-sample",
+  "notes": "Original grade-3 practice unit in the usual three-lesson shape. All wording is invented.",
+  "lessons": [
+    {
+      "no": 1,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Look, listen and repeat.",
+          "type": "look_listen_repeat",
+          "picture": {
+            "scene": "two girls look at a doll",
+            "style": "scene"
+          },
+          "lines": [
+            "Vy: Hello. This is my doll.",
+            "An: Hi! This is her face.",
+            "Vy: This is her nose. This is her mouth."
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen, point and say.",
+          "type": "listen_point_say",
+          "pattern": "This is my ___.",
+          "items": [
+            {
+              "word": "eye"
+            },
+            {
+              "word": "ear"
+            },
+            {
+              "word": "nose"
+            },
+            {
+              "word": "mouth"
+            }
+          ],
+          "lines": [
+            "This is my nose.",
+            "This is my mouth."
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's talk.",
+          "type": "lets_talk",
+          "lines": [
+            "Point to your face.",
+            "Say: This is my nose."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Listen and tick.",
+          "type": "listen_and_do",
+          "picture": {
+            "scene": "a girl points to her face",
+            "style": "scene"
+          },
+          "options": [
+            "a. This is my nose.",
+            "b. This is my ear.",
+            "c. This is my mouth."
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Look, complete and read.",
+          "type": "look_complete_read",
+          "lines": [
+            "This is my _____.",
+            "This is my _____.",
+            "I have two _____."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Let's sing.",
+          "type": "song",
+          "lines": [
+            "Eyes, eyes, I have two eyes.",
+            "Ears, ears, I have two ears.",
+            "Nose, nose, I have one nose.",
+            "Mouth, mouth, one mouth, hello!"
+          ]
+        }
+      ]
+    },
+    {
+      "no": 2,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Look, listen and repeat.",
+          "type": "look_listen_repeat",
+          "picture": {
+            "scene": "two children play in the sunny school yard",
+            "style": "scene"
+          },
+          "lines": [
+            "Khoa: Touch your hand.",
+            "Mi: OK. Touch your leg.",
+            "Khoa: Good! I have two legs."
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen, point and say.",
+          "type": "listen_point_say",
+          "pattern": "Touch your ___.",
+          "items": [
+            {
+              "word": "hand"
+            },
+            {
+              "word": "arm"
+            },
+            {
+              "word": "leg"
+            },
+            {
+              "word": "ear"
+            }
+          ],
+          "lines": [
+            "Touch your hand.",
+            "Touch your arm."
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's talk.",
+          "type": "lets_talk",
+          "lines": [
+            "Tell your partner what to do.",
+            "Say: Touch your ___."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Listen and number.",
+          "type": "listen_and_do",
+          "picture": {
+            "scene": "children touch their arms and legs",
+            "style": "scene"
+          },
+          "options": [
+            "a. Touch your leg.",
+            "b. Touch your arm.",
+            "c. Touch your hand."
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Look, complete and read.",
+          "type": "look_complete_read",
+          "lines": [
+            "Touch your _____.",
+            "I have two _____."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Let's play.",
+          "type": "game",
+          "lines": [
+            "Stand up. Listen.",
+            "Touch your hand. Touch your ear.",
+            "Touch your arm. Touch your leg.",
+            "Sit down. Good job!"
+          ]
+        }
+      ]
+    },
+    {
+      "no": 3,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Listen and repeat.",
+          "type": "phonics",
+          "letters": "m",
+          "sound": "/m/",
+          "items": [
+            {
+              "word": "my"
+            },
+            {
+              "word": "mouth"
+            },
+            {
+              "word": "milk"
+            },
+            {
+              "word": "mother"
+            }
+          ],
+          "lines": [
+            "n   /n/   nose   nine   name   nice"
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen and circle.",
+          "type": "listen_and_do",
+          "options": [
+            "a. mouth",
+            "b. mother",
+            "c. nose"
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's chant.",
+          "type": "chant",
+          "lines": [
+            "M, m, m, my mouth, my mouth.",
+            "N, n, n, my nose, my nose.",
+            "Eyes, ears, hands and legs,",
+            "I have two, I have two!"
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Read and match.",
+          "type": "read_and_match",
+          "picture": {
+            "scene": "a robot with two arms and two legs",
+            "style": "scene"
+          },
+          "pairs": [
+            [
+              "How many ears?",
+              "I have two ears."
+            ],
+            [
+              "How many mouths?",
+              "I have one mouth."
+            ],
+            [
+              "How many hands?",
+              "I have two hands."
+            ]
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Let's write.",
+          "type": "lets_write",
+          "lines": [
+            "I have two _____.",
+            "This is my _____."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Project.",
+          "type": "project",
+          "lines": [
+            "Draw a robot. Say: I have two arms. I have two legs."
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,262 @@
+{
+  "id": "gs5-unit1",
+  "grade": 5,
+  "unit": 1,
+  "title": "Where I live",
+  "series": "classdeck-sample",
+  "notes": "Original grade 5 sample unit for ta5.u1. Invented characters Vy, Quang and Thu; wording written for this repository.",
+  "lessons": [
+    {
+      "no": 1,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Look, listen and repeat.",
+          "type": "look_listen_repeat",
+          "picture": {
+            "scene": "two children talk on the way home near a market",
+            "style": "scene"
+          },
+          "lines": [
+            "Vy: Where do you live, Quang?",
+            "Quang: I live in a village. It is quiet.",
+            "Vy: I live in a city. It is busy."
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen, point and say.",
+          "type": "listen_point_say",
+          "pattern": "I live in a ___.",
+          "items": [
+            {
+              "word": "village"
+            },
+            {
+              "word": "town"
+            },
+            {
+              "word": "city"
+            }
+          ],
+          "lines": [
+            "Where do you live?",
+            "I live in a ___."
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's talk.",
+          "type": "lets_talk",
+          "lines": [
+            "Where do you live?",
+            "I live in a ___. It is ___."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Listen and tick.",
+          "type": "listen_and_do",
+          "options": [
+            "a. I live in a village.",
+            "b. I live in a city.",
+            "c. I live in a town."
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Look, complete and read.",
+          "type": "look_complete_read",
+          "lines": [
+            "Vy lives in a _____. It is busy.",
+            "Quang lives in a _____. It is quiet."
+          ],
+          "picture": {
+            "scene": "a small village and a big city side by side",
+            "style": "scene"
+          }
+        },
+        {
+          "no": 6,
+          "instruction": "Let's sing.",
+          "type": "song",
+          "lines": [
+            "I live in a village, quiet and small.",
+            "I live in a town, and I like it all.",
+            "I live in a city, busy and tall.",
+            "Where do you live? Tell us all!"
+          ]
+        }
+      ]
+    },
+    {
+      "no": 2,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Look, listen and repeat.",
+          "type": "look_listen_repeat",
+          "picture": {
+            "scene": "a girl tells her friend about her house near a park",
+            "style": "scene"
+          },
+          "lines": [
+            "Thu: What is your address, Vy?",
+            "Vy: It is 12 Lake Road. My house is near the park.",
+            "Thu: Nice! I live at 5 Hill Street."
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen, point and say.",
+          "type": "listen_point_say",
+          "pattern": "My house is near the ___.",
+          "items": [
+            {
+              "word": "park"
+            },
+            {
+              "word": "market"
+            },
+            {
+              "word": "school"
+            },
+            {
+              "word": "shop"
+            }
+          ],
+          "lines": [
+            "What is your address?",
+            "My house is near the ___."
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's talk.",
+          "type": "lets_talk",
+          "lines": [
+            "What is your address?",
+            "It is ___. My house is near the ___."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Listen and number.",
+          "type": "listen_and_do",
+          "options": [
+            "a. My house is near the park.",
+            "b. My house is near the market.",
+            "c. My house is near the school."
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Look, complete and read.",
+          "type": "look_complete_read",
+          "lines": [
+            "Her house is near the _____.",
+            "His house is near the _____."
+          ],
+          "picture": {
+            "scene": "a house near a park with a tree",
+            "style": "scene"
+          }
+        },
+        {
+          "no": 6,
+          "instruction": "Let's play.",
+          "type": "game",
+          "lines": [
+            "Think of a place near your house.",
+            "Your partner asks: Is it a park?",
+            "Say: Yes, it is. / No, it is not.",
+            "Swap roles. Play again."
+          ]
+        }
+      ]
+    },
+    {
+      "no": 3,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Listen and repeat.",
+          "type": "phonics",
+          "sound": "/v/",
+          "letters": "v",
+          "words": [
+            "village",
+            "very",
+            "live"
+          ],
+          "picture": {
+            "scene": "a village with a house and a tree",
+            "style": "scene"
+          }
+        },
+        {
+          "no": 2,
+          "instruction": "Listen and circle.",
+          "type": "listen_and_do",
+          "options": [
+            "a. village / town",
+            "b. quiet / busy",
+            "c. near / far"
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's chant.",
+          "type": "chant",
+          "lines": [
+            "Vy lives in a village, very, very quiet.",
+            "Quang lives in a city, very, very busy.",
+            "Live, live, live in a village!",
+            "Live, live, live in a city!"
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Read and match.",
+          "type": "read_and_match",
+          "pairs": [
+            [
+              "Where do you live?",
+              "I live in a village."
+            ],
+            [
+              "What is your address?",
+              "It is 12 Lake Road."
+            ],
+            [
+              "Is your house near the park?",
+              "Yes, it is."
+            ]
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Let's write.",
+          "type": "lets_write",
+          "lines": [
+            "I live in a _____.",
+            "My house is near the _____.",
+            "It is _____."
+          ],
+          "picture": {
+            "scene": "a child writing about home at a desk",
+            "style": "scene"
+          }
+        },
+        {
+          "no": 6,
+          "instruction": "Project.",
+          "type": "project",
+          "lines": [
+            "Draw a map of your street. Write three sentences."
+          ]
+        }
+      ]
+    }
+  ]
+}

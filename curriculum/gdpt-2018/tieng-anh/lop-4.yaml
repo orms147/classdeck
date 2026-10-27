@@ -1,0 +1,735 @@
+# Seed data — structure complete; content to be checked line by line against the official programme (Thông tư 32/2018/TT-BGDĐT). See docs/curriculum-config.md.
+# The word list is cumulative: every grade 3 word, then the grade 4 words from "---- grade 4 ----" on.
+version: gdpt-2018
+subject: tieng-anh
+grade: 4
+language: en
+status: seed
+period_minutes: 35
+
+vocabulary:
+  level: A1
+  words:                          # quote yes / no / on: unquoted, YAML reads them as booleans
+    # greetings and politeness
+    - hello
+    - hi
+    - goodbye
+    - bye
+    - good
+    - morning
+    - afternoon
+    - please
+    - thank
+    - fine
+    - nice
+    - meet
+    - name
+    - friend
+    # articles, pronouns, function words
+    - a
+    - an
+    - the
+    - and
+    - this
+    - that
+    - it
+    - my
+    - your
+    - his
+    - her
+    - i
+    - you
+    - he
+    - she
+    - we
+    - they
+    - is
+    - are
+    - am
+    - not
+    - "yes"
+    - "no"
+    # question words
+    - what
+    - who
+    - where
+    - how
+    - many
+    - old
+    # numbers
+    - one
+    - two
+    - three
+    - four
+    - five
+    - six
+    - seven
+    - eight
+    - nine
+    - ten
+    - eleven
+    - twelve
+    - thirteen
+    - fourteen
+    - fifteen
+    - sixteen
+    - seventeen
+    - eighteen
+    - nineteen
+    - twenty
+    # colours
+    - red
+    - blue
+    - green
+    - yellow
+    - black
+    - white
+    - orange
+    - pink
+    - brown
+    # classroom
+    - book
+    - pen
+    - pencil
+    - ruler
+    - bag
+    - desk
+    - chair
+    - board
+    - school
+    - classroom
+    - teacher
+    - student
+    - door
+    - window
+    - letter
+    # family
+    - family
+    - mother
+    - father
+    - brother
+    - sister
+    # body
+    - head
+    - face
+    - eye
+    - ear
+    - nose
+    - mouth
+    - hand
+    - arm
+    - leg
+    - body
+    # toys and games
+    - toy
+    - ball
+    - doll
+    - kite
+    - robot
+    - car
+    - bike
+    # pets and animals
+    - cat
+    - dog
+    - bird
+    - fish
+    - rabbit
+    - duck
+    # food and drink
+    - apple
+    - banana
+    - bread
+    - egg
+    - rice
+    - cake
+    - milk
+    - water
+    # weather
+    - sunny
+    - rainy
+    - hot
+    - cold
+    # common verbs
+    - have
+    - like
+    - play
+    - go
+    - come
+    - see
+    - look
+    - listen
+    - say
+    - point
+    - touch
+    - open
+    - close
+    - sit
+    - stand
+    - draw
+    - sing
+    - dance
+    - read
+    - write
+    - spell
+    - eat
+    - drink
+    # common adjectives
+    - big
+    - small
+    - happy
+    - sad
+    - tall
+    - short
+    # position
+    - up
+    - down
+    - in
+    - "on"
+    # ---- grade 4 ----
+    # days and time
+    - monday
+    - tuesday
+    - wednesday
+    - thursday
+    - friday
+    - saturday
+    - sunday
+    - day
+    - week
+    - weekend
+    - today
+    - tomorrow
+    - time
+    - clock
+    - "o'clock"
+    - early
+    - late
+    - always
+    - usually
+    - often
+    - sometimes
+    - every
+    # months and celebrations
+    - month
+    - january
+    - february
+    - march
+    - april
+    - may
+    - june
+    - july
+    - august
+    - september
+    - october
+    - november
+    - december
+    - birthday
+    - party
+    - present
+    # school subjects
+    - subject
+    - timetable
+    - english
+    - maths
+    - music
+    - art
+    - science
+    - homework
+    # daily routine
+    - get
+    - wake
+    - wash
+    - brush
+    - teeth
+    - breakfast
+    - lunch
+    - dinner
+    - evening
+    - night
+    - bed
+    - sleep
+    - study
+    - help
+    - clean
+    - watch
+    # home
+    - house
+    - home
+    - room
+    - kitchen
+    - bedroom
+    - bathroom
+    - living
+    - garden
+    - table
+    - sofa
+    - lamp
+    - fridge
+    - shelf
+    - front
+    - behind
+    - there
+    # town
+    - town
+    - village
+    - street
+    - park
+    - shop
+    - market
+    - zoo
+    - library
+    - cinema
+    - hospital
+    - playground
+    - gate
+    - left
+    - right
+    # jobs
+    - farmer
+    - doctor
+    - nurse
+    - driver
+    - worker
+    - cook
+    - singer
+    - pilot
+    - artist
+    - work
+    - live
+    # people
+    - boy
+    - girl
+    - grandmother
+    - grandfather
+    # food
+    - noodles
+    - chicken
+    - juice
+    # weather
+    - weather
+    - windy
+    - cloudy
+    - warm
+    # hobbies and abilities
+    - can
+    - swim
+    - ride
+    - fly
+    - climb
+    - hobby
+    - sport
+    - football
+    - badminton
+    - chess
+    # numbers
+    - thirty
+    - forty
+    - fifty
+    - sixty
+    - seventy
+    - eighty
+    - ninety
+    - hundred
+    - zero
+    # adjectives and adverbs
+    - new
+    - long
+    - fast
+    - slow
+    - beautiful
+    - funny
+    - kind
+    - friendly
+    - clever
+    - busy
+    - tired
+    - hungry
+    - favourite
+    - young
+    - strong
+    - very
+    - too
+    - also
+    - but
+    # question words
+    - when
+  classroom_language:             # instruction language pupils hear every lesson; receptive, not new words
+    - "listen"
+    - "look"
+    - "point"
+    - "say"
+    - "repeat"
+    - "read"
+    - "write"
+    - "match"
+    - "tick"
+    - "circle"
+    - "number"
+    - "complete"
+    - "draw"
+    - "colour"
+    - "sing"
+    - "chant"
+    - "play"
+    - "game"
+    - "games"
+    - "pair"
+    - "pairs"
+    - "partner"
+    - "partners"
+    - "group"
+    - "groups"
+    - "team"
+    - "teams"
+    - "turn"
+    - "turns"
+    - "role"
+    - "roles"
+    - "swap"
+    - "change"
+    - "again"
+    - "start"
+    - "stop"
+    - "ready"
+    - "go"
+    - "finish"
+    - "finished"
+    - "line"
+    - "lines"
+    - "row"
+    - "board"
+    - "picture"
+    - "pictures"
+    - "card"
+    - "cards"
+    - "flashcard"
+    - "flashcards"
+    - "audio"
+    - "pattern"
+    - "sentence"
+    - "sentences"
+    - "word"
+    - "words"
+    - "question"
+    - "questions"
+    - "answer"
+    - "answers"
+    - "tap"
+    - "click"
+    - "next"
+    - "back"
+    - "remember"
+    - "try"
+    - "practise"
+    - "practice"
+    - "check"
+    - "correct"
+    - "wrong"
+    - "quiet"
+    - "quietly"
+    - "loud"
+    - "loudly"
+    - "slowly"
+    - "quickly"
+    - "together"
+    - "everyone"
+    - "everybody"
+    - "class"
+    - "teacher"
+    - "friend"
+    - "friends"
+    - "student"
+    - "students"
+    - "pupil"
+    - "pupils"
+    - "lesson"
+    - "unit"
+    - "page"
+    - "book"
+    - "open"
+    - "close"
+    - "sit"
+    - "stand"
+    - "up"
+    - "down"
+    - "hand"
+    - "hands"
+    - "please"
+    - "sorry"
+    - "thank"
+    - "thanks"
+    - "well"
+    - "done"
+    - "good"
+    - "great"
+    - "job"
+    - "ok"
+    - "okay"
+    - "yes"
+    - "no"
+    - "time"
+    - "minute"
+    - "minutes"
+    - "count"
+    - "show"
+    - "tell"
+    - "ask"
+    - "choose"
+    - "pick"
+    - "find"
+    - "put"
+    - "give"
+    - "take"
+    - "use"
+    - "make"
+    - "let"
+    - "song"
+    - "songs"
+    - "aloud"
+    - "action"
+    - "actions"
+    - "rule"
+    - "rules"
+    - "mime"
+    - "act"
+    - "clap"
+    - "jump"
+    - "run"
+    - "walk"
+    - "wave"
+    - "nod"
+    - "shake"
+    - "order"
+    - "first"
+    - "second"
+    - "third"
+    - "last"
+    - "then"
+    - "now"
+    - "example"
+    - "guess"
+    - "describe"
+    - "share"
+    - "talk"
+    - "fill"
+    - "gap"
+    - "underline"
+    - "speak"
+    - "idea"
+    - "ideas"
+    - "project"
+    - "poster"
+    - "phonics"
+    - "sound"
+    - "sounds"
+    - "option"
+    - "options"
+    - "missing"
+    - "bingo"
+    - "quiz"
+    - "score"
+    - "winner"
+    - "fun"
+    - "whole"
+    - "catch"
+    - "pass"
+    - "rhythm"
+    # letters of the alphabet, used as sound labels such as /k/ (a and i are in the word list)
+    - "b"
+    - "c"
+    - "d"
+    - "e"
+    - "f"
+    - "g"
+    - "h"
+    - "j"
+    - "k"
+    - "l"
+    - "m"
+    - "n"
+    - "o"
+    - "p"
+    - "q"
+    - "r"
+    - "s"
+    - "t"
+    - "u"
+    - "v"
+    - "w"
+    - "x"
+    - "y"
+    - "z"
+    - "letters"
+    - "greet"
+    - "greeting"
+    - "reply"
+    - "player"
+    - "players"
+    - "introduce"
+    - "frame"
+    - "frames"
+    - "blank"
+    - "trace"
+    - "copy"
+    - "tune"
+    - "melody"
+    - "beat"
+    - "verse"
+    - "spelling"
+
+grammar_scope:
+  allowed:                        # documentation for the prompt; not machine-checked
+    - "present simple with be and have; routines and timetables (I get up at …, I have English on …)"
+    - "can / can't for ability"
+    - "present continuous (What is he doing? He's …-ing)"
+    - "like + -ing (I like swimming)"
+    - "imperatives; this / that; there is / there are"
+    - "prepositions of place (in, on, next to, behind, under)"
+    - "What's …? / How …? / Where …? / When …? / What time …? / What day …?"
+    - "days of the week and months; telling the hour"
+    - "numbers 1–100"
+  forbidden:                      # regexes checked by english.grammar_scope (case-insensitive)
+    - id: perfect
+      pattern: '(?:\b(?:has|have|had)(?:n[\x27’]t)?|[\x27’]ve)(?:\s+(?:not|never|already|just|ever))?\s+(?:been|done|gone|eaten|seen|taken|given|written|broken|chosen|spoken|known|shown|driven|fallen|forgotten|begun|drunk|sung|swum|worn|torn|woken|grown|drawn|thrown|flown|blown|ridden|hidden|bitten|stolen|frozen|beaten|made|found|lost|met|heard|told|said|bought|brought|thought|taught|caught|left|felt|kept|slept|built|sent|spent|won|held|read|run|come|become|put|sat|stood|\w{3,}ed)\b'
+      note: "perfect tenses"
+    - id: passive
+      pattern: '(?:\b(?:am|is|are|was|were|be|been|being)(?:n[\x27’]t)?|[\x27’](?:s|re))(?:\s+not)?\s+(?:been|done|gone|eaten|seen|taken|given|written|broken|chosen|spoken|known|shown|driven|fallen|forgotten|begun|drunk|sung|swum|worn|torn|woken|grown|drawn|thrown|flown|blown|ridden|hidden|bitten|stolen|frozen|beaten|made|found|lost|met|heard|told|said|bought|brought|thought|taught|caught|left|felt|kept|slept|built|sent|spent|won|held|read|run|come|become|put|sat|stood|\w{3,}ed)\s+by\b'
+      note: "passive voice"
+    - id: past
+      pattern: '\b(?:(?:was|were|did|had)(?:n[\x27’]t)?|went|saw|came|ate|took|gave|said|told|found|bought|brought|thought|ran|sat|stood|wrote|drank|slept|swam|sang|drew|flew|met|knew|felt|kept|heard|won|got)\b'
+      note: "past simple (taught from grade 5)"
+
+textbooks:                        # optional; maps known books to units when one is uploaded
+  - series: global-success
+    volume: 2
+
+units:
+  - id: ta4.u1
+    title: "My friends and me"
+    textbook_units: [ { series: global-success, unit: 1 } ]
+    lessons: 3
+    outcomes:
+      - id: ta4.u1.o1
+        text: Ask and answer about abilities using "Can you …?" / "Yes, I can." / "No, I can't.".
+        skills: [listening, speaking]
+        keywords: [ask, answer, can, ability, swim, ride]
+      - id: ta4.u1.o2
+        text: Describe a friend using "He / She is …" and adjectives such as kind and funny.
+        skills: [listening, speaking]
+        keywords: [describe, friend, kind, funny, tall]
+      - id: ta4.u1.o3
+        text: Say and write what a friend likes doing using "like + -ing".
+        skills: [speaking, reading, writing]
+        keywords: [like, friend, hobby, write, read]
+    vocabulary: [can, swim, ride, climb, cook, kind, funny, clever, friendly, hobby]
+    patterns:
+      - { pattern: "I can ___.", function: saying what one can do }
+      - { pattern: "Can you ___? Yes, I can. / No, I can't.", function: asking about ability }
+      - { pattern: "She likes ___.", function: saying what a friend likes doing }
+    phonics:
+      - { sound: "/k/", letters: "c", words: [can, cook] }
+      - { sound: "/s/", letters: "s", words: [sing, sit] }
+
+  - id: ta4.u2
+    title: "My week"
+    textbook_units: [ { series: global-success, unit: 2 } ]
+    lessons: 3
+    outcomes:
+      - id: ta4.u2.o1
+        text: Ask and answer about the day using "What day is it today?" / "It's …".
+        skills: [listening, speaking]
+        keywords: [ask, answer, day, today, week]
+      - id: ta4.u2.o2
+        text: Ask and answer about school subjects using "When do you have …?" / "I have … on …".
+        skills: [listening, speaking]
+        keywords: [subject, timetable, when, have, music, maths]
+      - id: ta4.u2.o3
+        text: Read, say and write the days of the week and a short timetable.
+        skills: [reading, speaking, writing]
+        keywords: [read, write, day, week, timetable]
+    vocabulary: [monday, tuesday, wednesday, thursday, friday, saturday, sunday, week, today, tomorrow, subject, timetable, maths, music, art, science, english]
+    patterns:
+      - { pattern: "What day is it today? It's ___.", function: asking about the day }
+      - { pattern: "When do you have ___?", function: asking about a subject }
+      - { pattern: "I have ___ on ___.", function: saying when a subject is }
+    phonics:
+      - { sound: "/m/", letters: "m", words: [monday, music] }
+      - { sound: "/w/", letters: "w", words: [wednesday, week] }
+
+  - id: ta4.u3
+    title: "My home"
+    textbook_units: [ { series: global-success, unit: 3 } ]
+    lessons: 3
+    outcomes:
+      - id: ta4.u3.o1
+        text: Name rooms and things in a house.
+        skills: [listening, speaking]
+        keywords: [house, room, kitchen, bedroom, table, sofa]
+      - id: ta4.u3.o2
+        text: Ask and answer about where things are using "Where's the …?" / "It's in / on / behind …".
+        skills: [listening, speaking]
+        keywords: [where, in, "on", behind, ask, answer]
+      - id: ta4.u3.o3
+        text: Describe a room using "There is / There are …".
+        skills: [reading, writing]
+        keywords: [there, room, describe, write, read]
+    vocabulary: [house, room, kitchen, bedroom, bathroom, living, garden, table, sofa, lamp, fridge, shelf, behind, there, where]
+    patterns:
+      - { pattern: "Where's the ___? It's in the ___.", function: asking where something is }
+      - { pattern: "There is a ___ in the ___.", function: describing a room }
+      - { pattern: "There are ___ ___ in the ___.", function: describing a room with a number }
+    phonics:
+      - { sound: "/b/", letters: "b", words: [bed, bathroom] }
+      - { sound: "/l/", letters: "l", words: [lamp, living] }
+
+  - id: ta4.u4
+    title: "Our school day"
+    textbook_units: [ { series: global-success, unit: 4 } ]
+    lessons: 3
+    outcomes:
+      - id: ta4.u4.o1
+        text: Tell the time on the hour using "What time is it?" / "It's … o'clock.".
+        skills: [listening, speaking]
+        keywords: [time, clock, ask, answer, "o'clock"]
+      - id: ta4.u4.o2
+        text: Ask and answer about daily routines using "What time do you …?" / "I … at …".
+        skills: [listening, speaking]
+        keywords: [routine, time, get, wash, brush, breakfast, lunch]
+      - id: ta4.u4.o3
+        text: Read and write short sentences about a school day.
+        skills: [reading, writing]
+        keywords: [read, write, school, day, sentence]
+    vocabulary: [clock, "o'clock", time, get, wake, wash, brush, teeth, breakfast, lunch, dinner, homework, early, late, always]
+    patterns:
+      - { pattern: "What time is it? It's ___ o'clock.", function: telling the time }
+      - { pattern: "What time do you ___?", function: asking about a routine }
+      - { pattern: "I ___ at ___ o'clock.", function: saying when one does something }
+    phonics:
+      - { sound: "/ʃ/", letters: "sh", words: [shop, shelf] }
+      - { sound: "/w/", letters: "w", words: [wake, wash] }
+
+  - id: ta4.u5
+    title: "Jobs people do"
+    textbook_units: [ { series: global-success, unit: 5 } ]
+    lessons: 3
+    outcomes:
+      - id: ta4.u5.o1
+        text: Name common jobs and where people work.
+        skills: [listening, speaking]
+        keywords: [job, farmer, doctor, nurse, driver, work, hospital]
+      - id: ta4.u5.o2
+        text: Ask and answer about a job using "What does he / she do?" / "He's / She's a …".
+        skills: [listening, speaking]
+        keywords: [ask, answer, job, what, does]
+      - id: ta4.u5.o3
+        text: Say what someone is doing now using the present continuous.
+        skills: [speaking, writing]
+        keywords: [doing, now, present, continuous, write]
+    vocabulary: [farmer, doctor, nurse, driver, worker, cook, singer, pilot, artist, work, hospital, shop, job]
+    patterns:
+      - { pattern: "What does he do? He's a ___.", function: asking about a job }
+      - { pattern: "Where does she work? She works in a ___.", function: asking where someone works }
+      - { pattern: "What is she doing? She's ___.", function: saying what is happening now }
+    phonics:
+      - { sound: "/dʒ/", letters: "j", words: [job, juice] }
+      - { sound: "/p/", letters: "p", words: [pilot, park] }

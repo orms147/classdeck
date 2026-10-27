@@ -1,0 +1,53 @@
+/* Theme "plain": monochrome, square corners, no shadows, no emoji icons.
+   Same structure as "kids"; only the look differs. */
+
+:root {
+  --bg: #FFFFFF;
+  --ink: #111827;
+  --muted: #4B5563;
+  --card: #FFFFFF;
+  --line: #9CA3AF;
+  --accent: #111827;
+  --accent-2: #374151;
+  --accent-ink: #111827;
+  --accent-2-ink: #374151;
+  --badge: #111827;
+  --mark: #D1D5DB;
+  --bubble-left: #F3F4F6;
+  --bubble-right: #E5E7EB;
+  --slot-border: #111827;
+  --teacher-bg: #FFFFFF;
+  --pulse: transparent;
+
+  --phase-warm_up: #D1D5DB;
+  --phase-presentation: #9CA3AF;
+  --phase-practice: #6B7280;
+  --phase-production: #4B5563;
+  --phase-wrap_up: #374151;
+  --phase-lesson: #111827;
+  --phase-teacher: #9CA3AF;
+
+  --radius: 6px;
+  --shadow: none;
+  --card-border: 3px solid #111827;
+
+  --size-word: 96px;
+  --size-pattern: 56px;
+  --size-dialogue: 44px;
+  --size-title: 64px;
+  --size-body: 40px;
+  --size-min: 32px;
+  --size-sound: 180px;
+}
+
+.card {
+  border: var(--card-border);
+}
+
+.slide[data-slide-type="divider"] .card {
+  border: var(--card-border);
+}
+
+.icon {
+  display: none;
+}

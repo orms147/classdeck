@@ -1,0 +1,220 @@
+# Starting points for each Global Success activity type. The drafter fills the placeholders:
+#   {{pattern}}  the target sentence pattern, e.g. "Hello, I'm ___."
+#   {{words}}    the vocabulary of the activity, comma-separated
+#   {{sound}}    the phonics sound, e.g. "/b/"
+# Steps are short imperatives; teacher and pupil steps are written separately.
+
+templates:
+  look_listen_repeat:
+    default_skills: [listening, speaking]
+    default_interaction: whole_class
+    default_minutes: 5
+    title_template: "Look, listen and repeat"
+    instructions_template: "Look at the pictures. Listen and repeat: {{words}}."
+    teacher_steps:
+      - "Show each picture and say the word: {{words}}."
+      - "Play the audio or read aloud. Pause after each line."
+      - "Ask pupils to repeat in chorus, then in groups."
+      - "Correct sounds gently and praise good tries."
+    student_steps:
+      - "Look at the pictures."
+      - "Listen to the audio."
+      - "Repeat after the teacher."
+
+  listen_point_say:
+    default_skills: [listening, speaking]
+    default_interaction: pairs
+    default_minutes: 5
+    title_template: "Listen, point and say"
+    instructions_template: "Listen and point. Then say: {{pattern}}"
+    teacher_steps:
+      - "Say a word and point to its picture."
+      - "Model the pattern: {{pattern}}"
+      - "Let pupils point and say in pairs."
+      - "Walk around and listen to the pairs."
+    student_steps:
+      - "Listen and point to the picture."
+      - "Say the pattern to your partner: {{pattern}}"
+      - "Swap roles."
+
+  lets_talk:
+    default_skills: [speaking, listening]
+    default_interaction: pairs
+    default_minutes: 5
+    title_template: "Let's talk"
+    instructions_template: "Talk with your partner. Use: {{pattern}}"
+    teacher_steps:
+      - "Model a short talk with one pupil."
+      - "Put pupils in pairs."
+      - "Ask a few pairs to act out their talk."
+    student_steps:
+      - "Talk with your partner."
+      - "Use the pattern: {{pattern}}"
+      - "Swap roles and talk again."
+
+  listen_and_do:
+    default_skills: [listening]
+    default_interaction: individual
+    default_minutes: 5
+    title_template: "Listen and tick"
+    instructions_template: "Listen and tick the correct picture."
+    teacher_steps:
+      - "Read the task with the class and say the pattern pupils will hear: {{pattern}}"
+      - "Play the audio twice."
+      - "Check the answers with the class."
+    student_steps:
+      - "Listen to the audio."
+      - "Tick the correct picture."
+      - "Check your answers with a friend."
+
+  look_complete_read:
+    default_skills: [reading, writing]
+    default_interaction: individual
+    default_minutes: 5
+    title_template: "Look, complete and read"
+    instructions_template: "Look at the pictures. Complete the sentences with {{words}}. Then read."
+    teacher_steps:
+      - "Show the first sentence and complete it with the class: {{pattern}}"
+      - "Let pupils complete the other sentences."
+      - "Ask pupils to read the sentences aloud."
+    student_steps:
+      - "Look at the pictures."
+      - "Complete the sentences."
+      - "Read the sentences aloud."
+
+  read_and_match:
+    default_skills: [reading]
+    default_interaction: individual
+    default_minutes: 5
+    title_template: "Read and match"
+    instructions_template: "Read the sentences. Match each sentence with a picture."
+    teacher_steps:
+      - "Read the first sentence and match it with the class: {{pattern}}"
+      - "Give pupils time to match the others."
+      - "Check the answers together."
+    student_steps:
+      - "Read the sentences."
+      - "Match each sentence with a picture."
+      - "Check with a friend."
+
+  lets_write:
+    default_skills: [writing]
+    default_interaction: individual
+    default_minutes: 5
+    title_template: "Let's write"
+    instructions_template: "Write the sentences. Use: {{pattern}}"
+    teacher_steps:
+      - "Write a model sentence on the board."
+      - "Let pupils write their own sentences."
+      - "Walk around and check spelling."
+    student_steps:
+      - "Look at the model."
+      - "Write your sentences."
+      - "Read them to a friend."
+
+  song:
+    default_skills: [listening, speaking]
+    default_interaction: whole_class
+    default_minutes: 4
+    title_template: "Let's sing"
+    instructions_template: "Listen and sing the song about {{words}}."
+    teacher_steps:
+      - "Play the song once for pupils to listen."
+      - "Point out the pattern in the song: {{pattern}}"
+      - "Sing it line by line with the class."
+      - "Sing with the audio and add actions."
+    student_steps:
+      - "Listen to the song."
+      - "Sing along."
+      - "Do the actions."
+
+  chant:
+    default_skills: [listening, speaking]
+    default_interaction: whole_class
+    default_minutes: 4
+    title_template: "Let's chant"
+    instructions_template: "Listen and chant. Say the sound {{sound}}: {{words}}."
+    teacher_steps:
+      - "Say the sound {{sound}} slowly and show your mouth."
+      - "Play the chant and clap the rhythm."
+      - "Chant with the class, then in two groups."
+    student_steps:
+      - "Listen to the chant."
+      - "Clap the rhythm."
+      - "Chant with the class."
+
+  game:
+    default_skills: [speaking, listening]
+    default_interaction: whole_class
+    default_minutes: 5
+    title_template: "Let's play: pass the ball"
+    instructions_template: "Take the ball. Say: {{pattern}} Then give the ball to a friend."
+    teacher_steps:
+      - "Show one round with two pupils: one catches the ball and says the pattern, the other answers, then passes the ball on."
+      - "Stand the class in a circle (two circles for a big class) and start the ball."
+      - "Keep the pace quick; feed the words to a pupil who stops."
+      - "After three rounds, stop the game and praise clear speaking."
+    student_steps:
+      - "Stand in a circle."
+      - "Take the ball. Say: {{pattern}}"
+      - "Your friend answers."
+      - "Give the ball to the next friend."
+
+  role_play:
+    default_skills: [speaking, listening]
+    default_interaction: pairs
+    default_minutes: 5
+    title_template: "Role play"
+    instructions_template: "Act out the dialogue with your partner. Use: {{pattern}}"
+    teacher_steps:
+      - "Act out the dialogue with one pupil."
+      - "Put pupils in pairs and give each pupil a role."
+      - "Invite some pairs to act out for the class."
+    student_steps:
+      - "Choose a role."
+      - "Act out the dialogue."
+      - "Swap roles."
+
+  project:
+    default_skills: [writing, speaking]
+    default_interaction: groups
+    default_minutes: 6
+    title_template: "Project"
+    instructions_template: "Make a poster or a card with {{words}}. Show it to the class."
+    teacher_steps:
+      - "Show an example of the finished work."
+      - "Hand out the materials."
+      - "Help groups and check the language they use."
+      - "Invite groups to show their work."
+    student_steps:
+      - "Draw and write in your group."
+      - "Use the words: {{words}}."
+      - "Show your work to the class."
+
+  tpr:
+    default_skills: [listening]
+    default_interaction: whole_class
+    default_minutes: 3
+    title_template: "Listen and do"
+    instructions_template: "Listen and do the actions: {{words}}."
+    teacher_steps:
+      - "Say a word and do the action."
+      - "Say the words in a new order. Pupils do the actions."
+      - "Ask a pupil to give the commands."
+    student_steps:
+      - "Listen to the word."
+      - "Do the action."
+      - "Give a command to the class."
+
+  other:
+    default_skills: [speaking]
+    default_interaction: whole_class
+    default_minutes: 5
+    title_template: "Activity"
+    instructions_template: "Practise {{pattern}}"
+    teacher_steps:
+      - "Explain the task with an example."
+      - "Monitor the class while pupils work."
+    student_steps:
+      - "Listen to the teacher."
+      - "Do the task."

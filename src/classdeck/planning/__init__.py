@@ -1,0 +1,107 @@
+"""Planning: outline a period from source documents and a curriculum unit, then draft a lesson.
+
+See ``docs/planning.md``. Both stages work without a model (skeleton outline and template
+drafter); with a provider the model refines the outline and drafts each section.
+"""
+
+from __future__ import annotations
+
+from classdeck.planning.drafter import (
+    DraftReport,
+    ModelDrafter,
+    SectionContext,
+    SectionDrafter,
+    SectionLanguage,
+    TemplateDrafter,
+    activity_content,
+    build_context,
+    draft_lesson,
+    draft_lesson_report,
+    fill_template,
+    materialise,
+    reply_problems,
+    review_proposal,
+    section_language,
+    with_review,
+)
+from classdeck.planning.models import (
+    DraftBlock,
+    DraftSection,
+    Outline,
+    OutlineRefinement,
+    OutlineSection,
+    RefinedSection,
+    SpanRef,
+)
+from classdeck.planning.outliner import (
+    build_skeleton,
+    outline,
+    refine_outline,
+    refinement_problems,
+    scale_minutes,
+)
+from classdeck.planning.repair import MAX_REPAIR_BLOCKS, RepairReport, repair_lesson
+from classdeck.planning.segment import (
+    INSTRUCTION_RE,
+    Chunk,
+    bm25_rank,
+    bm25_rank_all,
+    by_doc_id,
+    instruction_number,
+    is_qualified,
+    label_span,
+    lesson_runs,
+    match_ref,
+    resolve_ref,
+    segment_document,
+    span_lines,
+    span_text,
+)
+
+__all__ = [
+    "INSTRUCTION_RE",
+    "MAX_REPAIR_BLOCKS",
+    "Chunk",
+    "DraftBlock",
+    "DraftReport",
+    "DraftSection",
+    "ModelDrafter",
+    "Outline",
+    "OutlineRefinement",
+    "OutlineSection",
+    "RefinedSection",
+    "RepairReport",
+    "SectionContext",
+    "SectionDrafter",
+    "SectionLanguage",
+    "SpanRef",
+    "TemplateDrafter",
+    "activity_content",
+    "bm25_rank",
+    "bm25_rank_all",
+    "build_context",
+    "build_skeleton",
+    "by_doc_id",
+    "draft_lesson",
+    "draft_lesson_report",
+    "fill_template",
+    "instruction_number",
+    "is_qualified",
+    "label_span",
+    "lesson_runs",
+    "match_ref",
+    "materialise",
+    "outline",
+    "refine_outline",
+    "refinement_problems",
+    "repair_lesson",
+    "reply_problems",
+    "resolve_ref",
+    "review_proposal",
+    "scale_minutes",
+    "section_language",
+    "segment_document",
+    "span_lines",
+    "span_text",
+    "with_review",
+]

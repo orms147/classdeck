@@ -1,0 +1,20 @@
+# Public case: self-written grade 5 unit (eval/fixtures/public/gs5-unit1), Unit 1 Where I live, Lesson 3, Period 1 (phonics; the whole unit is ingested).
+# Runs in CI with the mock provider (deterministic) and on demand with a real provider.
+id: en5-u1-l3-p1
+grade: 5
+curriculum: { version: gdpt-2018, unit_id: ta5.u1, lesson_no: 3, period: 1 }
+source: fixtures/public/gs5-unit1.pdf
+expect:
+  min_grounded_ratio: 0.50
+  max_vocab_violations: 0
+  max_grammar_violations: 0
+  must_cover_outcomes: [ta5.u1.o1]
+  must_cover_skills: [listening, speaking]
+  timing_ok: true
+edits:
+  - target_kind: activity
+    instruction: "Add a TPR step"
+    expect: { changed_blocks: 1 }
+  - target_kind: phonics
+    instruction: "Add a short tongue twister"
+    expect: { edit_locality: true }

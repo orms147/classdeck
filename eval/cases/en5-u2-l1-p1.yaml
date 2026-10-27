@@ -1,0 +1,21 @@
+# Public case: self-written grade 5 unit (eval/fixtures/public/gs5-unit2), Unit 2 Last weekend, Lesson 1, Period 1 (page 1).
+# Runs in CI with the mock provider (deterministic) and on demand with a real provider.
+id: en5-u2-l1-p1
+grade: 5
+curriculum: { version: gdpt-2018, unit_id: ta5.u2, lesson_no: 1, period: 1 }
+source: fixtures/public/gs5-unit2.pdf
+pages: [1]
+expect:
+  min_grounded_ratio: 0.60
+  max_vocab_violations: 0
+  max_grammar_violations: 0
+  must_cover_outcomes: [ta5.u2.o1]
+  must_cover_skills: [listening, speaking]
+  timing_ok: true
+edits:
+  - target_kind: vocabulary
+    instruction: "Reduce new words to two"
+    expect: { affected_includes_kind: activity, edit_locality: true }
+  - target_kind: activity
+    instruction: "Make it a pair-work activity"
+    expect: { changed_blocks: 1, interaction: pairs }

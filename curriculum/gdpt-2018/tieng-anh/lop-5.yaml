@@ -1,0 +1,931 @@
+# Seed data - structure complete; content to be checked line by line against the official programme (Thong tu 32/2018/TT-BGDDT). See docs/curriculum-config.md.
+version: gdpt-2018
+subject: tieng-anh
+grade: 5
+language: en
+status: seed
+period_minutes: 35
+
+vocabulary:
+  level: A1
+  words:                          # grade 3 list, then grade 4 themes, then grade 5 themes; quote yes / no / on
+    # --- grade 3 list ---
+    - hello
+    - hi
+    - goodbye
+    - bye
+    - good
+    - morning
+    - afternoon
+    - please
+    - thank
+    - fine
+    - nice
+    - meet
+    - name
+    - friend
+    # articles, pronouns, function words
+    - a
+    - an
+    - the
+    - and
+    - this
+    - that
+    - it
+    - my
+    - your
+    - his
+    - her
+    - i
+    - you
+    - he
+    - she
+    - we
+    - they
+    - is
+    - are
+    - am
+    - not
+    - "yes"
+    - "no"
+    # question words
+    - what
+    - who
+    - where
+    - how
+    - many
+    - old
+    # numbers
+    - one
+    - two
+    - three
+    - four
+    - five
+    - six
+    - seven
+    - eight
+    - nine
+    - ten
+    - eleven
+    - twelve
+    - thirteen
+    - fourteen
+    - fifteen
+    - sixteen
+    - seventeen
+    - eighteen
+    - nineteen
+    - twenty
+    # colours
+    - red
+    - blue
+    - green
+    - yellow
+    - black
+    - white
+    - orange
+    - pink
+    - brown
+    # classroom
+    - book
+    - pen
+    - pencil
+    - ruler
+    - bag
+    - desk
+    - chair
+    - board
+    - school
+    - classroom
+    - teacher
+    - student
+    - door
+    - window
+    - letter
+    # family
+    - family
+    - mother
+    - father
+    - brother
+    - sister
+    # body
+    - head
+    - face
+    - eye
+    - ear
+    - nose
+    - mouth
+    - hand
+    - arm
+    - leg
+    - body
+    # toys and games
+    - toy
+    - ball
+    - doll
+    - kite
+    - robot
+    - car
+    - bike
+    # pets and animals
+    - cat
+    - dog
+    - bird
+    - fish
+    - rabbit
+    - duck
+    # food and drink
+    - apple
+    - banana
+    - bread
+    - egg
+    - rice
+    - cake
+    - milk
+    - water
+    # weather
+    - sunny
+    - rainy
+    - hot
+    - cold
+    # common verbs
+    - have
+    - like
+    - play
+    - go
+    - come
+    - see
+    - look
+    - listen
+    - say
+    - point
+    - touch
+    - open
+    - close
+    - sit
+    - stand
+    - draw
+    - sing
+    - dance
+    - read
+    - write
+    - spell
+    - eat
+    - drink
+    # common adjectives
+    - big
+    - small
+    - happy
+    - sad
+    - tall
+    - short
+    # position
+    - up
+    - down
+    - in
+    - "on"
+    # --- grade 4 themes ---
+    # days and time (grade 4 themes)
+    - monday
+    - tuesday
+    - wednesday
+    - thursday
+    - friday
+    - saturday
+    - sunday
+    - day
+    - week
+    - weekend
+    - today
+    - tomorrow
+    - tonight
+    - evening
+    - night
+    - early
+    - late
+    - usually
+    - always
+    - sometimes
+    - never
+    # months
+    - january
+    - february
+    - march
+    - april
+    - may
+    - june
+    - july
+    - august
+    - september
+    - october
+    - november
+    - december
+    - month
+    - year
+    # school subjects
+    - subject
+    - maths
+    - science
+    - music
+    - art
+    - english
+    - vietnamese
+    # daily activities
+    - get
+    - wake
+    - breakfast
+    - lunch
+    - dinner
+    - brush
+    - teeth
+    - wash
+    - home
+    - bed
+    - sleep
+    - homework
+    - shower
+    - cook
+    - clean
+    # rooms and house
+    - house
+    - room
+    - kitchen
+    - bedroom
+    - bathroom
+    - garden
+    - living
+    # places in town
+    - shop
+    - market
+    - park
+    - zoo
+    - hospital
+    - cinema
+    - library
+    - museum
+    - street
+    - town
+    - city
+    - village
+    - farm
+    - beach
+    - river
+    - mountain
+    - lake
+    - supermarket
+    - station
+    - restaurant
+    - bus
+    # jobs
+    - doctor
+    - nurse
+    - farmer
+    - driver
+    - worker
+    - pilot
+    - singer
+    - artist
+    - police
+    - officer
+    # weather and seasons
+    - windy
+    - cloudy
+    - weather
+    - rain
+    - warm
+    - cool
+    - season
+    - spring
+    - summer
+    - autumn
+    - winter
+    # numbers to 100
+    - thirty
+    - forty
+    - fifty
+    - sixty
+    - seventy
+    - eighty
+    - ninety
+    - hundred
+    # hobbies and abilities
+    - hobby
+    - football
+    - badminton
+    - chess
+    - swim
+    - ride
+    - fly
+    - can
+    # clothes and nature
+    - tree
+    - flower
+    - sky
+    - sun
+    - moon
+    - star
+    # other grade 4 words
+    - behind
+    - boy
+    - but
+    - clever
+    - clock
+    - every
+    - favourite
+    - fridge
+    - friendly
+    - front
+    - funny
+    - gate
+    - girl
+    - kind
+    - lamp
+    - left
+    - often
+    - playground
+    - present
+    - right
+    - shelf
+    - sofa
+    - sport
+    - table
+    - there
+    - time
+    - timetable
+    - zero
+    - "o'clock"
+    # question and link words
+    - when
+    - which
+    - why
+    - because
+    - very
+    - too
+    - also
+    - much
+    - lot
+    - want
+    - need
+    # --- grade 5 themes ---
+    # address and neighbourhood
+    - live
+    - address
+    - road
+    - neighbour
+    - neighbourhood
+    - far
+    - noisy
+    - busy
+    - beautiful
+    - new
+    - quiet
+    - map
+    # past time words
+    - yesterday
+    - last
+    - ago
+    - before
+    - after
+    # regular past-tense verbs (base forms)
+    - visit
+    - watch
+    - help
+    - walk
+    - stay
+    - enjoy
+    - climb
+    - travel
+    - return
+    - jump
+    - talk
+    - work
+    - study
+    - learn
+    - paint
+    - plant
+    - collect
+    # common irregular verbs (base and past forms)
+    - buy
+    - make
+    - take
+    - run
+    - went
+    - saw
+    - ate
+    - took
+    - bought
+    - made
+    - met
+    - got
+    - came
+    - gave
+    - swam
+    - drank
+    - sang
+    - wrote
+    - ran
+    - sat
+    - stood
+    - felt
+    - found
+    - flew
+    # family
+    - grandmother
+    - grandfather
+    - grandparents
+    - aunt
+    - uncle
+    - cousin
+    - parent
+    - parents
+    # holidays and travel
+    - holiday
+    - trip
+    - plane
+    - train
+    - boat
+    - ticket
+    - hotel
+    - tent
+    - camp
+    - sea
+    - island
+    - photo
+    - suitcase
+    - gift
+    - festival
+    - party
+    - birthday
+    - firework
+    - sand
+    - shell
+    - ship
+    - tv
+    # future plans
+    - future
+    - plan
+    - dream
+    - become
+    - grow
+    - soon
+    - build
+    # health
+    - healthy
+    - health
+    - sick
+    - ill
+    - cough
+    - fever
+    - headache
+    - toothache
+    - stomach
+    - medicine
+    - rest
+    - exercise
+    - hurt
+    - matter
+    # food
+    - vegetables
+    - fruit
+    - meat
+    - chicken
+    - soup
+    - noodles
+    - sweets
+    - juice
+    - tea
+    - salad
+    - hungry
+    - thirsty
+    # feelings
+    - angry
+    - scared
+    - worried
+    - excited
+    - proud
+    - bored
+    - surprised
+    - tired
+    # letters of the alphabet (spelling and phonics)
+    - b
+    - c
+    - d
+    - e
+    - f
+    - g
+    - h
+    - j
+    - k
+    - l
+    - m
+    - "n"
+    - o
+    - p
+    - q
+    - r
+    - s
+    - t
+    - u
+    - v
+    - w
+    - x
+    - "y"
+    - z
+    # comparatives
+    - than
+    - more
+    - older
+    - younger
+    - taller
+    - shorter
+    - bigger
+    - smaller
+    - faster
+    - slower
+    - longer
+    - stronger
+    - better
+    - worse
+    - healthier
+    - fast
+    - slow
+    - heavy
+    - light
+    - long
+    - strong
+    - young
+    - cheap
+    - expensive
+    - easy
+    - difficult
+    - bad
+    - interesting
+  classroom_language:             # instruction language pupils hear every lesson; receptive, not new words
+    - "listen"
+    - "look"
+    - "point"
+    - "say"
+    - "repeat"
+    - "read"
+    - "write"
+    - "match"
+    - "tick"
+    - "circle"
+    - "number"
+    - "complete"
+    - "draw"
+    - "colour"
+    - "sing"
+    - "chant"
+    - "play"
+    - "game"
+    - "games"
+    - "pair"
+    - "pairs"
+    - "partner"
+    - "partners"
+    - "group"
+    - "groups"
+    - "team"
+    - "teams"
+    - "turn"
+    - "turns"
+    - "role"
+    - "roles"
+    - "swap"
+    - "change"
+    - "again"
+    - "start"
+    - "stop"
+    - "ready"
+    - "go"
+    - "finish"
+    - "finished"
+    - "line"
+    - "lines"
+    - "row"
+    - "board"
+    - "picture"
+    - "pictures"
+    - "card"
+    - "cards"
+    - "flashcard"
+    - "flashcards"
+    - "audio"
+    - "pattern"
+    - "sentence"
+    - "sentences"
+    - "word"
+    - "words"
+    - "question"
+    - "questions"
+    - "answer"
+    - "answers"
+    - "tap"
+    - "click"
+    - "next"
+    - "back"
+    - "remember"
+    - "try"
+    - "practise"
+    - "practice"
+    - "check"
+    - "correct"
+    - "wrong"
+    - "quiet"
+    - "quietly"
+    - "loud"
+    - "loudly"
+    - "slowly"
+    - "quickly"
+    - "together"
+    - "everyone"
+    - "everybody"
+    - "class"
+    - "teacher"
+    - "friend"
+    - "friends"
+    - "student"
+    - "students"
+    - "pupil"
+    - "pupils"
+    - "lesson"
+    - "unit"
+    - "page"
+    - "book"
+    - "open"
+    - "close"
+    - "sit"
+    - "stand"
+    - "up"
+    - "down"
+    - "hand"
+    - "hands"
+    - "please"
+    - "sorry"
+    - "thank"
+    - "thanks"
+    - "well"
+    - "done"
+    - "good"
+    - "great"
+    - "job"
+    - "ok"
+    - "okay"
+    - "yes"
+    - "no"
+    - "time"
+    - "minute"
+    - "minutes"
+    - "count"
+    - "show"
+    - "tell"
+    - "ask"
+    - "choose"
+    - "pick"
+    - "find"
+    - "put"
+    - "give"
+    - "take"
+    - "use"
+    - "make"
+    - "let"
+    - "song"
+    - "songs"
+    - "aloud"
+    - "action"
+    - "actions"
+    - "rule"
+    - "rules"
+    - "mime"
+    - "act"
+    - "clap"
+    - "jump"
+    - "run"
+    - "walk"
+    - "wave"
+    - "nod"
+    - "shake"
+    - "order"
+    - "first"
+    - "second"
+    - "third"
+    - "last"
+    - "then"
+    - "now"
+    - "example"
+    # added for grade 5
+    - "bingo"
+    - "fill"
+    - "fun"
+    - "option"
+    - "options"
+    - "phonics"
+    - "quiz"
+    - "score"
+    - "whole"
+    - "winner"
+    - "catch"
+    - "pass"
+    - "rhythm"
+    - "talk"
+    - "project"
+    - "poster"
+    - "think"
+    - "place"
+    - "guess"
+    - "describe"
+    - "compare"
+    - "interview"
+    - "report"
+    - "survey"
+    - "gap"
+    - "missing"
+    - "sound"
+    - "sounds"
+    - "letters"
+    - "idea"
+    - "ideas"
+    - "share"
+    - "plan"
+    - "underline"
+    - "speak"
+    - "decide"
+    - "story"
+    - "list"
+    - "topic"
+    - "dialogue"
+    - "greet"
+    - "greeting"
+    - "reply"
+    - "player"
+    - "players"
+    - "introduce"
+    - "frame"
+    - "frames"
+    - "blank"
+    - "trace"
+    - "copy"
+    - "tune"
+    - "melody"
+    - "beat"
+    - "verse"
+    - "spelling"
+
+grammar_scope:
+  allowed:                        # documentation for the prompt; not machine-checked
+    - "present simple with be and have, imperatives, this / that, What's ...? / How ...?"
+    - "grade 4 structures: can, present continuous, like + -ing, days, months, Where / When / What time"
+    - "past simple, regular and common irregular verbs (went, saw, ate, took, had)"
+    - "Did you ...? / Yes, I did. / No, I did not."
+    - "going to for plans: What are you going to ...? I'm going to ..."
+    - "will for offers: I'll help you."
+    - "because for simple reasons"
+    - "comparatives of short adjectives and better / worse, with than"
+    - "numbers 1-100"
+  forbidden:                      # regexes checked by english.grammar_scope (case-insensitive); past simple is in scope at grade 5
+    - id: perfect
+      pattern: '(?:\b(?:has|have|had)(?:n[\x27’]t)?|[\x27’]ve)(?:\s+(?:not|never|already|just|ever))?\s+(?:been|done|gone|eaten|seen|taken|given|written|broken|chosen|spoken|known|shown|driven|fallen|forgotten|begun|drunk|sung|swum|worn|torn|woken|grown|drawn|thrown|flown|blown|ridden|hidden|bitten|stolen|frozen|beaten|made|found|lost|met|heard|told|said|bought|brought|thought|taught|caught|left|felt|kept|slept|built|sent|spent|won|held|read|run|come|become|put|sat|stood|\w{3,}ed)\b'
+      note: "perfect tenses"
+    - id: passive
+      pattern: '(?:\b(?:am|is|are|was|were|be|been|being)(?:n[\x27’]t)?|[\x27’](?:s|re))(?:\s+not)?\s+(?:been|done|gone|eaten|seen|taken|given|written|broken|chosen|spoken|known|shown|driven|fallen|forgotten|begun|drunk|sung|swum|worn|torn|woken|grown|drawn|thrown|flown|blown|ridden|hidden|bitten|stolen|frozen|beaten|made|found|lost|met|heard|told|said|bought|brought|thought|taught|caught|left|felt|kept|slept|built|sent|spent|won|held|read|run|come|become|put|sat|stood|\w{3,}ed)\s+by\b'
+      note: "passive voice"
+
+textbooks:                        # optional; maps known books to units when one is uploaded
+  - series: global-success
+    volume: 1
+
+units:
+  - id: ta5.u1
+    title: "Where I live"
+    textbook_units: [ { series: global-success, unit: 1 } ]
+    lessons: 3
+    outcomes:
+      - id: ta5.u1.o1
+        text: Ask and answer about where one lives using "Where do you live?" / "I live in ...".
+        skills: [listening, speaking]
+        keywords: [ask, answer, live, village, town, city]
+      - id: ta5.u1.o2
+        text: Give an address and say what is near one's home using "What is your address?" / "My house is near ...".
+        skills: [listening, speaking]
+        keywords: [address, near, street, road, house]
+      - id: ta5.u1.o3
+        text: Read and write short sentences that describe one's home and neighbourhood.
+        skills: [reading, writing]
+        keywords: [read, write, describe, home, neighbourhood, quiet, busy]
+    vocabulary: [live, address, village, neighbour, neighbourhood, road, street, near, noisy, quiet, busy, beautiful, map]
+    patterns:
+      - { pattern: "Where do you live?", function: asking where someone lives }
+      - { pattern: "I live in a ___.", function: saying where one lives }
+      - { pattern: "What is your address?", function: asking for an address }
+      - { pattern: "My house is near the ___.", function: saying what is near one's home }
+    phonics:
+      - { sound: "/v/", letters: "v", words: [village, very, live] }
+      - { sound: "/r/", letters: "r", words: [road, river, rice] }
+
+  - id: ta5.u2
+    title: "Last weekend"
+    textbook_units: [ { series: global-success, unit: 2 } ]
+    lessons: 3
+    outcomes:
+      - id: ta5.u2.o1
+        text: Ask and answer about last weekend using "What did you do ...?" and regular past simple verbs.
+        skills: [listening, speaking]
+        keywords: [ask, answer, weekend, past, visited, watched]
+      - id: ta5.u2.o2
+        text: Ask and answer about places visited using "Did you ...?" / "Yes, I did." / "No, I did not." and went, saw, ate.
+        skills: [listening, speaking]
+        keywords: [did, went, saw, ate, "yes", "no", visit]
+      - id: ta5.u2.o3
+        text: Read and write short sentences about what one did last weekend.
+        skills: [reading, writing]
+        keywords: [read, write, weekend, past, sentence]
+    vocabulary: [last, weekend, yesterday, ago, visit, watch, clean, cook, aunt, cousin, grandmother, went, saw, ate]
+    patterns:
+      - { pattern: "What did you do last weekend?", function: asking about the past }
+      - { pattern: "I visited my ___.", function: saying what one did }
+      - { pattern: "Did you go to the ___?", function: asking about a past event }
+      - { pattern: "Yes, I did. / No, I did not.", function: giving a short answer }
+    phonics:
+      - { sound: "/t/", letters: "ed", words: [watched, cooked, jumped] }
+      - { sound: "/d/", letters: "ed", words: [played, cleaned, stayed] }
+
+  - id: ta5.u3
+    title: "Our holiday"
+    textbook_units: [ { series: global-success, unit: 3 } ]
+    lessons: 3
+    outcomes:
+      - id: ta5.u3.o1
+        text: Ask and answer about a holiday using "Where did you go?" / "How did you get there?" and by + transport.
+        skills: [listening, speaking]
+        keywords: [holiday, went, travel, train, plane, boat, bus]
+      - id: ta5.u3.o2
+        text: Say what one saw and did on a trip using past simple verbs.
+        skills: [speaking, writing]
+        keywords: [trip, saw, took, swam, photo, beach]
+      - id: ta5.u3.o3
+        text: Read a short holiday message and answer questions about it.
+        skills: [reading, writing]
+        keywords: [read, holiday, message, answer]
+    vocabulary: [holiday, trip, travel, train, plane, boat, hotel, island, beach, photo, sea, ticket]
+    patterns:
+      - { pattern: "Where did you go on holiday?", function: asking about a trip }
+      - { pattern: "I went to ___ by ___.", function: saying where and how one travelled }
+      - { pattern: "How was the trip?", function: asking for an opinion about the past }
+    phonics:
+      - { sound: "/p/", letters: "p", words: [plane, photo, park] }
+      - { sound: "/ʃ/", letters: "sh", words: [shell, ship, shop] }
+
+  - id: ta5.u4
+    title: "What I will be"
+    textbook_units: [ { series: global-success, unit: 4 } ]
+    lessons: 3
+    outcomes:
+      - id: ta5.u4.o1
+        text: Ask and answer about plans using "What are you going to ...?" / "I'm going to ...".
+        skills: [listening, speaking]
+        keywords: [plan, going, tomorrow, weekend, future]
+      - id: ta5.u4.o2
+        text: Talk about future jobs using "What do you want to be?" and "I want to be a ...".
+        skills: [speaking]
+        keywords: [job, want, be, doctor, pilot, farmer]
+      - id: ta5.u4.o3
+        text: Offer help using "I'll ...".
+        skills: [listening, speaking, writing]
+        keywords: [offer, help, will]
+    vocabulary: [future, plan, dream, become, soon, tomorrow, tonight, want, going, will, help]
+    patterns:
+      - { pattern: "What are you going to do tomorrow?", function: asking about plans }
+      - { pattern: "I'm going to ___.", function: saying what one plans to do }
+      - { pattern: "What do you want to be?", function: asking about a future job }
+      - { pattern: "I'll help you.", function: offering help }
+    phonics:
+      - { sound: "/g/", letters: "g", words: [going, garden, grow] }
+      - { sound: "/w/", letters: "w", words: [will, want, work] }
+
+  - id: ta5.u5
+    title: "Healthy days"
+    textbook_units: [ { series: global-success, unit: 5 } ]
+    lessons: 3
+    outcomes:
+      - id: ta5.u5.o1
+        text: Ask and answer about feelings and health using "What's the matter?" / "I have a ...".
+        skills: [listening, speaking]
+        keywords: [matter, headache, cold, tired, ill, health]
+      - id: ta5.u5.o2
+        text: Give reasons using "because" and choose healthy food.
+        skills: [speaking, writing]
+        keywords: [because, healthy, food, fruit, vegetables]
+      - id: ta5.u5.o3
+        text: Compare two things using short comparatives and "than".
+        skills: [reading, speaking]
+        keywords: [compare, than, better, healthier, bigger]
+    vocabulary: [healthy, matter, headache, toothache, tired, hungry, because, fruit, vegetables, sweets, better, than]
+    patterns:
+      - { pattern: "What's the matter?", function: asking about a problem }
+      - { pattern: "I have a ___.", function: saying what is wrong }
+      - { pattern: "I like ___ because it is ___.", function: giving a reason }
+      - { pattern: "___ is healthier than ___.", function: comparing two things }
+    phonics:
+      - { sound: "/θ/", letters: "th", words: [than, thirsty, thirty] }
+      - { sound: "/h/", letters: "h", words: [healthy, headache, hungry] }

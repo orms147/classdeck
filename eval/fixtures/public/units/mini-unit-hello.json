@@ -1,0 +1,54 @@
+{
+  "id": "mini-unit-hello",
+  "grade": 3,
+  "unit": 1,
+  "title": "Hello",
+  "series": "classdeck-sample",
+  "notes": "Two-page mini unit used by tests/test_ingest.py and the public eval cases. Its text is frozen: tests assert the exact span sequence.",
+  "layout": { "lesson_line": false },
+  "lessons": [
+    {
+      "no": 1,
+      "headings": ["Unit 1  Hello", "Unit 1  Hello (Lesson 1, Period 2)"],
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Look, listen and repeat.",
+          "type": "look_listen_repeat",
+          "picture": { "scene": "two children say hello at the school gate", "style": "scene" },
+          "lines": ["Hello, I'm Ha.", "Hi, Ha. I'm Tien."]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen, point and say.",
+          "type": "listen_point_say",
+          "lines": ["Hello, I'm ___.", "Hi, ___. I'm ___."]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's talk.",
+          "type": "lets_talk",
+          "lines": ["Hello. / Hi. / I'm (name)."]
+        },
+        {
+          "no": 4,
+          "instruction": "Listen and tick.",
+          "type": "listen_and_do",
+          "options": ["a. Hello, I'm Duc.", "b. Hi, I'm Lan."]
+        },
+        {
+          "no": 5,
+          "instruction": "Look, complete and read.",
+          "type": "look_complete_read",
+          "lines": ["Hello, I'm _____.   Hi, _____. I'm _____."]
+        },
+        {
+          "no": 6,
+          "instruction": "Let's sing.",
+          "type": "song",
+          "lines": ["Hello, hello, hello! I'm Ha. Hello, hello, hello! I'm Tien."]
+        }
+      ]
+    }
+  ]
+}

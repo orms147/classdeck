@@ -1,0 +1,270 @@
+{
+  "id": "gs4-unit2",
+  "grade": 4,
+  "unit": 2,
+  "title": "My week",
+  "series": "classdeck-sample",
+  "notes": "Original sample unit for ta4.u2: days of the week and the school timetable. Invented characters and wording.",
+  "lessons": [
+    {
+      "no": 1,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Look, listen and repeat.",
+          "type": "look_listen_repeat",
+          "picture": {
+            "scene": "a girl and a boy looking at a calendar on the classroom wall",
+            "style": "scene"
+          },
+          "lines": [
+            "What day is it today, Quang?",
+            "It's Monday.",
+            "Great! We have music today."
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen, point and say.",
+          "type": "listen_point_say",
+          "pattern": "It's ___.",
+          "items": [
+            {
+              "word": "Monday"
+            },
+            {
+              "word": "Tuesday"
+            },
+            {
+              "word": "Wednesday"
+            },
+            {
+              "word": "Thursday"
+            },
+            {
+              "word": "Friday"
+            }
+          ],
+          "lines": [
+            "What day is it today?"
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's talk.",
+          "type": "lets_talk",
+          "lines": [
+            "What day is it today?",
+            "What day is it tomorrow?"
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Listen and tick.",
+          "type": "listen_and_do",
+          "picture": {
+            "scene": "a calendar with a sun and a ball",
+            "style": "card"
+          },
+          "options": [
+            "a. Today is Monday.",
+            "b. Today is Tuesday.",
+            "c. Today is Friday."
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Look, complete and read.",
+          "type": "look_complete_read",
+          "lines": [
+            "Today is _____. Tomorrow is _____.",
+            "Saturday and _____ are the weekend."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Let's sing.",
+          "type": "song",
+          "lines": [
+            "Monday, Tuesday, Wednesday,",
+            "Thursday, Friday, too.",
+            "Saturday and Sunday,",
+            "What do we do? Let's play!"
+          ]
+        }
+      ]
+    },
+    {
+      "no": 2,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Look, listen and repeat.",
+          "type": "look_listen_repeat",
+          "picture": {
+            "scene": "two children at a school desk looking at a timetable",
+            "style": "scene"
+          },
+          "lines": [
+            "What do you have on Tuesday?",
+            "I have English and music.",
+            "When do you have art?",
+            "I have art on Friday."
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen, point and say.",
+          "type": "listen_point_say",
+          "pattern": "I have ___ on ___.",
+          "items": [
+            {
+              "word": "English"
+            },
+            {
+              "word": "maths"
+            },
+            {
+              "word": "music"
+            },
+            {
+              "word": "art"
+            },
+            {
+              "word": "science"
+            }
+          ],
+          "lines": [
+            "What do you have on Monday?"
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's talk.",
+          "type": "lets_talk",
+          "lines": [
+            "When do you have science?",
+            "I have it on ___."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Listen and number.",
+          "type": "listen_and_do",
+          "picture": {
+            "scene": "a school timetable on a desk",
+            "style": "card"
+          },
+          "options": [
+            "a. I have maths on Monday.",
+            "b. I have music on Wednesday.",
+            "c. I have art on Friday."
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Look, complete and read.",
+          "type": "look_complete_read",
+          "lines": [
+            "I have _____ on Tuesday.",
+            "She has art on _____.",
+            "He has English on _____."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Let's play.",
+          "type": "game",
+          "lines": [
+            "Draw a timetable. Write five subjects.",
+            "Listen to your teacher.",
+            "Tick the subject and the day.",
+            "Five ticks? Say bingo!"
+          ]
+        }
+      ]
+    },
+    {
+      "no": 3,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Listen and repeat.",
+          "type": "phonics",
+          "picture": {
+            "scene": "a music class with a girl singing",
+            "style": "card"
+          },
+          "sound": "/m/",
+          "letters": "m",
+          "words": [
+            "Monday",
+            "music",
+            "maths"
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen and circle.",
+          "type": "listen_and_do",
+          "options": [
+            "a. week / weekend",
+            "b. Monday / Sunday",
+            "c. music / maths"
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's chant.",
+          "type": "chant",
+          "lines": [
+            "Monday, Monday, music day!",
+            "Tuesday, Tuesday, time to play!",
+            "Wednesday, Wednesday, maths for me!",
+            "Thursday, Friday, one, two, three!"
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Read and match.",
+          "type": "read_and_match",
+          "picture": {
+            "scene": "a girl and a boy holding a timetable",
+            "style": "card"
+          },
+          "pairs": [
+            [
+              "What day is it today?",
+              "It's Thursday."
+            ],
+            [
+              "When do you have music?",
+              "I have it on Monday."
+            ],
+            [
+              "What do you have on Friday?",
+              "I have English and art."
+            ]
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Let's write.",
+          "type": "lets_write",
+          "lines": [
+            "My favourite day is _____.",
+            "I have _____ on _____."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Project.",
+          "type": "project",
+          "lines": [
+            "Make a timetable for your week and show it to your class."
+          ]
+        }
+      ]
+    }
+  ]
+}

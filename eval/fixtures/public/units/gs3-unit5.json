@@ -1,0 +1,273 @@
+{
+  "id": "gs3-unit5",
+  "grade": 3,
+  "unit": 5,
+  "title": "My hobbies",
+  "series": "classdeck-sample",
+  "notes": "Original grade-3 practice unit in the usual three-lesson shape. All wording is invented.",
+  "lessons": [
+    {
+      "no": 1,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Look, listen and repeat.",
+          "type": "look_listen_repeat",
+          "picture": {
+            "scene": "two boys play football in the sunny park",
+            "style": "scene"
+          },
+          "lines": [
+            "Quang: I like football.",
+            "Vy: Hi, Quang. I like chess.",
+            "Quang: Nice to meet you, Vy."
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen, point and say.",
+          "type": "listen_point_say",
+          "pattern": "I like ___.",
+          "items": [
+            {
+              "word": "football"
+            },
+            {
+              "word": "badminton"
+            },
+            {
+              "word": "chess"
+            },
+            {
+              "word": "kite"
+            }
+          ],
+          "lines": [
+            "I like football.",
+            "I like chess."
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's talk.",
+          "type": "lets_talk",
+          "lines": [
+            "Tell your partner your hobby.",
+            "Say: I like ___."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Listen and tick.",
+          "type": "listen_and_do",
+          "picture": {
+            "scene": "children play ball games in the park",
+            "style": "scene"
+          },
+          "options": [
+            "a. I like football.",
+            "b. I like chess.",
+            "c. I like badminton."
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Look, complete and read.",
+          "type": "look_complete_read",
+          "lines": [
+            "I like _____.",
+            "My hobby is _____."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Let's sing.",
+          "type": "song",
+          "lines": [
+            "I like football, football, football.",
+            "I like chess, chess, chess.",
+            "I like badminton, I like kites.",
+            "I like my hobbies, yes, yes, yes!"
+          ]
+        }
+      ]
+    },
+    {
+      "no": 2,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Look, listen and repeat.",
+          "type": "look_listen_repeat",
+          "picture": {
+            "scene": "a girl and a boy talk at the school gate",
+            "style": "scene"
+          },
+          "lines": [
+            "An: Do you like football?",
+            "Thu: No, I don't.",
+            "An: Do you like chess?",
+            "Thu: Yes, I do. I like chess."
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen, point and say.",
+          "type": "listen_point_say",
+          "pattern": "Do you like ___?",
+          "items": [
+            {
+              "word": "football"
+            },
+            {
+              "word": "badminton"
+            },
+            {
+              "word": "chess"
+            },
+            {
+              "word": "kite"
+            }
+          ],
+          "lines": [
+            "Do you like football? No, I don't.",
+            "Do you like chess? Yes, I do."
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's talk.",
+          "type": "lets_talk",
+          "lines": [
+            "Ask your partner: Do you like ___?",
+            "Answer: Yes, I do. / No, I don't."
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Listen and tick.",
+          "type": "listen_and_do",
+          "picture": {
+            "scene": "two children talk about their hobbies",
+            "style": "scene"
+          },
+          "options": [
+            "a. Do you like chess? Yes, I do.",
+            "b. Do you like football? No, I don't.",
+            "c. Do you like chess? No, I don't."
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Look, complete and read.",
+          "type": "look_complete_read",
+          "lines": [
+            "Do you like _____? Yes, I _____.",
+            "Do you like kites? No, I _____."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Let's play.",
+          "type": "game",
+          "lines": [
+            "Stand in two lines.",
+            "Ask a friend: Do you like chess?",
+            "Say: Yes, I do. Or: No, I don't.",
+            "Swap."
+          ]
+        }
+      ]
+    },
+    {
+      "no": 3,
+      "activities": [
+        {
+          "no": 1,
+          "instruction": "Listen and repeat.",
+          "type": "phonics",
+          "letters": "b",
+          "sound": "/b/",
+          "items": [
+            {
+              "word": "ball"
+            },
+            {
+              "word": "bike"
+            },
+            {
+              "word": "book"
+            },
+            {
+              "word": "bag"
+            }
+          ],
+          "lines": [
+            "ch   /ch/   chess   chair   check"
+          ]
+        },
+        {
+          "no": 2,
+          "instruction": "Listen and circle.",
+          "type": "listen_and_do",
+          "options": [
+            "a. ball",
+            "b. chair",
+            "c. chess"
+          ]
+        },
+        {
+          "no": 3,
+          "instruction": "Let's chant.",
+          "type": "chant",
+          "lines": [
+            "B, b, b, ball and bike.",
+            "Ch, ch, ch, chess and chair.",
+            "I like football, I like chess.",
+            "Do you like it? Yes, yes, yes!"
+          ]
+        },
+        {
+          "no": 4,
+          "instruction": "Read and match.",
+          "type": "read_and_match",
+          "picture": {
+            "scene": "children show hobby cards in the classroom",
+            "style": "scene"
+          },
+          "pairs": [
+            [
+              "Do you like chess?",
+              "Yes, I do."
+            ],
+            [
+              "I like badminton.",
+              "Do you like badminton?"
+            ],
+            [
+              "Do you like kites?",
+              "No, I don't."
+            ]
+          ]
+        },
+        {
+          "no": 5,
+          "instruction": "Let's write.",
+          "type": "lets_write",
+          "lines": [
+            "I like _____.",
+            "I like _____ and _____."
+          ]
+        },
+        {
+          "no": 6,
+          "instruction": "Project.",
+          "type": "project",
+          "lines": [
+            "Make a hobby card. Draw your hobby. Write: I like ___."
+          ]
+        }
+      ]
+    }
+  ]
+}
