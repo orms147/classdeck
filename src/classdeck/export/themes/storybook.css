@@ -1,0 +1,1335 @@
+/* theme: storybook | Storybook | Warm paper, watercolour washes and serif type - a picture-book feel | suits: grades 3-4 */
+/* A children's picture book on the projector: cream paper with a faint grain, soft watercolour
+   blobs, a serif display voice, flashcards as an open book, dialogue as paper notes, activity steps
+   as ink stamps, phase dividers as chapter openings and the countdown as a pocket watch.
+   Everything is drawn with gradients, borders and glyphs; no images, no fonts to load. */
+
+:root {
+  --bg: #F6EBD6;
+  --ink: #3A2A22;
+  --muted: #5E4A3C;
+  --card: #FFF8E8;
+  --line: #D9C3A0;
+  --accent: #D9774F;
+  --accent-2: #8FAE8B;
+  --accent-ink: #8E3E20;
+  --accent-2-ink: #4C6B4E;
+  --badge: #9B3A1E;
+  --mark: #F4D58D;
+  --bubble-left: #FBE9C8;
+  --bubble-right: #E3EBD6;
+  --slot-border: #8E3E20;
+  --teacher-bg: rgba(255, 248, 232, 0.97);
+  --pulse: rgba(217, 119, 79, 0.22);
+
+  --phase-warm_up: #E2A93B;
+  --phase-presentation: #6F93B0;
+  --phase-practice: #7FA37F;
+  --phase-production: #D9774F;
+  --phase-wrap_up: #8C5A7E;
+  --phase-lesson: #C26A45;
+  --phase-teacher: #8A7B6B;
+
+  --radius: 30px;
+  --shadow: 0 14px 30px rgba(96, 62, 28, 0.16), 0 2px 4px rgba(96, 62, 28, 0.12);
+
+  --size-body: 40px;
+  --size-min: 32px;
+  --size-title: 72px;
+  --size-word: 128px;
+  --size-word-bare: 150px;
+  --size-pattern: 72px;
+  --size-dialogue: 46px;
+  --size-sound: 180px;
+
+  /* theme-private helpers (not part of the token contract) */
+  --serif: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, Cambria, "Times New Roman", serif;
+  --sans: "Trebuchet MS", "Segoe UI", "Gill Sans", "Gill Sans MT", Calibri, system-ui, sans-serif;
+  --ink-soft: #5E4A3C;
+  --page-edge: #E7D3AE;
+  /* irregular "torn page" corner radii */
+  --deckle: 46px 18px 54px 22px / 22px 52px 20px 48px;
+  --deckle-b: 20px 54px 24px 50px / 50px 22px 54px 20px;
+  --deckle-c: 38px 26px 44px 18px / 24px 44px 26px 40px;
+}
+
+/* -- paper ------------------------------------------------------------------------------------ */
+
+body {
+  font-family: var(--sans);
+  background: #E9D8B6;
+}
+
+.stage-wrap { background: #E9D8B6; }
+
+.slide {
+  --wash: color-mix(in srgb, var(--phase-color) 36%, transparent);
+  --wash-soft: color-mix(in srgb, var(--phase-color) 20%, transparent);
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse 70% 55% at 22% 14%, rgba(255, 255, 255, 0.55), transparent 70%),
+    radial-gradient(ellipse 60% 60% at 86% 92%, rgba(196, 146, 84, 0.16), transparent 70%),
+    repeating-linear-gradient(7deg, rgba(120, 82, 40, 0.022) 0 2px, transparent 2px 6px),
+    repeating-linear-gradient(97deg, rgba(120, 82, 40, 0.018) 0 1px, transparent 1px 5px),
+    radial-gradient(ellipse at center, transparent 58%, rgba(168, 118, 62, 0.20) 100%),
+    var(--bg);
+}
+
+/* a fine printed frame around the page, like a plate in a picture book */
+.slide::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 30px 30px 54px;
+  border: 2px solid rgba(160, 110, 60, 0.30);
+  border-radius: 26px 14px 30px 16px / 16px 30px 14px 26px;
+  pointer-events: none;
+}
+
+/* running head, like the top of a book page */
+.slide::before {
+  position: absolute;
+  z-index: 1;
+  top: 44px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 32px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.slide[data-phase="warm_up"]::before { content: "Chapter 1  \B7  Warm-up"; }
+.slide[data-phase="presentation"]::before { content: "Chapter 2  \B7  Presentation"; }
+.slide[data-phase="practice"]::before { content: "Chapter 3  \B7  Practice"; }
+.slide[data-phase="production"]::before { content: "Chapter 4  \B7  Production"; }
+.slide[data-phase="wrap_up"]::before { content: "Chapter 5  \B7  Wrap-up"; }
+.slide--divider::before, .slide--cover::before { content: none !important; }
+
+.slide { font-family: var(--sans); }
+
+.slide-title,
+.cover__title,
+.divider__title,
+.activity__title,
+.summary__title,
+.flashcard__word,
+.pattern__text,
+.pattern__line,
+.phonics__sound {
+  font-family: var(--serif);
+}
+
+/* the bookmark ribbon replaces the colour band */
+.band {
+  left: 44px;
+  right: auto;
+  top: 0;
+  width: 52px;
+  height: 104px;
+  z-index: 2;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.22), transparent 30%, rgba(0, 0, 0, 0.10)),
+    var(--phase-color);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
+  filter: drop-shadow(0 4px 3px rgba(90, 60, 30, 0.3));
+}
+
+/* -- watercolour blobs ------------------------------------------------------------------------ */
+
+.deco {
+  border-radius: 58% 42% 55% 45% / 48% 56% 44% 52%;
+  filter: blur(14px);
+  opacity: 0.9;
+}
+
+.deco--1 {
+  width: 700px;
+  height: 560px;
+  left: -200px;
+  top: -190px;
+  background:
+    radial-gradient(closest-side, var(--wash-soft) 0%, var(--wash) 78%, transparent 100%);
+}
+
+.deco--2 {
+  width: 620px;
+  height: 520px;
+  right: -190px;
+  bottom: -170px;
+  border-radius: 44% 56% 48% 52% / 56% 44% 54% 46%;
+  background:
+    radial-gradient(closest-side, rgba(143, 174, 139, 0.28) 0%, rgba(143, 174, 139, 0.50) 78%, transparent 100%);
+}
+
+.deco--3 {
+  width: 360px;
+  height: 300px;
+  right: 220px;
+  top: -130px;
+  border-radius: 52% 48% 40% 60% / 60% 42% 58% 40%;
+  background:
+    radial-gradient(closest-side, rgba(226, 169, 59, 0.22) 0%, rgba(226, 169, 59, 0.42) 80%, transparent 100%);
+}
+
+/* the page pairs mirror each other, so the deck has a rhythm as you turn pages */
+.slide:nth-of-type(even) .deco--1 { left: auto; right: -210px; top: -170px; }
+.slide:nth-of-type(even) .deco--2 { right: auto; left: -190px; bottom: -190px; background: radial-gradient(closest-side, rgba(111, 147, 176, 0.26) 0%, rgba(111, 147, 176, 0.46) 78%, transparent 100%); }
+.slide:nth-of-type(even) .deco--3 { right: auto; left: 240px; top: auto; bottom: -150px; background: radial-gradient(closest-side, rgba(140, 90, 126, 0.18) 0%, rgba(140, 90, 126, 0.34) 80%, transparent 100%); }
+.slide:nth-of-type(3n) .deco--3 { background: radial-gradient(closest-side, rgba(217, 119, 79, 0.20) 0%, rgba(217, 119, 79, 0.38) 80%, transparent 100%); }
+
+/* -- small parts ------------------------------------------------------------------------------ */
+
+.hint {
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--muted);
+}
+
+.flashcard__hint::before,
+.dialogue__hint::before,
+.pattern__hint::before { content: "\261E  "; font-style: normal; }
+
+.footer { font-family: var(--serif); font-style: italic; }
+
+.badge {
+  font-family: var(--sans);
+  border-radius: 18px 8px 20px 10px / 10px 20px 8px 18px;
+  rotate: 2deg;
+  box-shadow: 0 3px 0 rgba(90, 30, 10, 0.25);
+}
+
+.notes {
+  font-family: var(--sans);
+  border: 2px solid var(--line);
+  border-radius: var(--deckle-c);
+}
+
+.notes__title { font-family: var(--serif); font-style: italic; }
+
+.card {
+  border: 2px solid var(--line);
+  border-radius: var(--deckle);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), transparent 40%),
+    var(--card);
+}
+
+/* speaker button: a little wax seal */
+.speak {
+  width: 72px;
+  height: 72px;
+  border: 3px solid var(--accent-ink);
+  background: radial-gradient(circle at 35% 30%, #FFFFFF, var(--card) 70%);
+  box-shadow: 0 0 0 5px var(--card), 0 0 0 7px var(--line), 0 6px 10px rgba(90, 60, 30, 0.2);
+  font-size: 34px;
+}
+
+.speak:hover { background: var(--bubble-left); border-color: var(--accent-ink); }
+.speak:focus-visible { outline: 6px solid var(--accent); outline-offset: 10px; }
+
+.icon { filter: saturate(0.85); }
+
+/* progress dots: small ink blots, the current one ringed */
+.dot::before {
+  inset: 15px;
+  opacity: 0.6;
+  border-radius: 55% 45% 50% 50% / 50% 55% 45% 50%;
+}
+
+.dot.current::before {
+  opacity: 1;
+  transform: scale(1.5);
+  box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--accent-ink);
+}
+
+mark {
+  padding: 0 6px;
+  border-radius: 6px 14px 8px 12px;
+  background: linear-gradient(180deg, transparent 12%, var(--mark) 12%, var(--mark) 92%, transparent 92%);
+}
+
+/* -- cover: the title page, with the lesson as a table of contents -------------------------------- */
+
+.slide--cover .slide-body { padding: 0 24px; }
+
+.cover {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 740px;
+  grid-template-areas:
+    "title toc"
+    "meta toc"
+    "total total";
+  align-items: center;
+  column-gap: 88px;
+  row-gap: 0;
+  width: 100%;
+  text-align: left;
+}
+
+.cover__title {
+  grid-area: title;
+  align-self: end;
+  margin: 0 0 28px;
+  font-size: 92px;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.cover__title::before {
+  content: "\2766  Our English story";
+  display: block;
+  margin-bottom: 30px;
+  font-size: 34px;
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  color: var(--accent-ink);
+}
+
+.cover__title::after {
+  content: "";
+  display: block;
+  width: 360px;
+  height: 14px;
+  margin-top: 34px;
+  border-bottom: 6px solid var(--accent);
+  border-radius: 0 0 60% 40% / 0 0 100% 100%;
+  rotate: -1.5deg;
+}
+
+.cover__meta {
+  grid-area: meta;
+  align-self: start;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 38px;
+  color: var(--muted);
+}
+
+.cover__total {
+  grid-area: total;
+  justify-self: start;
+  margin-top: 36px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 36px;
+}
+
+.cover__total::before { content: "\2766  "; font-style: normal; color: var(--accent-ink); }
+
+.phase-strip {
+  grid-area: toc;
+  position: relative;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 38px 52px 36px;
+  border: 2px solid var(--line);
+  border-radius: var(--deckle);
+  background:
+    linear-gradient(90deg, rgba(120, 82, 40, 0.10), transparent 6%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), transparent 40%),
+    var(--card);
+  box-shadow:
+    0 1px 0 #E3CFA8, 0 7px 0 -2px #F3E6C8, 0 8px 0 -2px #E3CFA8,
+    0 14px 0 -5px #F3E6C8, 0 15px 0 -5px #E3CFA8, 0 26px 40px rgba(96, 62, 28, 0.22);
+  rotate: 1.2deg;
+}
+
+.phase-strip::before {
+  content: "Contents";
+  display: block;
+  margin-bottom: 10px;
+  padding-bottom: 14px;
+  text-align: center;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 44px;
+  color: var(--accent-ink);
+  border-bottom: 2px solid var(--line);
+}
+
+.phase-strip__item {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 18px;
+  min-width: 0;
+  padding: 11px 0;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  font-size: 38px;
+  color: var(--ink);
+}
+
+.phase-strip__chip {
+  flex: none;
+  align-self: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 55% 45% 50% 50% / 50% 55% 45% 50%;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--phase-color) 70%, #FFFFFF), var(--phase-color) 70%);
+  box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--phase-color);
+}
+
+.phase-strip__icon { flex: none; width: 56px; text-align: center; font-size: 40px; align-self: center; }
+
+.phase-strip__label {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  font-family: var(--serif);
+  font-weight: 700;
+}
+
+.phase-strip__label::after {
+  content: "";
+  flex: 1;
+  margin: 0 14px;
+  border-bottom: 4px dotted var(--line);
+  transform: translateY(-6px);
+}
+
+.phase-strip__minutes {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 36px;
+  color: var(--muted);
+}
+
+/* -- divider: a chapter opening ---------------------------------------------------------------- */
+
+.slide--divider {
+  background:
+    radial-gradient(ellipse 46% 52% at 50% 46%, var(--wash-soft), transparent 72%),
+    radial-gradient(ellipse 70% 55% at 22% 14%, rgba(255, 255, 255, 0.55), transparent 70%),
+    repeating-linear-gradient(7deg, rgba(120, 82, 40, 0.022) 0 2px, transparent 2px 6px),
+    radial-gradient(ellipse at center, transparent 58%, rgba(168, 118, 62, 0.22) 100%),
+    var(--bg);
+}
+
+.slide--divider .deco--1 { width: 900px; height: 720px; left: -300px; top: -280px; }
+.slide--divider .deco--2 { width: 760px; height: 640px; right: -260px; bottom: -260px; background: radial-gradient(closest-side, var(--wash-soft) 0%, var(--wash) 78%, transparent 100%); }
+
+.divider.card {
+  position: static;
+  min-width: 0;
+  width: 1280px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  gap: 0;
+}
+
+/* ornamental rule above the chapter number */
+.divider::before {
+  content: "\2766";
+  order: -3;
+  display: block;
+  width: 760px;
+  margin-bottom: 22px;
+  text-align: center;
+  font-size: 56px;
+  line-height: 1;
+  color: var(--accent-ink);
+  background:
+    linear-gradient(90deg, transparent, var(--accent-ink) 40%, var(--accent-ink) 100%) left center / calc(50% - 56px) 2px no-repeat,
+    linear-gradient(270deg, transparent, var(--accent-ink) 40%, var(--accent-ink) 100%) right center / calc(50% - 56px) 2px no-repeat;
+}
+
+.divider__icon {
+  order: -2;
+  display: grid;
+  place-items: center;
+  width: 200px;
+  height: 200px;
+  margin-bottom: 18px;
+  font-size: 104px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 30%, #FFFFFF, var(--card) 62%);
+  box-shadow:
+    0 0 0 8px var(--card),
+    0 0 0 11px var(--phase-color),
+    0 0 0 22px color-mix(in srgb, var(--phase-color) 26%, transparent),
+    0 18px 30px rgba(96, 62, 28, 0.2);
+}
+
+.divider__phase {
+  order: -1;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 44px;
+  text-transform: none;
+  letter-spacing: 0.06em;
+  color: var(--accent-ink);
+  margin-top: 26px;
+}
+
+.divider__title {
+  max-width: 1200px;
+  margin-top: 6px;
+  font-size: 96px;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+}
+
+.divider__title::after {
+  content: "";
+  display: block;
+  width: 300px;
+  height: 14px;
+  margin: 20px auto 0;
+  border-bottom: 6px solid var(--phase-color);
+  border-radius: 0 0 60% 40% / 0 0 100% 100%;
+  rotate: -1.5deg;
+}
+
+.divider__minutes {
+  margin-top: 22px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 44px;
+  color: var(--muted);
+}
+
+.slide--divider[data-phase="warm_up"] .divider__phase::before { content: "Chapter 1  \B7  "; }
+.slide--divider[data-phase="presentation"] .divider__phase::before { content: "Chapter 2  \B7  "; }
+.slide--divider[data-phase="practice"] .divider__phase::before { content: "Chapter 3  \B7  "; }
+.slide--divider[data-phase="production"] .divider__phase::before { content: "Chapter 4  \B7  "; }
+.slide--divider[data-phase="wrap_up"] .divider__phase::before { content: "Chapter 5  \B7  "; }
+
+/* -- countdown: a pocket watch -------------------------------------------------------------------- */
+
+.countdown {
+  position: relative;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  width: 300px;
+  height: 300px;
+  margin-top: 54px;
+  padding: 0;
+  border: 10px solid #B58A3C;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 38%, #FFFFFF, var(--card) 70%);
+  box-shadow:
+    inset 0 0 0 6px var(--card),
+    inset 0 0 0 9px #D9BE86,
+    0 0 0 4px #8A6420,
+    0 14px 24px rgba(96, 62, 28, 0.28);
+}
+
+/* the crown and the ring on top */
+.countdown::before {
+  content: "";
+  position: absolute;
+  top: -42px;
+  left: 50%;
+  width: 52px;
+  height: 36px;
+  margin-left: -26px;
+  border: 5px solid #8A6420;
+  border-radius: 10px 10px 4px 4px;
+  background: linear-gradient(90deg, #E0BE74, #B58A3C 60%, #8A6420);
+}
+
+.countdown::after {
+  content: "";
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  margin-left: -20px;
+  border: 6px solid #B58A3C;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px #8A6420;
+}
+
+.countdown__time {
+  font-family: var(--serif);
+  font-size: 82px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.countdown__hint {
+  font-size: 32px;
+  line-height: 1.1;
+}
+
+.countdown.running { animation: none; box-shadow: inset 0 0 0 6px var(--card), inset 0 0 0 9px #D9BE86, 0 0 0 4px #8A6420, 0 0 0 20px var(--pulse), 0 14px 24px rgba(96, 62, 28, 0.28); }
+.countdown.done { background: radial-gradient(circle at 50% 38%, #FFFFFF, #FBE3D6 70%); }
+
+/* -- flashcard: an open picture book ---------------------------------------------------------------- */
+
+.flashcard.card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: min-content;
+  align-content: center;
+  align-items: center;
+  justify-items: center;
+  column-gap: 0;
+  row-gap: 8px;
+  width: 1560px;
+  min-height: 760px;
+  padding: 56px 80px;
+  border: 2px solid var(--line);
+  border-radius: 34px 26px 40px 30px / 28px 40px 26px 36px;
+  background:
+    linear-gradient(90deg,
+      transparent calc(50% - 70px),
+      rgba(120, 82, 40, 0.07) calc(50% - 22px),
+      rgba(120, 82, 40, 0.22) 50%,
+      rgba(120, 82, 40, 0.07) calc(50% + 22px),
+      transparent calc(50% + 70px)),
+    radial-gradient(ellipse 30% 46% at 25% 50%, var(--wash-soft), transparent),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), transparent 35%),
+    var(--card);
+  box-shadow:
+    0 1px 0 #E3CFA8, 0 8px 0 -2px #F6EBD0, 0 9px 0 -2px #E3CFA8,
+    0 16px 0 -5px #F6EBD0, 0 17px 0 -5px #E3CFA8,
+    0 34px 46px rgba(96, 62, 28, 0.26);
+}
+
+/* the book's gutter */
+.flashcard.card::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 28px;
+  bottom: 28px;
+  width: 2px;
+  background: linear-gradient(180deg, transparent, rgba(120, 82, 40, 0.35) 12%, rgba(120, 82, 40, 0.35) 88%, transparent);
+}
+
+.flashcard.has-example { row-gap: 8px; }
+
+/* left page: the picture, mounted like a painting */
+.flashcard__picture {
+  position: absolute;
+  left: calc(25% - min(300px, 20.5%));
+  top: 50%;
+  translate: 0 -50%;
+  width: min(600px, 41%);
+  height: auto;
+  max-width: none;
+  max-height: 620px;
+  padding: 14px;
+  object-fit: contain;
+  border-radius: var(--deckle-b);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 2px var(--line), 0 14px 26px rgba(96, 62, 28, 0.28);
+  rotate: -1.6deg;
+}
+
+.flashcard.has-example .flashcard__picture { max-height: 620px; }
+
+/* right page: the word set like a book title */
+.flashcard > :not(.flashcard__picture) {
+  grid-column: 2;
+  justify-self: center;
+  max-width: 100%;
+  padding: 0 0 0 36px;
+  text-align: center;
+}
+
+.flashcard.bare > :not(.flashcard__picture),
+.flashcard:not(.has-picture) > :not(.flashcard__picture) {
+  grid-column: 1 / -1;
+  padding: 0;
+}
+
+.flashcard:not(.has-picture)::before { display: none; }
+
+.flashcard:not(.has-picture) {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), transparent 35%),
+    var(--card);
+}
+
+.flashcard__wordline {
+  gap: 24px;
+  padding-bottom: 14px;
+}
+
+.flashcard__word {
+  font-size: var(--size-word);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  color: var(--accent-ink);
+}
+
+/* the ornamental rule under the title word */
+.flashcard__ipa {
+  position: relative;
+  margin-top: 6px;
+  padding-top: 34px !important;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 54px;
+  color: var(--muted);
+}
+
+.flashcard__ipa::before {
+  content: "\2766";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  width: 360px;
+  margin-left: -144px;
+  padding-left: 36px;
+  text-align: center;
+  font-style: normal;
+  font-size: 34px;
+  line-height: 1;
+  color: var(--accent-ink);
+  background:
+    linear-gradient(90deg, transparent, var(--accent-ink)) left center / calc(50% - 30px) 2px no-repeat,
+    linear-gradient(270deg, transparent, var(--accent-ink)) right center / calc(50% - 30px) 2px no-repeat;
+}
+
+.flashcard__meaning {
+  margin-top: 14px;
+  font-family: var(--serif);
+  font-size: 64px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.flashcard__example { margin-top: 6px; gap: 18px; }
+
+.flashcard__example-text {
+  font-family: var(--serif);
+  font-size: 44px;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+.flashcard__hint {
+  margin-top: 10px;
+  font-size: 34px;
+}
+
+.flashcard__ai {
+  font-family: var(--sans);
+  border-radius: 14px 6px 16px 8px / 8px 16px 6px 14px;
+  rotate: -2deg;
+}
+
+.flashcard.bare .flashcard__word { font-size: var(--size-word-bare); }
+
+.flashcard.has-example .flashcard__word { font-size: 116px; }
+
+/* -- dialogue: paper notes passed between friends ---------------------------------------------------- */
+
+.dialogue { width: 1560px; gap: 30px; }
+
+.dialogue__context {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 38px;
+  color: var(--muted);
+}
+
+.dialogue__context::before,
+.dialogue__context::after {
+  content: "";
+  width: 120px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-ink));
+}
+
+.dialogue__context::after { background: linear-gradient(270deg, transparent, var(--accent-ink)); }
+
+.chat { gap: 40px; }
+
+.bubble { max-width: 90%; gap: 30px; }
+
+.bubble__avatar {
+  width: 112px;
+  height: 112px;
+  background: radial-gradient(circle at 35% 30%, #FFFFFF, var(--card) 70%);
+  border: 4px double var(--accent-ink);
+  color: var(--accent-ink);
+  font-family: var(--serif);
+  font-size: 60px;
+  font-weight: 700;
+  font-style: italic;
+  box-shadow: 0 0 0 5px var(--bg), 0 0 0 7px var(--line);
+  rotate: -6deg;
+}
+
+.bubble--right .bubble__avatar {
+  background: radial-gradient(circle at 35% 30%, #FFFFFF, var(--card) 70%);
+  border-color: var(--accent-2-ink);
+  color: var(--accent-2-ink);
+  rotate: 6deg;
+}
+
+.bubble__text {
+  position: relative;
+  padding: 34px 54px 44px;
+  border: 2px solid var(--line);
+  border-radius: var(--deckle);
+  font-family: var(--serif);
+  font-size: var(--size-dialogue);
+  line-height: 1.25;
+  color: var(--ink);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.45), transparent 50%),
+    var(--bubble-left);
+  box-shadow: 0 10px 18px rgba(96, 62, 28, 0.18), 0 1px 0 rgba(255, 255, 255, 0.7) inset;
+  rotate: -0.7deg;
+}
+
+.bubble--right .bubble__text {
+  border-radius: var(--deckle-b);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.45), transparent 50%),
+    var(--bubble-right);
+  rotate: 0.7deg;
+}
+
+/* the note's little tail, pointing at the speaker */
+.bubble__text::before {
+  content: "";
+  position: absolute;
+  bottom: 34px;
+  left: -17px;
+  width: 30px;
+  height: 30px;
+  border-left: 2px solid var(--line);
+  border-bottom: 2px solid var(--line);
+  background: var(--bubble-left);
+  rotate: 45deg;
+  border-radius: 0 0 0 8px;
+}
+
+.bubble--right .bubble__text::before {
+  left: auto;
+  right: -17px;
+  border-left: 0;
+  border-bottom: 2px solid var(--line);
+  border-right: 2px solid var(--line);
+  background: var(--bubble-right);
+  border-radius: 0 0 8px 0;
+}
+
+/* a hand-drawn underline beneath each line */
+.bubble__text::after {
+  content: "";
+  position: absolute;
+  left: 54px;
+  right: 54px;
+  bottom: 16px;
+  height: 14px;
+  border-bottom: 4px solid var(--accent);
+  border-radius: 0 0 60% 40% / 0 0 100% 100%;
+  opacity: 0.8;
+}
+
+.bubble--right .bubble__text::after {
+  border-bottom-color: var(--accent-2);
+  border-radius: 0 0 40% 60% / 0 0 100% 100%;
+}
+
+/* -- sentence pattern: a sentence to fill in, set like a line of verse ------------------------------- */
+
+.pattern.card {
+  position: relative;
+  width: 1500px;
+  gap: 20px;
+  padding: 64px 96px 52px;
+  border-radius: 40px 22px 48px 26px / 26px 48px 22px 40px;
+  box-shadow:
+    0 1px 0 #E3CFA8, 0 8px 0 -2px #F6EBD0, 0 9px 0 -2px #E3CFA8,
+    0 16px 0 -5px #F6EBD0, 0 17px 0 -5px #E3CFA8,
+    0 30px 40px rgba(96, 62, 28, 0.24);
+}
+
+.pattern.card::before {
+  content: "Say it like this";
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  margin-left: -230px;
+  width: 460px;
+  padding: 6px 0;
+  text-align: center;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 36px;
+  color: #FFFFFF;
+  background: var(--accent-ink);
+  border-radius: 18px 8px 20px 10px / 10px 20px 8px 18px;
+  rotate: -1.5deg;
+  box-shadow: 0 6px 10px rgba(96, 62, 28, 0.25);
+}
+
+.pattern__text {
+  font-size: 88px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.pattern__slot {
+  min-width: 6ch;
+  padding: 0 28px;
+  border: 0;
+  border-bottom: 0 solid var(--slot-border);
+  border-radius: 18px 10px 20px 8px / 10px 20px 8px 18px;
+  background: linear-gradient(180deg, transparent 58%, color-mix(in srgb, var(--accent) 20%, transparent) 58%);
+  font-style: italic;
+  letter-spacing: 0.08em;
+  color: var(--accent-ink);
+}
+
+.pattern__slot.filled {
+  border-bottom-width: 6px;
+  letter-spacing: 0;
+  border-radius: 10px 18px 6px 14px;
+  background: linear-gradient(180deg, transparent 10%, var(--mark) 10%);
+  color: var(--ink);
+}
+
+.pattern__line {
+  width: 70%;
+  min-height: 1.05em;
+  border-bottom: 4px dotted var(--line);
+  font-size: 66px;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent-ink);
+}
+
+.pattern__function {
+  font-family: var(--serif);
+  font-size: 40px;
+  color: var(--muted);
+}
+
+.pattern__function::before { content: "\2014  "; }
+.pattern__function::after { content: "  \2014"; }
+
+.pattern__examples { gap: 22px 28px; font-size: 38px; margin-top: 8px; }
+
+.pattern__example {
+  border: 2px solid var(--line);
+  border-radius: 24px 10px 26px 12px / 12px 26px 10px 24px;
+  background: var(--bg);
+  font-family: var(--serif);
+  font-size: 40px;
+  color: var(--ink-soft);
+  padding: 10px 14px 10px 30px;
+}
+
+.pattern__example .speak { width: 60px; height: 60px; font-size: 28px; }
+
+.pattern__example.current {
+  border: 3px solid var(--accent-ink);
+  background: var(--bubble-left);
+  color: var(--ink);
+  rotate: -1deg;
+}
+
+.pattern__hint { font-size: 34px; }
+
+/* -- phonics: an illuminated capital ------------------------------------------------------------------- */
+
+.phonics { gap: 26px; }
+
+.phonics__sound {
+  display: grid;
+  place-items: center;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  font-style: italic;
+  white-space: nowrap;
+  font-weight: 700;
+  color: var(--accent-ink);
+  background: radial-gradient(circle at 38% 30%, #FFFFFF, var(--card) 66%);
+  box-shadow: 0 0 0 8px var(--card), 0 0 0 11px var(--phase-color), 0 0 0 24px color-mix(in srgb, var(--phase-color) 26%, transparent), 0 20px 30px rgba(96, 62, 28, 0.2);
+}
+
+.phonics__letters {
+  margin-top: 24px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 64px;
+}
+
+.phonics__words {
+  gap: 24px 36px;
+  font-family: var(--serif);
+  font-size: 76px;
+  font-weight: 700;
+}
+
+.phonics__word {
+  padding: 8px 20px 8px 36px;
+  border: 2px solid var(--line);
+  border-radius: var(--deckle-c);
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+
+.phonics__chant { font-family: var(--serif); color: var(--accent-ink); }
+
+/* -- activity: a recipe card of numbered, stamped steps ------------------------------------------------ */
+
+.slide--activity .slide-body { justify-content: center; }
+
+.activity {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-areas:
+    "heading watch"
+    "instructions watch"
+    "steps steps";
+  align-items: center;
+  justify-items: start;
+  column-gap: 64px;
+  row-gap: 8px;
+  width: min(1640px, 100%);
+  text-align: left;
+}
+
+.activity__heading {
+  grid-area: heading;
+  gap: 30px;
+}
+
+.activity__icon {
+  display: grid;
+  place-items: center;
+  width: 128px;
+  height: 128px;
+  font-size: 68px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 30%, #FFFFFF, var(--card) 62%);
+  box-shadow: 0 0 0 6px var(--card), 0 0 0 9px var(--phase-color), 0 0 0 18px color-mix(in srgb, var(--phase-color) 26%, transparent), 0 14px 22px rgba(96, 62, 28, 0.2);
+  margin-right: 14px;
+}
+
+.activity__title {
+  font-size: 76px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+
+.activity__title::after {
+  content: "";
+  display: block;
+  width: 280px;
+  height: 14px;
+  margin-top: 12px;
+  border-bottom: 6px solid var(--phase-color);
+  border-radius: 0 0 60% 40% / 0 0 100% 100%;
+  rotate: -1.2deg;
+}
+
+.activity__instructions {
+  grid-area: instructions;
+  max-width: 1200px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 48px;
+  color: var(--muted);
+}
+
+.activity__steps {
+  grid-area: steps;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 30px 44px;
+  width: 100%;
+  max-width: none;
+  margin-top: 22px;
+  justify-content: stretch;
+}
+
+.step.card {
+  position: relative;
+  min-width: 0;
+  max-width: none;
+  gap: 30px;
+  padding: 22px 36px 22px 28px;
+  font-family: var(--serif);
+  font-size: 44px;
+  line-height: 1.2;
+  border-radius: var(--deckle);
+}
+
+.step:nth-child(even) { border-radius: var(--deckle-b); rotate: 0.5deg; }
+.step:nth-child(odd) { rotate: -0.5deg; }
+
+/* a strip of washi tape holding the note */
+.step.card::before {
+  content: "";
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  width: 120px;
+  height: 30px;
+  margin-left: -60px;
+  background: color-mix(in srgb, var(--phase-color) 45%, #FFFFFF);
+  opacity: 0.85;
+  rotate: -3deg;
+  clip-path: polygon(0 10%, 4% 0, 8% 12%, 12% 0, 100% 0, 96% 50%, 100% 100%, 12% 100%, 8% 88%, 4% 100%, 0 90%, 3% 50%);
+}
+
+.step:nth-child(even)::before { rotate: 4deg; }
+
+/* the number is an ink stamp */
+.step__number {
+  position: relative;
+  width: 92px;
+  height: 92px;
+  border: 4px double var(--accent-ink);
+  background: none;
+  color: var(--accent-ink);
+  font-family: var(--serif);
+  font-size: 54px;
+  font-weight: 700;
+  font-style: italic;
+  rotate: -9deg;
+  box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 5px color-mix(in srgb, var(--accent-ink) 55%, transparent);
+}
+
+.step:nth-child(even) .step__number { rotate: 8deg; }
+
+.activity .countdown {
+  grid-area: watch;
+  justify-self: center;
+  align-self: center;
+  margin-top: 70px;
+  min-width: 0;
+  width: 260px;
+  height: 260px;
+  padding: 0;
+}
+
+.activity .countdown__time { font-size: 70px; }
+.activity .countdown__hint { font-size: 32px; }
+
+/* -- summary: the closing page, picture cards like a sticker sheet --------------------------------------- */
+
+.summary { gap: 34px; }
+
+.summary__title {
+  position: relative;
+  padding: 0 80px;
+  font-size: 84px;
+  font-style: italic;
+  font-weight: 700;
+  color: var(--accent-ink);
+}
+
+.summary__title::before,
+.summary__title::after {
+  content: "\2766";
+  position: absolute;
+  top: 50%;
+  font-size: 52px;
+  font-style: normal;
+  color: var(--accent-ink);
+  opacity: 0.7;
+  translate: 0 -50%;
+}
+
+.summary__title::before { left: 0; }
+.summary__title::after { right: 0; scale: -1 1; }
+
+.summary-grid { gap: 36px; max-width: 1700px; }
+
+.summary-card {
+  width: 320px;
+  padding: 24px 24px 22px;
+  border-radius: var(--deckle);
+  font-family: var(--serif);
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.summary-card:nth-child(3n+1) { rotate: -1.8deg; }
+.summary-card:nth-child(3n+2) { rotate: 1.2deg; border-radius: var(--deckle-b); }
+.summary-card:nth-child(3n) { rotate: -0.6deg; border-radius: var(--deckle-c); }
+
+.summary-card__picture {
+  height: 210px;
+  padding: 8px;
+  border-radius: 14px 26px 16px 22px / 22px 16px 26px 14px;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 2px var(--line);
+}
+
+.summary-card .speak { top: -14px; right: -14px; width: 60px; height: 60px; font-size: 28px; }
+
+.summary__pattern {
+  padding: 14px 52px;
+  border-radius: 34px 16px 38px 18px / 18px 38px 16px 34px;
+  background: var(--bubble-left);
+  border: 2px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.summary__pattern-text { font-family: var(--serif); font-size: 60px; }
+
+.summary__bullets { font-family: var(--serif); text-align: left; }
+.summary__bullets li { padding: 6px 0 6px 56px; position: relative; }
+.summary__bullets li::before { content: "\2766"; position: absolute; left: 0; color: var(--accent-ink); }
+
+/* -- picture: a framed painting -------------------------------------------------------------------------- */
+
+.image-ref { gap: 30px; }
+
+.image-ref__picture {
+  min-width: min(900px, 100%);
+  max-height: 700px;
+  padding: 18px;
+  background: #FFFFFF;
+  border-radius: 14px 20px 12px 18px / 18px 12px 20px 14px;
+  box-shadow: 0 0 0 2px var(--line), 0 0 0 14px var(--card), 0 0 0 16px var(--line), 0 28px 40px rgba(96, 62, 28, 0.3);
+  rotate: -0.8deg;
+}
+
+.image-ref__caption {
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--muted);
+}
+
+.image-ref__caption::before { content: "\2766  "; font-style: normal; color: var(--accent-ink); }
+.image-ref__placeholder { font-family: var(--serif); }
+
+/* -- teacher-only pages stay plain ------------------------------------------------------------------------ */
+
+.slide.teacher { font-family: var(--sans); }
+.slide.teacher .slide-title { font-family: var(--serif); }
+.slide.teacher::before { content: none !important; }
+
+/* -- icons: emoji for phases and activity types ------------------------------------------------------------ */
+
+.icon[data-icon="warm_up"]::before { content: "\2600\FE0F"; }
+.icon[data-icon="presentation"]::before { content: "\1F4D6"; }
+.icon[data-icon="practice"]::before { content: "\270F\FE0F"; }
+.icon[data-icon="production"]::before { content: "\1F3A4"; }
+.icon[data-icon="wrap_up"]::before { content: "\2B50"; }
+
+.icon[data-icon="listen_and_do"]::before { content: "\1F442"; }
+.icon[data-icon="look_listen_repeat"]::before { content: "\1F440"; }
+.icon[data-icon="listen_point_say"]::before { content: "\1F449"; }
+.icon[data-icon="lets_talk"]::before { content: "\1F4AC"; }
+.icon[data-icon="lets_write"]::before { content: "\270D\FE0F"; }
+.icon[data-icon="song"]::before { content: "\1F3B5"; }
+.icon[data-icon="chant"]::before { content: "\1F941"; }
+.icon[data-icon="game"]::before { content: "\1F3B2"; }
+.icon[data-icon="role_play"]::before { content: "\1F3AD"; }
+.icon[data-icon="project"]::before { content: "\1F9E9"; }
+.icon[data-icon="read_and_match"]::before { content: "\1F9E0"; }
+.icon[data-icon="look_complete_read"]::before { content: "\1F4DD"; }
+.icon[data-icon="tpr"]::before { content: "\1F938"; }
+.icon[data-icon="other"]::before { content: "\2728"; }
+
+/* -- speaker button: a small ink-drawn loudspeaker instead of the emoji ------------------------------------- */
+
+.speak__icon {
+  position: relative;
+  display: block;
+  width: 38px;
+  height: 34px;
+}
+
+.speak__icon::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 22px;
+  height: 26px;
+  background: var(--accent-ink);
+  clip-path: polygon(0 32%, 32% 32%, 100% 0, 100% 100%, 32% 68%, 0 68%);
+}
+
+.speak__icon::after {
+  content: "";
+  position: absolute;
+  left: 22px;
+  top: 3px;
+  width: 16px;
+  height: 28px;
+  background: radial-gradient(circle at 0 50%, transparent 5px, var(--accent-ink) 5px 8px, transparent 8px 13px, var(--accent-ink) 13px 16px, transparent 16px);
+}
+
+/* on a chapter opening the watch lies in the corner of the page */
+.slide--divider .countdown {
+  position: absolute;
+  right: -50px;
+  bottom: -30px;
+  margin: 0;
+  width: 280px;
+  height: 280px;
+}
+
+.slide--divider .countdown__time { font-size: 76px; }
+
+/* -- teacher panel open: the slide body is narrower, so the layouts relax ------------------------------------- */
+
+body.notes-open .cover {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "title" "meta" "toc" "total";
+  row-gap: 8px;
+}
+
+body.notes-open .cover__title { font-size: 64px; margin-bottom: 8px; }
+body.notes-open .cover__title::before { margin-bottom: 12px; }
+body.notes-open .cover__title::after { margin-top: 18px; }
+body.notes-open .phase-strip { margin-top: 24px; padding: 20px 40px 16px; }
+body.notes-open .phase-strip::before { font-size: 36px; margin-bottom: 4px; padding-bottom: 6px; }
+body.notes-open .phase-strip__item { padding: 4px 0; font-size: 34px; }
+body.notes-open .cover__total { margin-top: 20px; }
+
+body.notes-open .slide::before { content: none !important; }
+body.notes-open .activity { grid-template-columns: minmax(0, 1fr) 200px; column-gap: 24px; row-gap: 0; }
+body.notes-open .activity__steps { gap: 20px 24px; margin-top: 14px; }
+body.notes-open .step.card { gap: 18px; padding: 12px 20px 12px 18px; font-size: 34px; }
+body.notes-open .step__number { width: 68px; height: 68px; font-size: 40px; }
+body.notes-open .activity__heading { gap: 18px; }
+body.notes-open .activity__icon { width: 96px; height: 96px; font-size: 52px; margin-right: 6px; }
+body.notes-open .activity__title { font-size: 56px; }
+body.notes-open .activity__title::after { margin-top: 4px; height: 10px; }
+body.notes-open .activity__instructions { font-size: 38px; }
+body.notes-open .activity .countdown { width: 210px; height: 210px; margin-top: 56px; border-width: 8px; }
+body.notes-open .activity .countdown__time { font-size: 46px; }
+body.notes-open .activity .countdown__hint { font-size: 32px; }
+body.notes-open .slide--divider .countdown { right: -30px; bottom: -40px; width: 220px; height: 220px; }
+body.notes-open .slide--divider .countdown__time { font-size: 56px; }
+body.notes-open .divider__title { font-size: 72px; }
+body.notes-open .flashcard__word { font-size: 96px; }
+body.notes-open .pattern__text { font-size: 64px; }
+
+/* the teacher-only pages keep to plain reading */
+.slide.teacher .band { left: auto; right: 60px; }

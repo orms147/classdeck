@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ClassDeck</title>
+  <meta name="color-scheme" content="light">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M9 12h14M9 17h14M9 22h9' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <a class="skip" href="#view" data-i18n="skip">Skip to content</a>
+  <div class="shell">
+    <aside class="nav" aria-label="Navigation">
+      <a class="brand" href="#/">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="28" height="28"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M9 12h14M9 17h14M9 22h9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>
+        </span>
+        <span class="brand-name">ClassDeck</span>
+      </a>
+      <a class="btn primary block" href="#/new" id="navNew"></a>
+      <nav class="nav-group" aria-label="Lessons">
+        <a class="nav-link" href="#/" id="navHome"></a>
+        <div class="nav-label" data-i18n="nav.recent">Recent</div>
+        <div id="navLessons" class="nav-lessons"></div>
+      </nav>
+      <div class="nav-foot">
+        <div class="lang" role="group" aria-label="Language">
+          <button type="button" data-lang="vi">VI</button>
+          <button type="button" data-lang="en">EN</button>
+        </div>
+        <span class="muted small" id="navVersion"></span>
+      </div>
+    </aside>
+    <div class="main">
+      <header class="topbar">
+        <div class="crumbs" id="crumbs"></div>
+        <div class="top-status" id="topStatus"></div>
+      </header>
+      <main id="view" tabindex="-1"></main>
+    </div>
+  </div>
+  <div id="overlay"></div>
+  <div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+  <script src="/static/i18n.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,967 @@
+/* theme: candy | Candy | Soft pastel gradients, frosted glass and bubbly floating shapes - a dreamy, modern look | suits: grades 3-4 */
+/* Colour lives in the backgrounds (a layered mesh of radial gradients per lesson phase) and in
+   small accents; text is always deep plum on a light or frosted surface. Cards are frosted glass
+   (translucent white, backdrop blur, a white hairline), the deco hooks are glossy floating bubbles,
+   and every slide type has its own layout. Motion is transform-only and switched off for
+   prefers-reduced-motion by the structure layer. */
+
+:root {
+  --bg: #FBF5FF;
+  --ink: #2A1A4D;
+  --muted: #53427F;
+  --card: #FFFFFF;
+  --line: #E2D4F8;
+  --accent: #9B7BFF;
+  --accent-2: #3CC9B0;
+  --accent-ink: #4A1D96;
+  --accent-2-ink: #0B6560;
+  --badge: #B3125E;
+  --mark: #FFE08A;
+  --bubble-left: #F3E8FF;
+  --bubble-right: #DDF7F0;
+  --slot-border: #8B5CF6;
+  --teacher-bg: #FFFFFF;
+  --pulse: rgba(139, 92, 246, 0.22);
+
+  --phase-warm_up: #FFB48A;
+  --phase-presentation: #7CC4FF;
+  --phase-practice: #6EE0B5;
+  --phase-production: #FF8FB1;
+  --phase-wrap_up: #B79CFF;
+  --phase-lesson: #B79CFF;
+  --phase-teacher: #A8A3B8;
+
+  --radius: 40px;
+  --shadow: 0 24px 60px rgba(88, 52, 160, 0.16), 0 4px 14px rgba(88, 52, 160, 0.08);
+
+  --size-word: 128px;
+  --size-word-bare: 168px;
+  --size-pattern: 84px;
+  --size-dialogue: 46px;
+  --size-title: 72px;
+  --size-body: 40px;
+  --size-min: 32px;
+  --size-sound: 220px;
+
+  /* theme-only helpers */
+  --glass: linear-gradient(150deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.5) 100%);
+  --glass-edge: 1.5px solid rgba(255, 255, 255, 0.95);
+  --glass-inner: inset 0 2px 0 rgba(255, 255, 255, 0.95), inset 0 -18px 36px rgba(255, 255, 255, 0.28);
+  --grad-a: linear-gradient(135deg, #6D28D9 0%, #A21CAF 100%);
+  --grad-b: linear-gradient(135deg, #0F766E 0%, #0369A1 100%);
+  --grad-c: linear-gradient(135deg, #BE185D 0%, #C2410C 100%);
+  --font-display: "Segoe UI Variable Display", "Segoe UI", ui-rounded, "SF Pro Rounded", system-ui,
+    -apple-system, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Noto Color Emoji";
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Phase palettes: four mesh colours per phase (--ma..--md), used by backgrounds and bubbles.
+   --------------------------------------------------------------------------------------------- */
+
+.slide { --ma: #B79CFF; --mb: #FFB48A; --mc: #8FD8FF; --md: #FFB5DD; }
+.slide[data-phase="warm_up"]     { --ma: #FFB48A; --mb: #E3B5FF; --mc: #FFE08A; --md: #FF9FB5; }
+.slide[data-phase="presentation"] { --ma: #8FCBFF; --mb: #B9A8FF; --mc: #9BF0D2; --md: #FFC8EC; }
+.slide[data-phase="practice"]    { --ma: #7FE8BE; --mb: #8FD3FF; --mc: #FFEE9A; --md: #C8B5FF; }
+.slide[data-phase="production"]  { --ma: #FF9DBB; --mb: #FFC59A; --mc: #D3A8FF; --md: #FFE49A; }
+.slide[data-phase="wrap_up"]     { --ma: #BFA6FF; --mb: #FFB5DD; --mc: #8FD8FF; --md: #FFD9A0; }
+.slide[data-phase="teacher"]     { --ma: #E5E1F0; --mb: #EDE9F6; --mc: #E5E1F0; --md: #F3F0FA; }
+
+body,
+.slide {
+  font-family: var(--font-display);
+}
+
+.stage { background: #FBF5FF; }
+
+.slide {
+  --mix: 62%;
+  background:
+    radial-gradient(1150px 820px at 4% 6%, color-mix(in srgb, var(--ma) var(--mix), #fff) 0%, transparent 100%),
+    radial-gradient(1000px 900px at 100% 12%, color-mix(in srgb, var(--mb) var(--mix), #fff) 0%, transparent 100%),
+    radial-gradient(1250px 820px at 78% 108%, color-mix(in srgb, var(--mc) var(--mix), #fff) 0%, transparent 100%),
+    radial-gradient(900px 820px at -4% 102%, color-mix(in srgb, var(--md) var(--mix), #fff) 0%, transparent 100%),
+    color-mix(in srgb, var(--mc) 14%, #fff);
+}
+
+.slide--divider { --mix: 100%; }
+.slide--cover { --mix: 70%; }
+
+.slide--notes,
+.slide--source-map {
+  --mix: 100%;
+}
+
+.slide-title {
+  color: var(--ink);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Band: a small glossy pill instead of a full-width bar
+   --------------------------------------------------------------------------------------------- */
+
+.band {
+  left: 96px;
+  right: auto;
+  top: 44px;
+  width: 176px;
+  height: 16px;
+  z-index: 1;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--phase-color) 0%, color-mix(in srgb, var(--phase-color) 40%, #fff) 100%);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.7), 0 6px 18px color-mix(in srgb, var(--phase-color) 70%, transparent);
+}
+
+.slide--divider .band,
+.slide--cover .band {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Floating bubbles on the deco hooks: 1 = glossy sphere, 2 = soap bubble, 3 = squishy blob.
+   --------------------------------------------------------------------------------------------- */
+
+.deco {
+  border-radius: 50%;
+  animation: candy-float 10s ease-in-out infinite;
+}
+
+.deco--1 {
+  width: 380px;
+  height: 380px;
+  right: -110px;
+  top: -120px;
+  background:
+    radial-gradient(circle at 30% 24%, #fff 0 4%, transparent 4.6%),
+    radial-gradient(ellipse 46% 30% at 36% 22%, rgba(255, 255, 255, 0.9) 0%, transparent 100%),
+    radial-gradient(circle at 60% 66%, color-mix(in srgb, var(--ma) 100%, #fff) 0%, color-mix(in srgb, var(--mb) 70%, var(--ma)) 100%);
+  box-shadow:
+    inset -26px -34px 60px color-mix(in srgb, var(--ma) 60%, #6D28D9),
+    inset 14px 18px 36px rgba(255, 255, 255, 0.55),
+    0 40px 70px color-mix(in srgb, var(--ma) 45%, transparent);
+  opacity: 0.92;
+}
+
+.deco--2 {
+  width: 250px;
+  height: 250px;
+  left: 30px;
+  bottom: 70px;
+  background:
+    radial-gradient(circle at 30% 26%, #fff 0 5%, transparent 5.6%),
+    radial-gradient(circle at 50% 50%, transparent 52%, rgba(255, 255, 255, 0.5) 74%, color-mix(in srgb, var(--mb) 80%, #fff) 100%);
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 255, 255, 0.85),
+    inset -12px -16px 30px color-mix(in srgb, var(--mb) 55%, transparent),
+    0 18px 40px color-mix(in srgb, var(--mb) 35%, transparent);
+  animation-duration: 13s;
+  animation-delay: -4s;
+  animation-direction: reverse;
+}
+
+.deco--3 {
+  width: 200px;
+  height: 180px;
+  right: 140px;
+  bottom: 40px;
+  border-radius: 62% 38% 54% 46% / 48% 58% 42% 52%;
+  background:
+    radial-gradient(ellipse 40% 26% at 34% 24%, rgba(255, 255, 255, 0.85) 0%, transparent 100%),
+    radial-gradient(circle at 60% 70%, var(--md) 0%, color-mix(in srgb, var(--mc) 80%, var(--md)) 100%);
+  box-shadow:
+    inset -14px -20px 34px color-mix(in srgb, var(--md) 70%, #A21CAF),
+    inset 8px 10px 20px rgba(255, 255, 255, 0.5),
+    0 26px 44px color-mix(in srgb, var(--md) 40%, transparent);
+  animation-duration: 8s;
+  animation-delay: -2s;
+}
+
+@keyframes candy-float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(10px, -26px, 0) rotate(4deg); }
+}
+
+/* per slide type: keep the bubbles out of the way of that layout */
+
+.slide--cover .deco--1 { width: 720px; height: 720px; right: -200px; top: auto; bottom: -260px; }
+.slide--cover .deco--2 { width: 260px; height: 260px; left: auto; right: 40px; top: 36px; bottom: auto; }
+.slide--cover .deco--3 { width: 230px; height: 200px; left: 70px; right: auto; top: auto; bottom: 130px; }
+
+.slide--divider .deco--1 { width: 560px; height: 560px; left: -170px; top: auto; right: auto; bottom: -190px; }
+.slide--divider .deco--2 { width: 280px; height: 280px; left: auto; right: 40px; top: 30px; bottom: auto; }
+.slide--divider .deco--3 { width: 220px; height: 190px; right: auto; left: 520px; top: 28px; bottom: auto; }
+
+.slide--flashcard .deco--1 { width: 460px; height: 460px; right: -150px; top: auto; bottom: -170px; }
+.slide--flashcard .deco--2 { width: 260px; height: 260px; left: 30px; bottom: 20px; top: auto; }
+.slide--flashcard .deco--3 { right: 110px; bottom: auto; top: 36px; }
+
+.slide--dialogue .deco--1 { width: 420px; height: 420px; right: -150px; top: auto; bottom: -150px; }
+.slide--dialogue .deco--2 { left: -60px; bottom: auto; top: 80px; width: 230px; height: 230px; }
+.slide--dialogue .deco--3 { right: 40px; bottom: auto; top: 60px; }
+
+.slide--pattern .deco--1 { left: -150px; right: auto; top: auto; bottom: -160px; width: 440px; height: 440px; }
+.slide--pattern .deco--2 { left: auto; right: 50px; bottom: auto; top: 50px; }
+.slide--pattern .deco--3 { right: 150px; bottom: 20px; }
+
+.slide--activity .deco--1 { width: 320px; height: 320px; right: -100px; top: auto; bottom: -110px; }
+.slide--activity .deco--2 { left: -70px; bottom: 30px; width: 220px; height: 220px; }
+.slide--activity .deco--3 { right: 360px; bottom: auto; top: 20px; width: 160px; height: 140px; }
+
+.slide--summary .deco--1 { width: 420px; height: 420px; right: -140px; top: -130px; }
+.slide--summary .deco--2 { left: auto; right: 50px; bottom: 60px; }
+.slide--summary .deco--3 { left: 150px; right: auto; bottom: 30px; }
+
+.slide--phonics .deco--1 { width: 460px; height: 460px; }
+.slide--image .deco--3 { left: 110px; right: auto; bottom: 30px; }
+
+.slide--notes .deco,
+.slide--source-map .deco {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Frosted glass
+   --------------------------------------------------------------------------------------------- */
+
+.card {
+  background: var(--glass);
+  border: var(--glass-edge);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow), var(--glass-inner);
+  -webkit-backdrop-filter: blur(26px) saturate(1.5);
+  backdrop-filter: blur(26px) saturate(1.5);
+}
+
+.hint {
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+}
+
+.hint::before {
+  content: "\2726  ";
+  color: var(--accent-ink);
+}
+
+/* speaker button: a glossy little bubble */
+
+.speak {
+  width: 72px;
+  height: 72px;
+  border: 2px solid #FFFFFF;
+  background:
+    radial-gradient(circle at 32% 24%, #FFFFFF 0%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(145deg, #FFFFFF 0%, #EADFFF 100%);
+  color: var(--accent-ink);
+  box-shadow: 0 10px 22px rgba(88, 52, 160, 0.22), inset 0 -6px 12px rgba(139, 92, 246, 0.2);
+  font-size: 34px;
+  transition: transform 160ms ease-out;
+}
+
+.speak:hover { transform: scale(1.08); border-color: #FFFFFF; }
+.speak:active { transform: scale(0.94); }
+
+/* badge and teacher panel */
+
+.badge {
+  background: linear-gradient(135deg, #B3125E 0%, #9A1B8C 100%);
+  box-shadow: 0 8px 20px rgba(179, 18, 94, 0.3);
+}
+
+.notes {
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.94);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+
+.notes__block { border-left-color: var(--accent); border-radius: 12px; background: rgba(243, 232, 255, 0.5); }
+
+/* progress dots: candy beads */
+
+.dot::before {
+  inset: 12px;
+  background: radial-gradient(circle at 32% 28%, #FFFFFF 0 14%, var(--phase-color) 62%);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 3px 8px rgba(88, 52, 160, 0.25);
+  opacity: 0.8;
+}
+
+.dot.current::before {
+  opacity: 1;
+  transform: scale(1.5);
+  box-shadow: 0 0 0 3px #FFFFFF, 0 0 0 7px color-mix(in srgb, var(--phase-color) 55%, transparent), 0 6px 14px rgba(88, 52, 160, 0.35);
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Icons
+   --------------------------------------------------------------------------------------------- */
+
+.icon[data-icon="warm_up"]::before { content: "\2600\FE0F"; }
+.icon[data-icon="presentation"]::before { content: "\1F4D6"; }
+.icon[data-icon="practice"]::before { content: "\270F\FE0F"; }
+.icon[data-icon="production"]::before { content: "\1F3A4"; }
+.icon[data-icon="wrap_up"]::before { content: "\2B50"; }
+
+.icon[data-icon="listen_and_do"]::before { content: "\1F442"; }
+.icon[data-icon="look_listen_repeat"]::before { content: "\1F440"; }
+.icon[data-icon="listen_point_say"]::before { content: "\1F449"; }
+.icon[data-icon="lets_talk"]::before { content: "\1F4AC"; }
+.icon[data-icon="lets_write"]::before { content: "\270D\FE0F"; }
+.icon[data-icon="song"]::before { content: "\1F3B5"; }
+.icon[data-icon="chant"]::before { content: "\1F941"; }
+.icon[data-icon="game"]::before { content: "\1F3AE"; }
+.icon[data-icon="role_play"]::before { content: "\1F3AD"; }
+.icon[data-icon="project"]::before { content: "\1F9E9"; }
+.icon[data-icon="read_and_match"]::before { content: "\1F9E0"; }
+.icon[data-icon="look_complete_read"]::before { content: "\1F4DD"; }
+.icon[data-icon="tpr"]::before { content: "\1F938"; }
+.icon[data-icon="other"]::before { content: "\2728"; }
+
+/* an icon sits in a glossy bubble wherever it is large */
+
+.divider__icon,
+.activity__icon,
+.phase-strip__icon {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 22%, #FFFFFF 0%, rgba(255, 255, 255, 0) 46%),
+    radial-gradient(circle at 60% 70%, color-mix(in srgb, var(--phase-color) 85%, #fff) 0%, var(--phase-color) 100%);
+  box-shadow:
+    inset -8px -12px 24px color-mix(in srgb, var(--phase-color) 60%, #7C3AED),
+    inset 0 3px 0 rgba(255, 255, 255, 0.8),
+    0 14px 30px color-mix(in srgb, var(--phase-color) 55%, transparent);
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Cover: hero title, meta pill and a wavy strip of phase bubbles
+   --------------------------------------------------------------------------------------------- */
+
+.cover { gap: 44px; }
+
+.cover__title {
+  max-width: 1500px;
+  font-size: 100px;
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  color: var(--accent-ink);
+  background: linear-gradient(100deg, #2A1A4D 0%, #4A1D96 55%, #86198F 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 6px 0 rgba(255, 255, 255, 0.7));
+}
+
+.cover__meta {
+  padding: 12px 36px;
+  border: var(--glass-edge);
+  border-radius: 999px;
+  background: var(--glass);
+  box-shadow: var(--shadow);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.phase-strip { gap: 28px; padding-top: 8px; }
+
+.phase-strip__item {
+  position: relative;
+  min-width: 268px;
+  padding: 32px 28px 28px;
+  gap: 10px;
+  border: var(--glass-edge);
+  border-radius: 56px;
+  background: var(--glass);
+  box-shadow: var(--shadow), var(--glass-inner);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  backdrop-filter: blur(24px) saturate(1.5);
+  color: var(--ink);
+}
+
+.phase-strip__item:nth-child(even) { transform: translateY(30px); }
+
+.phase-strip__chip {
+  order: 3;
+  width: 64px;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--phase-color), color-mix(in srgb, var(--phase-color) 40%, #fff));
+}
+
+.phase-strip__icon { order: 0; width: 112px; height: 112px; font-size: 62px; margin-bottom: 4px; }
+.phase-strip__label { order: 1; font-size: 36px; font-weight: 800; }
+.phase-strip__minutes { order: 2; color: var(--muted); font-weight: 700; }
+
+.cover__total {
+  margin-top: 18px;
+  padding: 6px 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  font-weight: 800;
+  color: var(--accent-ink);
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Divider: one wide glass card - icon bubble | title block | countdown ring
+   --------------------------------------------------------------------------------------------- */
+
+.divider {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "icon phase count"
+    "icon title count"
+    "icon mins count";
+  align-items: center;
+  column-gap: 72px;
+  row-gap: 14px;
+  width: 1660px;
+  min-width: 0;
+  padding: 64px 88px;
+  border-radius: 72px;
+  text-align: left;
+}
+
+.divider__icon { grid-area: icon; width: 280px; height: 280px; font-size: 150px; }
+
+.divider__phase {
+  grid-area: phase;
+  justify-self: start;
+  padding: 6px 28px;
+  border-radius: 999px;
+  background: var(--grad-a);
+  color: #FFFFFF;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.divider__title { grid-area: title; font-size: 84px; line-height: 1.06; }
+
+.divider__minutes {
+  grid-area: mins;
+  justify-self: start;
+  font-weight: 800;
+  color: var(--accent-ink);
+}
+
+.divider .countdown { grid-area: count; }
+
+/* ---------------------------------------------------------------------------------------------
+   Countdown: a gradient ring
+   --------------------------------------------------------------------------------------------- */
+
+.countdown {
+  position: relative;
+  justify-content: center;
+  width: 300px;
+  height: 300px;
+  min-width: 0;
+  padding: 0;
+  gap: 6px;
+  border: 18px solid transparent;
+  border-radius: 50%;
+  background:
+    linear-gradient(160deg, #FFFFFF 0%, #F4EBFF 100%) padding-box,
+    conic-gradient(from 210deg, #8B5CF6, #EC4899, #FB923C, #FACC15, #34D399, #38BDF8, #8B5CF6) border-box;
+  box-shadow: 0 22px 44px rgba(88, 52, 160, 0.22), inset 0 -10px 24px rgba(139, 92, 246, 0.1);
+  text-align: center;
+}
+
+.countdown__time {
+  font-size: 84px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.countdown__hint { font-size: var(--size-min, 32px); line-height: 1.1; }
+.countdown__hint::before { content: none; }
+
+.countdown.running {
+  animation: candy-breathe 2.4s ease-in-out infinite;
+  box-shadow: 0 0 0 14px var(--pulse), 0 22px 44px rgba(88, 52, 160, 0.26);
+}
+
+.countdown.done {
+  background:
+    linear-gradient(160deg, #FFFFFF 0%, #FFE4F0 100%) padding-box,
+    conic-gradient(#BE185D, #F97316, #BE185D) border-box;
+}
+
+@keyframes candy-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.045); }
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Flashcard: picture bubble on the left, word block on the right
+   --------------------------------------------------------------------------------------------- */
+
+.flashcard {
+  width: auto;
+  min-width: min(1200px, 100%);
+  min-height: 740px;
+  gap: 0;
+  padding: 56px 80px;
+  border-radius: 80px;
+}
+
+.flashcard.has-example { gap: 0; }
+
+.flashcard.has-picture {
+  display: grid;
+  grid-template-columns: minmax(260px, 680px) auto;
+  justify-content: center;
+  grid-template-rows: 1fr repeat(7, auto) 1fr;
+  column-gap: 88px;
+  row-gap: 0;
+  align-content: center;
+  justify-items: start;
+  text-align: left;
+}
+
+.flashcard.has-picture > * { grid-column: 2; }
+.flashcard.has-picture::before { content: ""; grid-column: 2; grid-row: 1; }
+.flashcard.has-picture::after { content: ""; grid-column: 2; grid-row: 9; }
+
+.flashcard.has-picture > .flashcard__picture {
+  grid-column: 1;
+  grid-row: 1 / span 9;
+  align-self: center;
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  height: auto;
+  max-height: 560px;
+  object-fit: contain;
+  border: 12px solid #FFFFFF;
+  border-radius: 56px;
+  background: #FFFFFF;
+  box-shadow:
+    0 0 0 14px color-mix(in srgb, var(--ma) 45%, transparent),
+    0 36px 70px rgba(88, 52, 160, 0.28);
+}
+
+.flashcard.has-example .flashcard__picture { max-height: none; }
+
+.flashcard__wordline { justify-content: flex-start; gap: 32px; }
+
+.flashcard__word {
+  font-size: var(--size-word, 128px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+  text-shadow: 0 6px 0 rgba(255, 255, 255, 0.9), 0 14px 30px rgba(139, 92, 246, 0.25);
+}
+
+.flashcard__ipa {
+  margin-top: 14px;
+  padding: 4px 30px;
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.12);
+  font-size: 46px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.flashcard__meaning {
+  margin-top: 22px;
+  font-size: 76px;
+  font-weight: 800;
+  color: var(--accent-ink);
+}
+
+.flashcard__example {
+  margin-top: 20px;
+  padding: 8px 14px 8px 36px;
+  border: var(--glass-edge);
+  border-radius: 999px;
+  background: linear-gradient(120deg, #F3E8FF 0%, #DDF7F0 100%);
+  box-shadow: 0 10px 24px rgba(88, 52, 160, 0.12);
+}
+
+.flashcard__example-text {
+  font-size: 44px;
+  font-style: normal;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.flashcard__hint { margin-top: 26px; }
+.flashcard__ai { margin: 0 0 12px; }
+
+/* a flashcard with no picture: one huge centred word in a halo */
+
+.flashcard:not(.has-picture) {
+  align-items: center;
+  text-align: center;
+}
+
+.flashcard:not(.has-picture) .flashcard__wordline { justify-content: center; }
+
+.flashcard:not(.has-picture) .flashcard__word {
+  padding: 0 0.15em;
+  background: radial-gradient(ellipse 60% 50% at 50% 55%, rgba(155, 123, 255, 0.2), transparent 100%);
+}
+
+.flashcard.bare .flashcard__word { font-size: var(--size-word-bare, 168px); }
+
+/* ---------------------------------------------------------------------------------------------
+   Dialogue: gradient pill bubbles with glossy avatars
+   --------------------------------------------------------------------------------------------- */
+
+.dialogue { gap: 36px; width: 1560px; }
+
+.dialogue__context {
+  padding: 8px 34px;
+  border: var(--glass-edge);
+  border-radius: 999px;
+  background: var(--glass);
+  box-shadow: var(--shadow);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.dialogue__context::before { content: "\1F4AC  "; }
+
+.chat { gap: 32px; }
+
+.bubble { gap: 22px; max-width: 90%; }
+
+.bubble__avatar {
+  width: 112px;
+  height: 112px;
+  border: 5px solid #FFFFFF;
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.55) 0%, transparent 46%),
+    var(--grad-a);
+  box-shadow: 0 14px 28px rgba(88, 52, 160, 0.28), inset 0 -8px 16px rgba(0, 0, 0, 0.12);
+  font-size: 54px;
+}
+
+.bubble--right .bubble__avatar {
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.55) 0%, transparent 46%),
+    var(--grad-b);
+}
+
+.bubble__text {
+  padding: 30px 52px;
+  border: var(--glass-edge);
+  border-radius: 64px 64px 64px 16px;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F3E8FF 45%, #E2D3FF 100%);
+  box-shadow: 0 18px 40px rgba(88, 52, 160, 0.18), inset 0 2px 0 #FFFFFF;
+  font-size: var(--size-dialogue, 46px);
+  font-weight: 700;
+  line-height: 1.22;
+  color: var(--ink);
+}
+
+.bubble--right .bubble__text {
+  border-radius: 64px 64px 16px 64px;
+  background: linear-gradient(135deg, #FFFFFF 0%, #DDF7F0 45%, #C2ECFA 100%);
+}
+
+.bubble--right { margin-right: 40px; }
+.bubble--left { margin-left: 40px; }
+
+/* ---------------------------------------------------------------------------------------------
+   Sentence pattern: a huge sentence with a glowing slot, example pills below
+   --------------------------------------------------------------------------------------------- */
+
+.pattern {
+  gap: 30px;
+  width: 1600px;
+  padding: 64px 88px 56px;
+  border-radius: 80px;
+  background:
+    radial-gradient(520px 340px at 100% 0%, rgba(196, 181, 253, 0.55) 0%, transparent 100%),
+    radial-gradient(520px 340px at 0% 100%, rgba(153, 246, 228, 0.5) 0%, transparent 100%),
+    var(--glass);
+}
+
+.pattern__text {
+  font-size: var(--size-pattern, 84px);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.45;
+}
+
+.pattern__line { font-size: 60px; min-height: 1.2em; font-weight: 800; color: var(--accent-ink); }
+
+.pattern__slot {
+  min-width: 4.8ch;
+  padding: 0 28px;
+  border: 5px dashed var(--slot-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 0 10px rgba(139, 92, 246, 0.14), 0 0 44px rgba(139, 92, 246, 0.4);
+  line-height: 1.15;
+  text-align: center;
+}
+
+.pattern__slot.filled {
+  border-style: solid;
+  border-color: #FFFFFF;
+  background: linear-gradient(135deg, #F3E8FF 0%, #C9B6FF 100%);
+  box-shadow: 0 0 0 10px rgba(139, 92, 246, 0.16), 0 0 50px rgba(139, 92, 246, 0.45);
+}
+
+.pattern__function {
+  order: -1;
+  padding: 6px 32px;
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.12);
+  font-style: normal;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.pattern__examples { gap: 20px 26px; font-size: 44px; margin-top: 8px; }
+
+.pattern__example {
+  padding: 8px 14px 8px 34px;
+  border: 2px solid #FFFFFF;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 8px 20px rgba(88, 52, 160, 0.12);
+  font-weight: 700;
+  color: var(--ink);
+  transition: transform 220ms ease-out;
+}
+
+.pattern__example.current {
+  border-color: #FFFFFF;
+  background: var(--grad-a);
+  color: #FFFFFF;
+  box-shadow: 0 14px 30px rgba(109, 40, 217, 0.4);
+  transform: scale(1.06);
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Phonics: giant sound with a halo, words as glass pills
+   --------------------------------------------------------------------------------------------- */
+
+.phonics { gap: 28px; }
+
+.phonics__sound {
+  padding: 0.02em 0.55em 0.1em;
+  border: var(--glass-edge);
+  border-radius: 999px;
+  background: var(--glass);
+  box-shadow: var(--shadow), var(--glass-inner), 0 0 70px rgba(139, 92, 246, 0.3);
+  font-size: var(--size-sound, 220px);
+  letter-spacing: -0.02em;
+}
+
+.phonics__letters { font-weight: 700; }
+
+.phonics__word {
+  padding: 8px 18px 8px 40px;
+  border: var(--glass-edge);
+  border-radius: 999px;
+  background: var(--glass);
+  box-shadow: var(--shadow);
+}
+
+mark {
+  padding: 0 4px;
+  border-radius: 18px;
+  background: var(--mark);
+  box-shadow: 0 6px 14px rgba(245, 180, 0, 0.3);
+}
+
+.phonics__chant {
+  text-align: center;
+  font-style: normal;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Activity: heading + steps on the left, countdown ring on the right
+   --------------------------------------------------------------------------------------------- */
+
+.activity {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 80px;
+  row-gap: 30px;
+  align-items: center;
+  justify-items: start;
+  width: min(1700px, 100%);
+  text-align: left;
+}
+
+.activity > * { grid-column: 1; }
+.activity .countdown { grid-column: 2; grid-row: 1 / span 4; justify-self: center; }
+
+.activity__heading { gap: 32px; }
+.activity__icon { width: 128px; height: 128px; font-size: 70px; }
+.activity__title { font-size: 80px; }
+
+.activity__instructions {
+  max-width: 1200px;
+  padding: 10px 36px;
+  border-radius: 56px;
+  background: rgba(255, 255, 255, 0.66);
+  box-shadow: 0 8px 22px rgba(88, 52, 160, 0.1);
+  font-size: var(--size-dialogue, 46px);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.activity__steps {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
+  gap: 20px;
+  width: 100%;
+  max-width: none;
+}
+
+.activity__steps:has(> :nth-child(3)) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  justify-items: stretch;
+  gap: 26px 28px;
+}
+
+.activity__steps:has(> :nth-child(3)) .step:nth-child(even) { transform: translateY(26px); }
+.activity__steps:has(> :nth-child(7)) .step:nth-child(even) { transform: none; }
+
+.step {
+  min-width: min(100%, 640px);
+  max-width: 100%;
+  min-height: 124px;
+  gap: 28px;
+  padding: 16px 40px 16px 18px;
+  border-radius: 62px;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1.12;
+  color: var(--ink);
+}
+
+.step__number {
+  width: 88px;
+  height: 88px;
+  border: 4px solid #FFFFFF;
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.5) 0%, transparent 46%),
+    var(--grad-a);
+  box-shadow: 0 10px 22px rgba(88, 52, 160, 0.3), inset 0 -6px 12px rgba(0, 0, 0, 0.12);
+  font-size: 46px;
+}
+
+.step:nth-child(3n + 2) .step__number {
+  background: radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.5) 0%, transparent 46%), var(--grad-b);
+}
+
+.step:nth-child(3n) .step__number {
+  background: radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.5) 0%, transparent 46%), var(--grad-c);
+}
+
+.activity .countdown { width: 280px; height: 280px; min-width: 0; padding: 0; }
+.activity .countdown__time { font-size: 68px; }
+
+/* teacher mode with the notes panel open: the stage is narrower, so stack the steps */
+
+body.teacher-mode.notes-open .activity { column-gap: 40px; row-gap: 22px; }
+body.teacher-mode.notes-open .activity .activity__steps { grid-template-columns: minmax(0, 1fr); justify-items: start; gap: 16px; }
+body.teacher-mode.notes-open .activity .step { min-height: 0; transform: none; padding-top: 12px; padding-bottom: 12px; font-size: 40px; }
+body.teacher-mode.notes-open .activity .countdown { grid-row: 1 / span 2; width: 250px; height: 250px; }
+body.teacher-mode.notes-open .activity .countdown__time { font-size: 56px; }
+body.teacher-mode.notes-open .activity .countdown__hint { font-size: 32px; }
+body.teacher-mode.notes-open .activity__title { font-size: 68px; }
+
+/* ---------------------------------------------------------------------------------------------
+   Summary: word bubbles and two glowing pattern pills
+   --------------------------------------------------------------------------------------------- */
+
+.summary { gap: 36px; }
+
+.summary__title {
+  padding: 4px 48px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.66);
+  box-shadow: 0 10px 28px rgba(88, 52, 160, 0.12);
+  font-size: 76px;
+}
+
+.summary-grid { gap: 30px; }
+
+.summary-card {
+  width: 316px;
+  padding: 30px 24px 28px;
+  gap: 16px;
+  border-radius: 64px;
+  color: var(--ink);
+}
+
+.summary-card:nth-child(even) { transform: translateY(18px); }
+
+.summary-card__picture {
+  width: 230px;
+  height: 190px;
+  border: 8px solid #FFFFFF;
+  border-radius: 44px;
+  background: #FFFFFF;
+  object-fit: contain;
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--ma) 40%, transparent), 0 16px 30px rgba(88, 52, 160, 0.22);
+}
+
+.summary-card__word { font-size: 46px; font-weight: 800; }
+.summary-card .speak { top: 14px; right: 14px; width: 60px; height: 60px; font-size: 28px; }
+
+.summary__pattern {
+  padding: 4px 24px 4px 56px;
+  border: var(--glass-edge);
+  border-radius: 999px;
+  background: var(--glass);
+  box-shadow: var(--shadow), var(--glass-inner);
+}
+
+.summary__pattern-text { font-size: 62px; font-weight: 800; line-height: 1.4; }
+.summary__bullets { font-weight: 700; }
+
+/* ---------------------------------------------------------------------------------------------
+   Picture slide
+   --------------------------------------------------------------------------------------------- */
+
+.image-ref__picture {
+  border: 14px solid #FFFFFF;
+  border-radius: 64px;
+  box-shadow: 0 0 0 14px color-mix(in srgb, var(--ma) 40%, transparent), 0 40px 80px rgba(88, 52, 160, 0.28);
+}
+
+.image-ref__caption,
+.image-ref__placeholder {
+  padding: 8px 40px;
+  border: var(--glass-edge);
+  border-radius: 999px;
+  background: var(--glass);
+  box-shadow: var(--shadow);
+  font-style: normal;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Teacher-only slides: quiet and functional
+   --------------------------------------------------------------------------------------------- */
+
+.slide--notes,
+.slide--source-map {
+  background: #F5F1FB;
+}
+
+.slide--notes .band,
+.slide--source-map .band {
+  background: var(--phase-teacher);
+  box-shadow: none;
+}
+
+.source-map th { background: #EADFFB; color: var(--ink); }

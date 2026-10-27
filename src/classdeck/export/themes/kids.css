@@ -1,5 +1,6 @@
-/* Theme "kids": one warm accent per phase, rounded cards, soft shadows, emoji icons.
-   Colours, sizes and icons live here; layout and behaviour are in the deck template. */
+/* theme: kids | Kids | Warm phase colours, rounded cards, soft shadows and emoji icons - the original look | suits: grades 3-5 */
+/* One warm accent per phase, rounded cards, soft shadows, emoji icons.
+   Tokens and icons live here; layout and behaviour are in the deck template. */
 
 :root {
   --bg: #FFFDF7;
@@ -40,17 +41,17 @@
   --size-sound: 180px;
 }
 
-.slide[data-slide-type="divider"] .slide-title,
-.slide[data-slide-type="divider"] .phase-name {
+.divider__title,
+.divider__phase {
   color: var(--ink);
 }
 
-.slide[data-slide-type="cover"] .slide-title {
+.cover__title {
   color: var(--accent-ink);
 }
 
-.flashcard .word,
-.phonics .sound {
+.flashcard__word,
+.phonics__sound {
   color: var(--accent-ink);
 }
 

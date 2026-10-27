@@ -11,7 +11,13 @@ from typing import Any
 import pytest
 
 from classdeck.export import AI_ADDED_BADGE, AI_ADDED_NOTE, ExportBlocked, export_html
-from classdeck.export.html import available_themes, render_html, slot_fills
+from classdeck.export.html import (
+    available_themes,
+    parse_manifest,
+    render_html,
+    slot_fills,
+    theme_ids,
+)
 from classdeck.lesson import Lesson, Provenance, SourceDocument
 from tests.test_export import FAILURE, WARNING, make_export_lesson, write_png
 from tests.test_lesson_schema import DOC_ID, IPA_HELLO, IPA_HI, make_source_document
@@ -159,7 +165,10 @@ def image_root(tmp_path: Path) -> Path:
 def deck(
     tmp_path: Path, lesson: Lesson, sources: dict[str, SourceDocument], image_root: Path
 ) -> Deck:
-    path = export_html(lesson, tmp_path / "deck.html", sources=sources, image_root=image_root)
+    # The design-language tests below describe the kids theme; the default is covered separately.
+    path = export_html(
+        lesson, tmp_path / "deck.html", sources=sources, image_root=image_root, theme="kids"
+    )
     return load(path)
 
 
@@ -210,13 +219,13 @@ def test_every_block_is_rendered_with_its_kind_and_provenance(deck: Deck, lesson
 def test_cover_slide(deck: Deck, lesson: Lesson) -> None:
     cover = deck.slides()[0]
     assert cover.one("h1").text() == lesson.title
-    assert cover.one(class_="meta").text() == "Grade 3 · ta3.u1 · Lesson 1 · Period 1"
+    assert cover.one(class_="cover__meta").text() == "Grade 3 · ta3.u1 · Lesson 1 · Period 1"
     strip = cover.one("ol", "phase-strip").find("li")
     assert [li.attrs["data-phase"] for li in strip] == [s.phase.value for s in lesson.sections]
-    assert [li.one(class_="minutes").text() for li in strip] == [
+    assert [li.one(class_="phase-strip__minutes").text() for li in strip] == [
         f"{s.minutes} min" for s in lesson.sections
     ]
-    assert cover.one(class_="total").text() == "35 min"
+    assert cover.one(class_="cover__total").text() == "35 min"
     assert cover.one(class_="icon", data_icon="warm_up").text() == ""
 
 
@@ -226,7 +235,7 @@ def test_cover_meta_skips_missing_parts(
     lesson.curriculum.lesson_no = None
     lesson.curriculum.period = None
     deck = load(export_html(lesson, tmp_path / "x.html", sources=sources))
-    assert deck.slides()[0].one(class_="meta").text() == "Grade 3 · ta3.u1"
+    assert deck.slides()[0].one(class_="cover__meta").text() == "Grade 3 · ta3.u1"
 
 
 def test_divider_has_icon_title_minutes_and_a_countdown(deck: Deck, lesson: Lesson) -> None:
@@ -235,12 +244,12 @@ def test_divider_has_icon_title_minutes_and_a_countdown(deck: Deck, lesson: Less
     for divider, section in zip(dividers, lesson.sections, strict=True):
         assert divider.attrs["data-section-id"] == section.id
         assert divider.one("h2", "slide-title").text() == section.title
-        assert divider.one(class_="minutes").text() == f"{section.minutes} min"
+        assert divider.one(class_="divider__minutes").text() == f"{section.minutes} min"
         assert divider.one(class_="icon").attrs["data-icon"] == section.phase.value
         countdown = divider.one(class_="countdown")
         assert countdown.attrs["data-seconds"] == str(section.minutes * 60)
         assert "tap" in countdown.classes
-        assert countdown.one(class_="time").text() == f"{section.minutes}:00"
+        assert countdown.one(class_="countdown__time").text() == f"{section.minutes}:00"
 
 
 # --- vocabulary --------------------------------------------------------------------------------
@@ -255,9 +264,9 @@ def test_one_flashcard_per_item_with_the_picture_dominant(deck: Deck) -> None:
     assert {"tap", "reveal", "has-picture"} <= first.classes
     assert first.attrs["role"] == "button"
     assert first.attrs["tabindex"] == "0"
-    assert first.one(class_="word").text() == "hello"
-    assert first.one(class_="ipa").text() == IPA_HELLO
-    meaning = first.one(class_="meaning")
+    assert first.one(class_="flashcard__word").text() == "hello"
+    assert first.one(class_="flashcard__ipa").text() == IPA_HELLO
+    meaning = first.one(class_="flashcard__meaning")
     assert meaning.text() == "xin chào"
     assert meaning.attrs["lang"] == "vi"
 
@@ -267,8 +276,8 @@ def test_one_flashcard_per_item_with_the_picture_dominant(deck: Deck) -> None:
     assert image.attrs["alt"] == "hello"
     assert (image.attrs["src"] or "").startswith("data:image/png;base64,")
 
-    assert second.one(class_="word").text() == "hi"
-    assert second.one(class_="ipa").text() == IPA_HI
+    assert second.one(class_="flashcard__word").text() == "hi"
+    assert second.one(class_="flashcard__ipa").text() == IPA_HI
     assert second.find("img") == []
     assert "has-picture" not in second.classes
     assert deck.root.find("img", data_block_id="b_02", data_item="1") == []
@@ -328,28 +337,28 @@ def test_dialogue_bubbles_alternate_by_speaker_and_show_the_first_line(
     bubbles = chat.find(class_="bubble")
     assert len(bubbles) == len(lesson.blocks["b_05"].content.lines)  # type: ignore[union-attr]
     assert [b.attrs["data-speaker"] for b in bubbles] == ["Ha", "Tien"]
-    assert ["left" in b.classes for b in bubbles] == [True, False]
-    assert ["right" in b.classes for b in bubbles] == [False, True]
+    assert ["bubble--left" in b.classes for b in bubbles] == [True, False]
+    assert ["bubble--right" in b.classes for b in bubbles] == [False, True]
     assert ["pending" in b.classes for b in bubbles] == [False, True]
     assert "complete" not in chat.classes
-    assert [b.one(class_="avatar").text() for b in bubbles] == ["H", "T"]
-    assert bubbles[0].one(class_="speech").text() == "Ha: Hello, I'm Ha."
-    assert slide.one(class_="chat-context").text() == "Ha meets Tien."
+    assert [b.one(class_="bubble__avatar").text() for b in bubbles] == ["H", "T"]
+    assert bubbles[0].one(class_="bubble__text").text() == "Ha: Hello, I'm Ha."
+    assert slide.one(class_="dialogue__context").text() == "Ha meets Tien."
 
 
 def test_pattern_slide_has_a_dashed_slot_and_the_examples(deck: Deck) -> None:
     pattern = deck.slide_of("b_03").one(class_="pattern")
     assert {"tap", "cycle"} <= pattern.classes
-    text = pattern.one(class_="pattern-text")
+    text = pattern.one(class_="pattern__text")
     assert text.text() == "Hello, I'm ___."
-    slot = text.one(class_="slot")
+    slot = text.one(class_="pattern__slot")
     assert slot.text() == "___"
     assert slot.attrs["data-empty"] == "___"
-    examples = pattern.find(class_="example")
+    examples = pattern.find(class_="pattern__example")
     assert [e.text() for e in examples] == ["Hello, I'm Ha."]
     assert examples[0].attrs["data-fills"] == '["Ha"]'
-    assert pattern.one(class_="function").text() == "Introduce yourself"
-    assert pattern.one(class_="example-line").text() == ""
+    assert pattern.one(class_="pattern__function").text() == "Introduce yourself"
+    assert pattern.one(class_="pattern__line").text() == ""
 
 
 def test_pattern_examples_that_do_not_align_carry_no_fills(
@@ -358,7 +367,7 @@ def test_pattern_examples_that_do_not_align_carry_no_fills(
     content = lesson.blocks["b_03"].content
     content.examples = ["Hello, I'm Tien.", "Hi there, Ha!"]  # type: ignore[union-attr]
     deck = load(export_html(lesson, tmp_path / "x.html", sources=sources))
-    examples = deck.slide_of("b_03").find(class_="example")
+    examples = deck.slide_of("b_03").find(class_="pattern__example")
     assert [e.attrs.get("data-fills") for e in examples] == ['["Tien"]', None]
 
 
@@ -378,12 +387,14 @@ def test_slot_fills() -> None:
 
 def test_phonics_slide_marks_the_target_letters(deck: Deck) -> None:
     phonics = deck.slide_of("b_06").one(class_="phonics")
-    assert phonics.one(class_="sound").text() == "/h/"
-    assert phonics.one(class_="letters").text() == "h"
-    words = phonics.one(class_="words").find("li")
+    assert phonics.one(class_="phonics__sound").text() == "/h/"
+    assert phonics.one(class_="phonics__letters").text() == "h"
+    words = phonics.one(class_="phonics__words").find("li")
     assert [w.text() for w in words] == ["hello", "hi"]
     assert [w.one("mark").text() for w in words] == ["h", "h"]
-    assert [line.text() for line in phonics.one(class_="chant").find("li")] == ["H, h, hello!"]
+    assert [line.text() for line in phonics.one(class_="phonics__chant").find("li")] == [
+        "H, h, hello!"
+    ]
 
 
 # --- activity, summary, picture ----------------------------------------------------------------
@@ -394,18 +405,18 @@ def test_activity_slide(deck: Deck) -> None:
     activity = slide.one(class_="activity")
     assert activity.one(class_="icon").attrs["data-icon"] == "game"
     assert activity.one("h2").text() == "Name chain"
-    assert activity.one(class_="instructions").text() == (
+    assert activity.one(class_="activity__instructions").text() == (
         "Pass the ball. Say 'Hello, I'm ...' and your name."
     )
-    steps = activity.one("ol", "steps").find("li")
-    assert [s.one(class_="num").text() for s in steps] == ["1", "2"]
-    assert [s.one(class_="step-text").text() for s in steps] == [
+    steps = activity.one("ol", "activity__steps").find("li")
+    assert [s.one(class_="step__number").text() for s in steps] == ["1", "2"]
+    assert [s.one(class_="step__text").text() for s in steps] == [
         "Catch the ball, say 'Hello, I'm (name).'",
         "Pass it on.",
     ]
     countdown = activity.one(class_="countdown")
     assert countdown.attrs["data-seconds"] == "300"
-    assert countdown.one(class_="time").text() == "5:00"
+    assert countdown.one(class_="countdown__time").text() == "5:00"
 
     notes = slide.one(class_="notes")
     assert "teacher" in notes.classes
@@ -425,17 +436,17 @@ def test_activity_slide(deck: Deck) -> None:
 
 def test_summary_slide_shows_the_lessons_words_with_pictures_and_the_pattern(deck: Deck) -> None:
     summary = deck.slide_of("b_08").one(class_="summary")
-    cards = summary.one(class_="word-grid").find(class_="word-card")
+    cards = summary.one(class_="summary-grid").find(class_="summary-card")
     assert [c.one("figcaption").text() for c in cards] == ["hello", "hi"]
     image = cards[0].one("img")
     assert image.attrs["data-block-id"] == "b_02"
     assert image.attrs["data-item"] == "0"
     assert image.attrs["alt"] == "hello"
     assert cards[1].find("img") == []
-    pattern = summary.one(class_="pattern-text")
+    pattern = summary.one(class_="summary__pattern-text")
     assert pattern.text() == "Hello, I'm ___."
-    assert pattern.one(class_="slot")
-    assert summary.find(class_="bullets") == []
+    assert pattern.one(class_="pattern__slot")
+    assert summary.find(class_="summary__bullets") == []
     assert "hello, hi" in deck.slide_of("b_08").one(class_="notes").text()
 
 
@@ -446,8 +457,8 @@ def test_summary_falls_back_to_its_bullets_without_words_or_patterns(
         section.block_ids = [b for b in section.block_ids if b not in ("b_02", "b_03")]
     deck = load(export_html(lesson, tmp_path / "x.html"))
     summary = deck.slide_of("b_08").one(class_="summary")
-    assert summary.find(class_="word-grid") == []
-    assert [li.text() for li in summary.one(class_="bullets").find("li")] == [
+    assert summary.find(class_="summary-grid") == []
+    assert [li.text() for li in summary.one(class_="summary__bullets").find("li")] == [
         "hello, hi",
         "Hello, I'm ___.",
     ]
@@ -468,7 +479,7 @@ def test_image_ref_slide_without_the_file_shows_the_alt_text(
     deck = load(export_html(lesson, tmp_path / "x.html", sources=sources))
     figure = deck.slide_of("b_09").one(class_="image-ref")
     assert figure.find("img") == []
-    assert figure.one(class_="placeholder").text() == "Picture: Two children waving"
+    assert figure.one(class_="image-ref__placeholder").text() == "Picture: Two children waving"
 
 
 # --- teacher layer -----------------------------------------------------------------------------
@@ -490,7 +501,7 @@ def test_objective_and_teacher_note_live_in_teacher_only_notes(deck: Deck) -> No
 
 
 def test_teacher_only_elements_carry_the_teacher_class(deck: Deck) -> None:
-    for class_ in ("notes", "slide-footer", "badge"):
+    for class_ in ("notes", "footer", "badge"):
         found = deck.root.find(class_=class_)
         assert found, class_
         assert all("teacher" in node.classes for node in found)
@@ -583,7 +594,14 @@ def test_export_refuses_a_lesson_with_a_failed_check(tmp_path: Path, lesson: Les
 
 
 def test_available_themes() -> None:
-    assert available_themes() == ["kids", "plain"]
+    themes = available_themes()
+    ids = [theme.id for theme in themes]
+    assert ids == sorted(ids)
+    assert {"kids", "plain"} <= set(ids)
+    for theme in themes:
+        assert theme.label and theme.description and theme.suits
+    assert next(t for t in themes if t.id == "kids").label == "Kids"
+    assert theme_ids() == ids
 
 
 def test_kids_theme_has_the_phase_colours_and_emoji(deck: Deck) -> None:
@@ -626,9 +644,9 @@ def test_unknown_theme_is_rejected_before_anything_is_written(
 def test_render_matches_the_file_and_is_deterministic(
     deck: Deck, lesson: Lesson, sources: dict[str, SourceDocument], image_root: Path
 ) -> None:
-    rendered = render_html(lesson, sources=sources, image_root=image_root)
+    rendered = render_html(lesson, sources=sources, image_root=image_root, theme="kids")
     assert rendered == deck.text
-    again = render_html(make_export_lesson(), sources=sources, image_root=image_root)
+    again = render_html(make_export_lesson(), sources=sources, image_root=image_root, theme="kids")
     assert again == rendered
     assert deck.path.stat().st_size < 5 * 1024 * 1024
 
@@ -697,10 +715,10 @@ def test_interactive_chrome_elements_carry_ui(deck: Deck) -> None:
     for countdown in deck.root.find(class_="countdown"):
         assert "ui" in countdown.classes
         assert "ui" in countdown.one(class_="hint").classes
-    assert "ui" in deck.slides()[0].one(class_="meta").classes
+    assert "ui" in deck.slides()[0].one(class_="cover__meta").classes
     assert "ui" in deck.root.one(class_="dots").classes
     assert "className = 'dot ui'" in deck.root.one("script").text()
-    for node in deck.root.find(class_="word") + deck.root.find(class_="speech"):
+    for node in deck.root.find(class_="flashcard__word") + deck.root.find(class_="bubble__text"):
         assert "ui" not in node.classes
 
 
@@ -756,7 +774,12 @@ def test_text_contrast_is_at_least_4_5_to_1(tmp_path: Path, lesson: Lesson, them
 def test_accent_colours_are_not_used_as_text(deck: Deck) -> None:
     """The bright phase accents are for bands and borders; text uses the darker ``-ink`` token."""
     css = deck.root.find("style")[0].text() + deck.root.find("style")[1].text()
-    for selector in (".flashcard .word", ".phonics .sound", ".slot", ".countdown.running .time"):
+    for selector in (
+        ".flashcard__word",
+        ".phonics__sound",
+        ".pattern__slot",
+        ".countdown.running .countdown__time",
+    ):
         rules = re.findall(re.escape(selector) + r"[^{]*\{([^}]*)\}", css)
         colours = [
             match.group(1)
@@ -784,8 +807,12 @@ def test_kids_theme_sizes_phase_bands_and_icons_follow_the_design_language(deck:
     assert sizes["body"] >= 32
     assert sizes["min"] >= 32
     assert "font-size: var(--size-word, 96px)" in css
+    assert "background: var(--phase-color)" in css  # the band
     for phase in ("warm_up", "presentation", "practice", "production", "wrap_up"):
-        assert re.search(rf'\.slide\[data-phase="{phase}"\] \.band', css), phase
+        assert re.search(
+            rf'\.slide\[data-phase="{phase}"\][^{{]*\{{\s*--phase-color: var\(--phase-{phase}\)',
+            css,
+        )
     icons = set(re.findall(r'\.icon\[data-icon="(\w+)"\]::before', css))
     assert {"listen_and_do", "look_listen_repeat", "tpr", "other", "wrap_up"} <= icons
     assert len(icons) == 5 + 14
@@ -857,21 +884,23 @@ def test_user_text_is_escaped_in_text_nodes_and_attributes(
     assert deck.root.find("b") == [] and deck.root.find("u") == [] and deck.root.find("i") == []
 
     flashcard = deck.root.find(class_="flashcard", data_block_id="b_02")[0]
-    assert flashcard.one(class_="word").text() == word
+    assert flashcard.one(class_="flashcard__word").text() == word
     assert flashcard.one("img").attrs["alt"] == word
-    assert flashcard.one(class_="meaning").text() == "<u>x</u>"
+    assert flashcard.one(class_="flashcard__meaning").text() == "<u>x</u>"
 
     bubble = deck.slide_of("b_05").find(class_="bubble")[0]
     assert bubble.attrs["data-speaker"] == speaker
-    assert bubble.one(class_="speech").text() == f"{speaker}: <b>Hi</b> & bye"
+    assert bubble.one(class_="bubble__text").text() == f"{speaker}: <b>Hi</b> & bye"
 
     pattern_card = deck.slide_of("b_03").one(class_="pattern")
-    assert pattern_card.one(class_="pattern-text").text() == pattern
-    assert pattern_card.one(class_="slot").attrs["data-empty"] == "___"
-    assert pattern_card.one(class_="example").text() == example
-    assert json.loads(pattern_card.one(class_="example").attrs["data-fills"] or "") == ["stop"]
+    assert pattern_card.one(class_="pattern__text").text() == pattern
+    assert pattern_card.one(class_="pattern__slot").attrs["data-empty"] == "___"
+    assert pattern_card.one(class_="pattern__example").text() == example
+    assert json.loads(pattern_card.one(class_="pattern__example").attrs["data-fills"] or "") == [
+        "stop"
+    ]
 
-    assert [s.text() for s in deck.slide_of("b_07").find(class_="step-text")] == [step]
+    assert [s.text() for s in deck.slide_of("b_07").find(class_="step__text")] == [step]
 
     figure = deck.slide_of("b_09").one(class_="image-ref")
     assert figure.one("figcaption").text() == caption
@@ -888,10 +917,11 @@ def test_dialogue_shows_the_first_line_and_hides_the_hint_when_nothing_is_left(
     bubbles = chat.find(class_="bubble")
     assert ["pending" in b.classes for b in bubbles] == [False, True, True]
     css = deck.root.find("style")[0].text()
-    # pending hides the speech only: both speakers' avatars stay on screen
-    assert re.search(r"\.bubble\.pending \.speech \{[^}]*opacity: 0", css)
+    # pending hides the text only: both speakers' avatars stay on screen
+    assert re.search(r"\.bubble\.pending \.bubble__text \{[^}]*opacity: 0", css)
+    assert re.search(r"\.bubble\.pending \.bubble__text,[^{]*\{ visibility: hidden", css)
     assert not re.search(r"\.bubble\.pending \{[^}]*opacity: 0", css)
-    assert ".stepper.complete .hint { visibility: hidden; }" in css
+    assert ".stepper.complete .dialogue__hint { visibility: hidden; }" in css
     script = deck.root.one("script").text()
     assert "if (n > 0) item.classList.add('pending')" in script
 
@@ -915,10 +945,12 @@ def test_flashcard_without_meaning_has_no_reveal_and_a_bare_card_is_centred(
     for card in cards:
         assert {"tap", "reveal"}.isdisjoint(card.classes)
         assert "bare" in card.classes
-        assert card.find(class_="hint") == [] and card.find(class_="meaning") == []
+        assert card.find(class_="hint") == [] and card.find(class_="flashcard__meaning") == []
         assert "role" not in card.attrs and "tabindex" not in card.attrs
     css = "\n".join(style.text() for style in deck.root.find("style"))
-    assert re.search(r"\.flashcard\.bare \.word \{[^}]*var\(--size-word-bare, 120px\)", css)
+    assert re.search(
+        r"\.flashcard\.bare \.flashcard__word \{[^}]*var\(--size-word-bare, 120px\)", css
+    )
     assert re.search(r"\.flashcard \{[^}]*justify-content: center", css)
 
 
@@ -950,13 +982,13 @@ def test_generated_picture_is_embedded_with_a_teacher_caption(
     assert image.attrs["data-item"] == "1"
     assert image.attrs["data-generated"] == "true"
     assert (image.attrs["src"] or "").startswith("data:image/png;base64,")
-    caption = second.one(class_="ai-picture")
+    caption = second.one(class_="flashcard__ai")
     assert "teacher" in caption.classes
     assert caption.text() == "AI picture"
     # The cited textbook picture is not marked as generated.
     first = deck.slide_of("b_02")
     assert "data-generated" not in first.one("img").attrs
-    assert first.find(class_="ai-picture") == []
+    assert first.find(class_="flashcard__ai") == []
     assert "http://" not in path.read_text(encoding="utf-8")
 
 
@@ -968,3 +1000,203 @@ def test_generated_picture_outside_image_root_is_ignored(
     (tmp_path / "outside.png").write_bytes(write_png(tmp_path / "scratch").read_bytes())
     deck = load(export_html(lesson, tmp_path / "x.html", sources=sources, image_root=image_root))
     assert deck.slide_of("b_02", 1).find("img") == []
+
+
+# --- theme hooks -------------------------------------------------------------------------------
+
+
+def test_every_slide_has_type_class_phase_kind_and_three_decorations(deck: Deck) -> None:
+    for slide in deck.slides():
+        slide_type = slide.attrs["data-slide-type"]
+        assert {"slide", f"slide--{slide_type}"} <= slide.classes
+        assert slide.attrs["data-phase"]
+        assert slide.attrs["data-kind"]
+        decorations = slide.find("div", "deco")
+        assert [d.attrs["class"] for d in decorations] == [
+            "deco deco--1",
+            "deco deco--2",
+            "deco deco--3",
+        ]
+        for decoration in decorations:
+            assert decoration.attrs["aria-hidden"] == "true"
+            assert decoration.children == []
+    kinds = {s.attrs["data-slide-type"]: s.attrs["data-kind"] for s in deck.slides()}
+    assert kinds["flashcard"] == "vocabulary"
+    assert kinds["pattern"] == "sentence_pattern"
+    assert kinds["activity"] == "activity"
+    assert kinds["cover"] == "cover"
+
+
+THEMES_README = Path(__file__).parents[1] / "src" / "classdeck" / "export" / "themes" / "README.md"
+
+
+def test_every_class_the_markup_emits_is_documented_in_the_themes_readme(deck: Deck) -> None:
+    readme = THEMES_README.read_text(encoding="utf-8")
+    emitted: set[str] = set()
+    for node in deck.root.walk():
+        emitted |= node.classes
+    emitted |= {"dot", "dots", "current", "active", "pending"}  # made or toggled by the script
+    undocumented = sorted(c for c in emitted if f".{c}" not in readme)
+    assert undocumented == []
+
+
+# --- manifests and theme files -----------------------------------------------------------------
+
+
+def test_parse_manifest() -> None:
+    info = parse_manifest(
+        "/* theme: sunny-2 | Sunny | Bold and flat | suits: grades 3-4 */\nbody{}"
+    )
+    assert (info.id, info.label, info.description, info.suits) == (
+        "sunny-2",
+        "Sunny",
+        "Bold and flat",
+        "grades 3-4",
+    )
+    for bad in (
+        "body {}",
+        "/* theme: x | only two | parts */",
+        "/* a comment */\n/* theme: x | X | y | suits: z */",
+        "/* theme: Bad Id | X | y | suits: z */",
+    ):
+        with pytest.raises(ValueError, match="manifest"):
+            parse_manifest(bad)
+
+
+REQUIRED_TOKENS = [
+    "--bg", "--ink", "--muted", "--card", "--line", "--accent", "--accent-2", "--accent-ink",
+    "--accent-2-ink", "--badge", "--mark", "--bubble-left", "--bubble-right", "--slot-border",
+    "--teacher-bg", "--pulse", "--phase-warm_up", "--phase-presentation", "--phase-practice",
+    "--phase-production", "--phase-wrap_up", "--phase-lesson", "--phase-teacher", "--radius",
+    "--shadow",
+]  # fmt: skip
+
+
+@pytest.mark.parametrize("theme", theme_ids())
+def test_every_theme_follows_the_rules(theme: str, tmp_path: Path, lesson: Lesson) -> None:
+    deck = load(export_html(lesson, tmp_path / "x.html", theme=theme))
+    css = deck.root.find("style")[-1].text()
+    assert re.match(rf"\s*/\* --- theme: {theme} -*\s*\*/", css)
+    assert "url(" not in css.lower()
+    assert "@import" not in css.lower()
+    assert "http" not in css.lower()
+    declared = set(re.findall(r"(--[\w-]+)\s*:", css))
+    assert [t for t in REQUIRED_TOKENS if t not in declared] == []
+    sizes = {name: int(px) for name, px in re.findall(r"--size-([\w-]+):\s*(\d+)px", css)}
+    for name, size in sizes.items():
+        assert size >= 32, f"--size-{name} is {size}px"
+    tokens = theme_tokens(css)
+    for foreground, background in TEXT_PAIRS:
+        ratio = contrast(tokens.get(foreground, foreground), tokens[background])
+        assert ratio >= 4.5, f"{theme}: {foreground} on {background} is {ratio:.2f}:1"
+
+
+# --- pronunciation audio -----------------------------------------------------------------------
+
+
+def says(node: Node) -> list[str]:
+    return [b.attrs["data-say"] or "" for b in node.find("button", "speak")]
+
+
+def test_speak_buttons_are_chrome_with_label_and_no_text(deck: Deck) -> None:
+    buttons = deck.root.find("button", "speak")
+    assert buttons
+    for button in buttons:
+        assert {"speak", "ui"} <= button.classes
+        assert button.attrs["aria-label"] == "Listen"
+        assert button.attrs["type"] == "button"
+        assert button.attrs["data-say"]
+        assert button.text() == ""  # the glyph is drawn by CSS
+    assert "\\1F50A" in deck.text
+
+
+def test_flashcard_buttons_say_the_word_and_the_example(deck: Deck) -> None:
+    first, second = deck.root.find(class_="flashcard", data_block_id="b_02")
+    line = first.one(class_="flashcard__wordline")
+    assert says(line) == ["hello"]
+    assert line.one(class_="flashcard__word").text() == "hello"
+    assert says(first.one(class_="flashcard__example")) == ["Hello, I'm Ha."]
+    assert says(second) == ["hi", "Hi, Ha."]
+    assert {"has-example"} <= first.classes & second.classes
+
+
+def test_pattern_buttons_say_the_first_example_and_each_example(deck: Deck) -> None:
+    pattern = deck.slide_of("b_03").one(class_="pattern")
+    assert says(pattern.one(class_="pattern__head")) == ["Hello, I'm Ha."]
+    assert says(pattern.one(class_="pattern__examples")) == ["Hello, I'm Ha."]
+
+
+def test_pattern_without_examples_says_the_pattern_without_its_slot(
+    tmp_path: Path, lesson: Lesson
+) -> None:
+    lesson.blocks["b_03"].content.examples = []  # type: ignore[union-attr]
+    lesson.blocks["b_03"].content.pattern = "My name's ___, nice to meet you."  # type: ignore[union-attr]
+    deck = load(export_html(lesson, tmp_path / "x.html"))
+    pattern = deck.slide_of("b_03").one(class_="pattern")
+    assert says(pattern) == ["My name's , nice to meet you."]
+
+
+def test_dialogue_phonics_and_summary_buttons(deck: Deck) -> None:
+    bubbles = deck.slide_of("b_05").find(class_="bubble")
+    assert [says(b) for b in bubbles] == [["Hello, I'm Ha."], ["Hi, Ha. I'm Tien."]]
+    words = deck.slide_of("b_06").one(class_="phonics__words").find("li")
+    assert [says(w) for w in words] == [["hello"], ["hi"]]
+    summary = deck.slide_of("b_08")
+    assert [says(c) for c in summary.find(class_="summary-card")] == [["hello"], ["hi"]]
+    assert says(summary.one(class_="summary__pattern")) == ["Hello, I'm Ha."]
+
+
+def test_speak_buttons_never_sit_in_teacher_only_elements(deck: Deck) -> None:
+    def walk(node: Node, inside_teacher: bool) -> Iterator[tuple[Node, bool]]:
+        for child in node.children:
+            if isinstance(child, Node):
+                teacher = inside_teacher or "teacher" in child.classes
+                yield child, teacher
+                yield from walk(child, teacher)
+
+    buttons = [(n, t) for n, t in walk(deck.root, False) if "speak" in n.classes]
+    assert buttons
+    assert not any(teacher for _, teacher in buttons)
+
+
+def test_speech_script_prefers_british_english_and_hides_the_buttons_without_a_voice(
+    deck: Deck,
+) -> None:
+    script = deck.root.one("script").text()
+    for needle in (
+        "speechSynthesis",
+        "SpeechSynthesisUtterance",
+        "voiceschanged",
+        "getVoices",
+        r"/^en[-_]GB$/i",
+        r"/^en([-_]|$)/i",
+        "no-speech",
+        "0.85",
+        "0.95",
+        "synth.cancel()",
+        ".flashcard__word",
+        "event.stopPropagation()",
+    ):
+        assert needle in script, needle
+    # a click on a speak button returns before the tap/reveal/navigation handling
+    click = script[script.index("stage.addEventListener('click'") :]
+    assert click.index("closest('.speak')") < click.index("closest('.tap')") < click.index("next()")
+    css = deck.root.find("style")[0].text()
+    assert ".no-speech .speak { display: none !important; }" in css
+    assert re.search(r"@media print[\s\S]*\.speak", css)
+
+
+def test_deck_listens_for_gallery_messages(deck: Deck) -> None:
+    script = deck.root.one("script").text()
+    for needle in ("'classdeck:go'", "'classdeck:next'", "'classdeck:prev'", "postMessage"):
+        assert needle in script, needle
+
+
+def test_default_theme_is_sunny(
+    tmp_path: Path, lesson: Lesson, sources: dict[str, SourceDocument], image_root: Path
+) -> None:
+    from classdeck.export.html import DEFAULT_THEME
+
+    assert DEFAULT_THEME == "sunny"
+    path = export_html(lesson, tmp_path / "default.html", sources=sources, image_root=image_root)
+    assert "theme: sunny" in path.read_text(encoding="utf-8")

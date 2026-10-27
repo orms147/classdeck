@@ -46,6 +46,7 @@ from classdeck.lesson import (
     Provenance,
     Section,
     SentencePatternBlock,
+    SentencePatternContent,
     SourceDocument,
     SpanKind,
     SummaryBlock,
@@ -54,7 +55,7 @@ from classdeck.lesson import (
     VocabularyBlock,
 )
 
-DEFAULT_THEME = "kids"
+DEFAULT_THEME = "sunny"
 TEMPLATE_NAME = "deck_template.html"
 THEMES_DIR = "themes"
 
@@ -81,21 +82,68 @@ _IMAGE_SIGNATURES: tuple[tuple[bytes, str], ...] = (
 # --- resources ---------------------------------------------------------------------------------
 
 
-def available_themes() -> list[str]:
-    """Theme names, one per ``themes/<name>.css`` shipped with the package."""
+@dataclass(frozen=True)
+class ThemeInfo:
+    """What a theme file declares about itself in its manifest comment."""
+
+    id: str
+    label: str
+    description: str
+    suits: str
+
+
+_MANIFEST = re.compile(
+    r"\A\s*/\*\s*theme:\s*(?P<id>[a-z][a-z0-9_-]*)\s*\|\s*(?P<label>[^|]+?)\s*\|"
+    r"\s*(?P<description>[^|]+?)\s*\|\s*suits:\s*(?P<suits>[^|]+?)\s*\*/"
+)
+
+
+def parse_manifest(css: str, *, name: str = "theme") -> ThemeInfo:
+    """The manifest comment at the top of a theme file:
+    ``/* theme: <id> | <label> | <description> | suits: <grades> */``."""
+    match = _MANIFEST.match(css)
+    if match is None:
+        raise ValueError(
+            f"theme {name!r} must start with a manifest comment "
+            "'/* theme: <id> | <label> | <description> | suits: <grades> */'"
+        )
+    return ThemeInfo(**{key: " ".join(value.split()) for key, value in match.groupdict().items()})
+
+
+def _theme_files() -> dict[str, str]:
     folder = resources.files("classdeck.export").joinpath(THEMES_DIR)
-    return sorted(
-        entry.name[: -len(".css")] for entry in folder.iterdir() if entry.name.endswith(".css")
-    )
+    return {
+        entry.name[: -len(".css")]: entry.read_text(encoding="utf-8").strip()
+        for entry in sorted(folder.iterdir(), key=lambda entry: entry.name)
+        if entry.name.endswith(".css")
+    }
 
 
-@lru_cache(maxsize=8)
+def available_themes() -> list[ThemeInfo]:
+    """Every ``themes/<id>.css`` shipped with the package, by id, with its manifest.
+
+    A file whose manifest is missing, malformed or names another id raises ``ValueError``.
+    """
+    infos: list[ThemeInfo] = []
+    for name, css in _theme_files().items():
+        info = parse_manifest(css, name=name)
+        if info.id != name:
+            raise ValueError(f"theme file {name}.css declares the id {info.id!r}")
+        infos.append(info)
+    return infos
+
+
+def theme_ids() -> list[str]:
+    """The ids of :func:`available_themes`."""
+    return [info.id for info in available_themes()]
+
+
 def _theme_css(theme: str) -> str:
-    themes = available_themes()
-    if theme not in themes:
-        raise ValueError(f"unknown theme {theme!r}; available themes: {', '.join(themes)}")
-    resource = resources.files("classdeck.export").joinpath(THEMES_DIR, f"{theme}.css")
-    return resource.read_text(encoding="utf-8").strip()
+    files = _theme_files()
+    if theme not in files:
+        raise ValueError(f"unknown theme {theme!r}; available themes: {', '.join(files)}")
+    parse_manifest(files[theme], name=theme)
+    return files[theme]
 
 
 @lru_cache(maxsize=1)
@@ -138,9 +186,33 @@ def _el(tag: str, inner: str = "", /, **attrs: str | bool | None) -> str:
     return f"<{tag}{rendered}>{inner}</{tag}>"
 
 
-def _icon(name: str) -> str:
+def _icon(name: str, extra: str = "") -> str:
     """An empty span the theme fills with an emoji (or hides); the HTML itself stays plain."""
-    return _el("span", class_="icon", data_icon=name, aria_hidden="true")
+    return _el("span", class_=f"icon {extra}".strip(), data_icon=name, aria_hidden="true")
+
+
+def _speak(text: str) -> str:
+    """The pronunciation button for ``text``; empty when there is nothing to say.
+
+    The glyph is drawn by the stylesheet (``.speak__icon``), so a theme can swap it."""
+    spoken = " ".join(text.split())
+    if not spoken:
+        return ""
+    return _el(
+        "button",
+        _el("span", class_="speak__icon", aria_hidden="true"),
+        class_="speak ui",
+        type="button",
+        aria_label="Listen",
+        data_say=spoken,
+    )
+
+
+def _decorations() -> str:
+    """Three empty, inert elements per slide that a theme may draw on."""
+    return "".join(
+        _el("div", class_=f"deco deco--{number}", aria_hidden="true") for number in (1, 2, 3)
+    )
 
 
 def _clock(seconds: int) -> str:
@@ -152,7 +224,8 @@ def _countdown(minutes: int) -> str:
     label = f"Countdown, {minutes} minute{'s' if minutes != 1 else ''}"
     return _el(
         "div",
-        _el("span", _clock(seconds), class_="time") + _el("span", "Tap to start", class_="hint ui"),
+        _el("span", _clock(seconds), class_="countdown__time")
+        + _el("span", "Tap to start", class_="countdown__hint hint ui"),
         class_="countdown tap ui",
         role="timer",
         tabindex="0",
@@ -177,7 +250,7 @@ def _words(value: str) -> str:
 def _slot_markup(pattern: str) -> str:
     """The pattern with each ``___`` slot wrapped in a dashed-box span."""
     return "".join(
-        _el("span", _esc(part), class_="slot", data_empty=part)
+        _el("span", _esc(part), class_="pattern__slot", data_empty=part)
         if part.startswith("__")
         else _esc(part)
         for part in _SLOT.split(pattern)
@@ -223,13 +296,18 @@ def slot_fills(pattern: str, example: str) -> list[str] | None:
     return fills
 
 
+def _pattern_speech(content: SentencePatternContent) -> str:
+    """What the pattern's speaker button says: the first example, else the pattern without slots."""
+    return content.examples[0] if content.examples else _SLOT.sub(" ", content.pattern)
+
+
 def _example_item(pattern: str, example: str) -> str:
     """An example as a list item; ``data-fills`` holds the slot text when it aligns."""
     fills = slot_fills(pattern, example)
     return _el(
         "li",
-        _esc(example),
-        class_="example",
+        _el("span", _esc(example), class_="pattern__example-text") + _speak(example),
+        class_="pattern__example",
         data_fills=json.dumps(fills, ensure_ascii=False) if fills else None,
     )
 
@@ -278,6 +356,7 @@ class _Slide:
     type: str
     phase: str
     body: str
+    kind: str = ""
     footer: str = ""
     badge: bool = False
     teacher_only: bool = False
@@ -285,25 +364,26 @@ class _Slide:
     extra: dict[str, str] = field(default_factory=dict)
 
     def render(self, number: int, total: int) -> str:
-        classes = ["slide"]
+        classes = ["slide", f"slide--{self.type}"]
         if self.teacher_only:
             classes.append("teacher")
         if self.badge:
             classes.append("badged")
-        parts = [_el("div", class_="band", aria_hidden="true")]
+        parts = [_el("div", class_="band", aria_hidden="true"), _decorations()]
         if self.badge:
             parts.append(_el("span", _esc(AI_ADDED_BADGE), class_="badge teacher"))
         parts.append(_el("div", self.body, class_="slide-body"))
         if self.footer:
-            parts.append(_el("footer", _esc(self.footer), class_="teacher slide-footer"))
+            parts.append(_el("footer", _esc(self.footer), class_="teacher footer"))
         if self.notes:
-            panel = _el("h2", "Teacher notes") + "".join(self.notes)
+            panel = _el("h2", "Teacher notes", class_="notes__title") + "".join(self.notes)
             parts.append(_el("aside", panel, class_="teacher notes", aria_label="Teacher notes"))
         return _el(
             "section",
             "\n".join(parts),
             class_=" ".join(classes),
             data_phase=self.phase,
+            data_kind=self.kind or self.type,
             data_slide_type=self.type,
             aria_roledescription="slide",
             aria_label=f"Slide {number} of {total}",
@@ -354,10 +434,11 @@ class _DeckBuilder:
         """Append a slide; a block slide gets the footer, the badge and the block's own note."""
         slide = _Slide(slide_type, phase, body, teacher_only=teacher_only, extra=dict(extra or {}))
         if block is not None:
+            slide.kind = block.kind
             slide.footer = _footer_text(block)
             slide.badge = block.provenance is Provenance.GENERATED
             if slide.badge:
-                slide.notes.append(_el("p", _esc(AI_ADDED_NOTE), class_="ai-note"))
+                slide.notes.append(_el("p", _esc(AI_ADDED_NOTE), class_="notes__ai"))
             if first and block.teacher_note:
                 slide.notes.append(_note("Teacher note", block.teacher_note))
         slide.notes.extend(notes)
@@ -433,35 +514,36 @@ class _DeckBuilder:
         strip = "".join(
             _el(
                 "li",
-                _el("span", class_="chip")
-                + _icon(section.phase.value)
-                + _el("span", _esc(PHASE_NAME[section.phase]), class_="label ui")
-                + _el("span", f"{section.minutes} min", class_="minutes ui"),
+                _el("span", class_="phase-strip__chip")
+                + _icon(section.phase.value, "phase-strip__icon")
+                + _el("span", _esc(PHASE_NAME[section.phase]), class_="phase-strip__label ui")
+                + _el("span", f"{section.minutes} min", class_="phase-strip__minutes ui"),
+                class_="phase-strip__item",
                 data_phase=section.phase.value,
             )
             for section in lesson.sections
         )
         total = sum(section.minutes for section in lesson.sections)
-        body = _el("h1", _esc(self.title), class_="slide-title")
-        body += _el("p", _esc(" · ".join(part for part in meta if part)), class_="meta ui")
+        inner = _el("h1", _esc(self.title), class_="cover__title slide-title")
+        inner += _el("p", _esc(" · ".join(part for part in meta if part)), class_="cover__meta ui")
         if strip:
-            body += _el("ol", strip, class_="phase-strip", aria_label="Lesson phases")
-            body += _el("p", f"{total} min", class_="total ui")
-        return self._add("cover", "lesson", body)
+            inner += _el("ol", strip, class_="phase-strip", aria_label="Lesson phases")
+            inner += _el("p", f"{total} min", class_="cover__total ui")
+        return self._add("cover", "lesson", _el("div", inner, class_="cover"))
 
     def _divider(self, section: Section) -> None:
         phase = section.phase
-        card = _icon(phase.value)
-        card += _el("p", _esc(PHASE_NAME[phase]), class_="phase-name ui")
-        card += _el("h2", _esc(section.title), class_="slide-title")
-        card += _el("p", f"{section.minutes} min", class_="minutes ui")
+        card = _icon(phase.value, "divider__icon")
+        card += _el("p", _esc(PHASE_NAME[phase]), class_="divider__phase ui")
+        card += _el("h2", _esc(section.title), class_="divider__title slide-title")
+        card += _el("p", f"{section.minutes} min", class_="divider__minutes ui")
         if section.minutes:
             card += _countdown(section.minutes)
         notes = [_el("p", _esc(_PHASE_DESCRIPTION[phase]))]
         self._add(
             "divider",
             phase.value,
-            _el("div", card, class_="card"),
+            _el("div", card, class_="divider card"),
             notes=notes,
             extra={"data_section_id": section.id, "data_minutes": str(section.minutes)},
         )
@@ -531,13 +613,13 @@ class _DeckBuilder:
             label += f" ({AI_ADDED_BADGE})"
         inner = _note(label, content.text)
         if block.provenance is Provenance.GENERATED:
-            inner += _el("p", _esc(AI_ADDED_NOTE), class_="ai-note")
+            inner += _el("p", _esc(AI_ADDED_NOTE), class_="notes__ai")
         if details:
             inner += _el("p", _esc(" · ".join(details)))
         if block.teacher_note:
             inner += _el("p", _esc(block.teacher_note))
-        inner += _el("p", _esc(_footer_text(block)), class_="origin")
-        return _el("div", inner, class_="teacher block", **_block_attrs(block))
+        inner += _el("p", _esc(_footer_text(block)), class_="notes__origin")
+        return _el("div", inner, class_="teacher block notes__block", **_block_attrs(block))
 
     def _teacher_note(self, block: TeacherNoteBlock) -> str:
         """Teacher notes have no slide; they join the previous slide's notes panel."""
@@ -546,11 +628,11 @@ class _DeckBuilder:
             label += f" ({AI_ADDED_BADGE})"
         inner = _note(label, block.content.text)
         if block.provenance is Provenance.GENERATED:
-            inner += _el("p", _esc(AI_ADDED_NOTE), class_="ai-note")
+            inner += _el("p", _esc(AI_ADDED_NOTE), class_="notes__ai")
         if block.teacher_note:
             inner += _el("p", _esc(block.teacher_note))
-        inner += _el("p", _esc(_footer_text(block)), class_="origin")
-        return _el("div", inner, class_="teacher block", **_block_attrs(block))
+        inner += _el("p", _esc(_footer_text(block)), class_="notes__origin")
+        return _el("div", inner, class_="teacher block notes__block", **_block_attrs(block))
 
     def _vocabulary(self, section: Section, block: VocabularyBlock) -> None:
         items = block.content.items
@@ -564,22 +646,36 @@ class _DeckBuilder:
                     block_id=block.id,
                     item=index,
                     alt=item.word,
-                    class_="picture",
+                    class_="flashcard__picture",
                     generated=generated,
                 )
                 if generated:
-                    inner += _el("span", _esc(AI_PICTURE_CAPTION), class_="ai-picture teacher")
-            inner += _el("p", _esc(item.word), class_="word")
+                    inner += _el("span", _esc(AI_PICTURE_CAPTION), class_="flashcard__ai teacher")
+            inner += _el(
+                "div",
+                _el("p", _esc(item.word), class_="flashcard__word") + _speak(item.word),
+                class_="flashcard__wordline",
+            )
             if item.ipa:
-                inner += _el("p", _esc(item.ipa), class_="ipa")
+                inner += _el("p", _esc(item.ipa), class_="flashcard__ipa")
             if reveal:
-                inner += _el("p", _esc(item.meaning_vi), class_="meaning", lang="vi")
-                inner += _el("p", "Tap to see", class_="hint ui")
+                inner += _el("p", _esc(item.meaning_vi), class_="flashcard__meaning", lang="vi")
+            if item.example:
+                inner += _el(
+                    "div",
+                    _el("p", _esc(item.example), class_="flashcard__example-text")
+                    + _speak(item.example),
+                    class_="flashcard__example",
+                )
+            if reveal:
+                inner += _el("p", "Tap to see", class_="flashcard__hint hint ui")
             classes = ["block", "flashcard", "card"]
             if picture:
                 classes.append("has-picture")
             elif not reveal:
                 classes.append("bare")
+            if item.example:
+                classes.append("has-example")
             if reveal:
                 classes += ["tap", "reveal"]
             card = _el(
@@ -606,7 +702,7 @@ class _DeckBuilder:
             # Keep a carrier so the block's footer, badge and teacher note still render.
             empty = _el(
                 "article",
-                _el("p", "No words yet", class_="hint ui"),
+                _el("p", "No words yet", class_="flashcard__hint hint ui"),
                 class_="block flashcard card",
                 **_block_attrs(block),
             )
@@ -616,13 +712,18 @@ class _DeckBuilder:
         content = block.content
         examples = "".join(_example_item(content.pattern, ex) for ex in content.examples)
         interactive = bool(content.examples)
-        inner = _el("p", _slot_markup(content.pattern), class_="pattern-text")
-        inner += _el("p", class_="example-line", aria_live="polite")
+        inner = _el(
+            "div",
+            _el("p", _slot_markup(content.pattern), class_="pattern__text")
+            + _speak(_pattern_speech(content)),
+            class_="pattern__head",
+        )
+        inner += _el("p", class_="pattern__line", aria_live="polite")
         if content.function:
-            inner += _el("p", _esc(content.function), class_="function")
+            inner += _el("p", _esc(content.function), class_="pattern__function")
         if interactive:
-            inner += _el("ul", examples, class_="examples")
-            inner += _el("p", "Tap to try", class_="hint ui")
+            inner += _el("ul", examples, class_="pattern__examples")
+            inner += _el("p", "Tap to try", class_="pattern__hint hint ui")
         body = _el(
             "div",
             inner,
@@ -641,26 +742,29 @@ class _DeckBuilder:
         for number, line in enumerate(content.lines):
             side = "left" if sides.setdefault(line.speaker, len(sides)) % 2 == 0 else "right"
             avatar = _el(
-                "span", _esc(line.speaker[:1].upper() or "?"), class_="avatar", aria_hidden="true"
+                "span",
+                _esc(line.speaker[:1].upper() or "?"),
+                class_="bubble__avatar",
+                aria_hidden="true",
             )
             speaker = (
                 _el("span", _esc(f"{line.speaker}: "), class_="sr-only") if line.speaker else ""
             )
-            speech = _el("p", speaker + _esc(line.text), class_="speech")
+            speech = _el("p", speaker + _esc(line.text), class_="bubble__text")
             bubbles.append(
                 _el(
                     "div",
-                    avatar + speech,
-                    class_=f"bubble step-item {'pending ' if number else ''}{side}",
+                    avatar + speech + _speak(line.text),
+                    class_=f"bubble bubble--{side} step-item{' pending' if number else ''}",
                     data_line=str(number),
                     data_speaker=line.speaker,
                 )
             )
         inner = ""
         if content.context:
-            inner += _el("p", _esc(content.context), class_="chat-context")
+            inner += _el("p", _esc(content.context), class_="dialogue__context")
         inner += _el("div", "".join(bubbles), class_="chat")
-        inner += _el("p", "Tap for the next line", class_="hint ui")
+        inner += _el("p", "Tap for the next line", class_="dialogue__hint hint ui")
         body = _el(
             "div",
             inner,
@@ -675,37 +779,47 @@ class _DeckBuilder:
 
     def _phonics(self, section: Section, block: PhonicsBlock) -> None:
         content = block.content
-        inner = _el("p", _esc(content.sound), class_="sound")
+        inner = _el("p", _esc(content.sound), class_="phonics__sound")
         if content.letters:
-            inner += _el("p", _esc(content.letters), class_="letters")
+            inner += _el("p", _esc(content.letters), class_="phonics__letters")
         if content.words:
             words = "".join(
-                _el("li", _mark_letters(word, content.letters)) for word in content.words
+                _el(
+                    "li",
+                    _el("span", _mark_letters(word, content.letters), class_="phonics__word-text")
+                    + _speak(word),
+                    class_="phonics__word",
+                )
+                for word in content.words
             )
-            inner += _el("ul", words, class_="words")
+            inner += _el("ul", words, class_="phonics__words")
         if content.chant_lines:
-            chant = "".join(_el("li", _esc(line)) for line in content.chant_lines)
-            inner += _el("ul", chant, class_="chant")
+            chant = "".join(
+                _el("li", _esc(line), class_="phonics__chant-line") for line in content.chant_lines
+            )
+            inner += _el("ul", chant, class_="phonics__chant")
         body = _el("div", inner, class_="block phonics", **_block_attrs(block))
         self._add("phonics", section.phase.value, body, block=block)
 
     def _activity(self, section: Section, block: ActivityBlock) -> None:
         content = block.content
-        heading = _icon(content.type.value) + _el("h2", _esc(content.title), class_="slide-title")
-        inner = _el("div", heading, class_="heading")
+        heading = _icon(content.type.value, "activity__icon") + _el(
+            "h2", _esc(content.title), class_="activity__title slide-title"
+        )
+        inner = _el("div", heading, class_="activity__heading")
         if content.instructions:
-            inner += _el("p", _esc(content.instructions), class_="instructions")
+            inner += _el("p", _esc(content.instructions), class_="activity__instructions")
         if content.student_steps:
             steps = "".join(
                 _el(
                     "li",
-                    _el("span", str(number), class_="num", aria_hidden="true")
-                    + _el("span", _esc(step), class_="step-text"),
+                    _el("span", str(number), class_="step__number", aria_hidden="true")
+                    + _el("span", _esc(step), class_="step__text"),
                     class_="step card",
                 )
                 for number, step in enumerate(content.student_steps, start=1)
             )
-            inner += _el("ol", steps, class_="steps")
+            inner += _el("ol", steps, class_="activity__steps")
         inner += _countdown(content.minutes)
         body = _el("div", inner, class_="block activity", **_block_attrs(block))
 
@@ -738,30 +852,35 @@ class _DeckBuilder:
                         block_id=vocabulary.id,
                         item=index,
                         alt=item.word,
+                        class_="summary-card__picture",
                         generated=generated,
                     )
                     if picture
                     else ""
                 )
+                caption = _el("figcaption", _esc(item.word), class_="summary-card__word")
                 cards.append(
-                    _el(
-                        "figure",
-                        image + _el("figcaption", _esc(item.word)),
-                        class_="word-card card",
-                    )
+                    _el("figure", image + caption + _speak(item.word), class_="summary-card card")
                 )
         patterns = [
-            _el("p", _slot_markup(pattern.content.pattern), class_="pattern-text")
+            _el(
+                "div",
+                _el("p", _slot_markup(pattern.content.pattern), class_="summary__pattern-text")
+                + _speak(_pattern_speech(pattern.content)),
+                class_="summary__pattern",
+            )
             for pattern in self.lesson.ordered_blocks()
             if isinstance(pattern, SentencePatternBlock)
         ]
-        inner = _el("h2", "Let's remember!", class_="slide-title ui")
+        inner = _el("h2", "Let's remember!", class_="summary__title slide-title ui")
         if cards:
-            inner += _el("div", "".join(cards), class_="word-grid")
+            inner += _el("div", "".join(cards), class_="summary-grid")
         inner += "".join(patterns)
         bullets = block.content.bullets
         if bullets and not cards and not patterns:
-            inner += _el("ul", "".join(_el("li", _esc(b)) for b in bullets), class_="bullets")
+            inner += _el(
+                "ul", "".join(_el("li", _esc(b)) for b in bullets), class_="summary__bullets"
+            )
         body = _el("div", inner, class_="block summary", **_block_attrs(block))
         notes = [_note_list("Summary", bullets)] if bullets else []
         self._add("summary", section.phase.value, body, block=block, notes=notes)
@@ -769,15 +888,21 @@ class _DeckBuilder:
     def _image_ref(self, section: Section, block: ImageRefBlock) -> None:
         content = block.content
         picture = next((uri for c in block.sources if (uri := self._picture(c)) is not None), None)
-        caption = _el("figcaption", _esc(content.caption)) if content.caption else ""
+        caption = (
+            _el("figcaption", _esc(content.caption), class_="image-ref__caption")
+            if content.caption
+            else ""
+        )
         if picture:
             image = self._image(
-                picture, block_id=block.id, item=0, alt=content.alt, class_="picture"
+                picture, block_id=block.id, item=0, alt=content.alt, class_="image-ref__picture"
             )
             body = _el("figure", image + caption, class_="block image-ref", **_block_attrs(block))
         else:
             missing = _el(
-                "p", _el("span", "Picture: ", class_="ui") + _esc(content.alt), class_="placeholder"
+                "p",
+                _el("span", "Picture: ", class_="ui") + _esc(content.alt),
+                class_="image-ref__placeholder",
             )
             body = _el("figure", missing + caption, class_="block image-ref", **_block_attrs(block))
         notes = [_note("Picture", content.alt)]
@@ -842,8 +967,10 @@ SCRIPT = r"""
       slide.classList.remove('active');
       slide.setAttribute('aria-hidden', 'true');
     });
+    cancelSpeech();
     shown = list[index];
     shown.classList.add('active');
+    notifyParent(index, list.length);
     shown.removeAttribute('aria-hidden');
     renderDots(list, index);
     if (window.history && window.history.replaceState) {
@@ -898,9 +1025,9 @@ SCRIPT = r"""
   }
 
   function cycle(el) {
-    var examples = el.querySelectorAll('.example');
-    var slots = el.querySelectorAll('.slot');
-    var line = el.querySelector('.example-line');
+    var examples = el.querySelectorAll('.pattern__example');
+    var slots = el.querySelectorAll('.pattern__slot');
+    var line = el.querySelector('.pattern__line');
     if (!examples.length) return;
     var index = parseInt(el.getAttribute('data-index') || '-1', 10) + 1;
     if (index >= examples.length) index = -1;
@@ -931,8 +1058,8 @@ SCRIPT = r"""
 
   function countdown(el) {
     var total = parseInt(el.getAttribute('data-seconds'), 10) || 0;
-    var time = el.querySelector('.time');
-    var hint = el.querySelector('.hint');
+    var time = el.querySelector('.countdown__time');
+    var hint = el.querySelector('.countdown__hint');
     if (el.remaining === undefined) el.remaining = total;
     if (el.classList.contains('done')) {
       el.classList.remove('done');
@@ -981,7 +1108,84 @@ SCRIPT = r"""
     refresh();
   }
 
+  // --- pronunciation: the browser's own speech synthesis, British English preferred
+  var synth = window.speechSynthesis || null;
+  var canSpeak = !!(synth && window.SpeechSynthesisUtterance);
+  var voice = null;
+  var voicesSeen = false;
+
+  function isEnglish(candidate) { return /^en([-_]|$)/i.test(candidate.lang || ''); }
+
+  function chooseVoice() {
+    if (!canSpeak) { body.classList.add('no-speech'); return; }
+    var voices = synth.getVoices() || [];
+    if (voices.length) voicesSeen = true;
+    var english = voices.filter(isEnglish);
+    voice = english.filter(function (v) { return /^en[-_]GB$/i.test(v.lang); })[0]
+      || english[0] || null;
+    // Voices load late in some browsers: only give up once a list has arrived (or after a wait).
+    body.classList.toggle('no-speech', !voice && voicesSeen);
+  }
+
+  function cancelSpeech() {
+    if (canSpeak) synth.cancel();
+  }
+
+  function speak(text) {
+    text = (text || '').replace(/\s+/g, ' ').trim();
+    if (!canSpeak || !voice || !text) return;
+    var utterance = new window.SpeechSynthesisUtterance(text);
+    utterance.voice = voice;
+    utterance.lang = voice.lang;
+    utterance.rate = /\s/.test(text) ? 0.95 : 0.85;
+    synth.cancel();
+    synth.speak(utterance);
+  }
+
+  if (canSpeak) {
+    chooseVoice();
+    if (synth.addEventListener) synth.addEventListener('voiceschanged', chooseVoice);
+    else synth.onvoiceschanged = chooseVoice;
+    setTimeout(function () {
+      voicesSeen = true;
+      chooseVoice();
+    }, 2000);
+  } else {
+    body.classList.add('no-speech');
+  }
+
+  // --- embedding: a gallery page can drive the deck and read its position
+  function notifyParent(index, total) {
+    if (window.parent && window.parent !== window) {
+      try {
+        window.parent.postMessage({ type: 'classdeck:slide', slide: index + 1, total: total }, '*');
+      } catch (err) { /* the parent may refuse; the deck works on its own */ }
+    }
+  }
+
+  window.addEventListener('message', function (event) {
+    var data = event.data;
+    if (!data || typeof data.type !== 'string') return;
+    if (data.type === 'classdeck:go') {
+      var number = parseInt(data.slide, 10);
+      if (!isNaN(number)) show(number - 1);
+    } else if (data.type === 'classdeck:next') {
+      next();
+    } else if (data.type === 'classdeck:prev') {
+      prev();
+    }
+  });
+
   stage.addEventListener('click', function (event) {
+    var speaker = event.target.closest('.speak');
+    if (speaker) {
+      event.stopPropagation();
+      speak(speaker.getAttribute('data-say'));
+      return;
+    }
+    if (event.target.closest('.flashcard__word')) {
+      speak(event.target.closest('.flashcard__word').textContent);
+    }
     var tap = event.target.closest('.tap');
     if (tap) { act(tap); return; }
     if (event.target.closest('button, a, .notes, .dots')) return;

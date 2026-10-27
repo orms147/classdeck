@@ -21,3 +21,5 @@ Conventions used in these documents:
 - **Outcome** — a curriculum "yêu cầu cần đạt" with a stable ID, e.g. `ta3.u1.o1`.
 - Vietnamese terms are kept where they are the proper name of something (*Chương trình GDPT 2018*, *Global Success*).
 - Textbook excerpts in examples are invented stand-ins with the same shape as the real thing, not copies.
+
+App: [local-app.md](local-app.md) — `classdeck serve`, the teacher-facing local web app.

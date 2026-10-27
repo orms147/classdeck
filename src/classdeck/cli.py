@@ -554,7 +554,7 @@ def export(
     html: bool = typer.Option(True, help="Write the HTML deck (primary)."),
     pptx: bool = typer.Option(True, help="Write the PPTX deck."),
     docx: bool = typer.Option(True, help="Write the DOCX lesson plan."),
-    theme: str = typer.Option("kids", help="HTML deck theme."),
+    theme: str = typer.Option("sunny", help="HTML deck theme."),
     out_dir: Path | None = typer.Option(None, help="Default <workdir>/exports/<lesson id>/."),
 ) -> None:
     """Export the HTML deck, PPTX slides and DOCX lesson plan with a source map."""
@@ -840,6 +840,51 @@ def run(
     )
     if open_deck:
         webbrowser.open(deck.resolve().as_uri())
+
+
+# --------------------------------------------------------------------------- gallery and app
+
+
+@app.command()
+def gallery(
+    lesson: str = typer.Argument(..., help="Lesson id or path."),
+    theme: list[str] = typer.Option(None, "--theme", "-t", help="Theme id (repeatable)."),
+    open_page: bool = typer.Option(True, "--open/--no-open", help="Open the gallery in a browser."),
+) -> None:
+    """Render one lesson in every theme, side by side, to choose and rate a style."""
+    import webbrowser
+
+    from classdeck.export import ExportBlocked
+    from classdeck.export.gallery import build_gallery
+
+    settings = _settings()
+    current, _ = _load_lesson(settings, lesson)
+    sources = _load_sources(settings, (ref.doc_id for ref in current.sources))
+    target = settings.workdir / "gallery" / current.id
+    try:
+        index = build_gallery(
+            current, target, sources=sources, image_root=_image_root(settings), themes=theme or None
+        )
+    except (ExportBlocked, ValueError) as exc:
+        console.print(f"[red]gallery failed:[/] {exc}")
+        raise typer.Exit(1) from exc
+    console.print(f"gallery -> {index}")
+    if open_page:
+        webbrowser.open(index.resolve().as_uri())
+
+
+@app.command()
+def serve(
+    port: int = typer.Option(8765, help="Port on 127.0.0.1."),
+    open_browser: bool = typer.Option(True, "--open/--no-open", help="Open the app in a browser."),
+) -> None:
+    """Start the local teacher app (http://127.0.0.1:PORT). Needs the `api` extra."""
+    try:
+        from classdeck.app.server import serve as run_server
+    except ImportError as exc:
+        console.print('[red]The app needs the api extra:[/] pip install -e ".[api]"')
+        raise typer.Exit(1) from exc
+    run_server(host="127.0.0.1", port=port, open_browser=open_browser)
 
 
 if __name__ == "__main__":

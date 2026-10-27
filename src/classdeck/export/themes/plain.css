@@ -1,5 +1,5 @@
-/* Theme "plain": monochrome, square corners, no shadows, no emoji icons.
-   Same structure as "kids"; only the look differs. */
+/* theme: plain | Plain | Black and white, square corners, no shadows or icons - cheap to photocopy | suits: grades 3-5 */
+/* Same structure as "kids"; only the look differs. */
 
 :root {
   --bg: #FFFFFF;
@@ -44,8 +44,12 @@
   border: var(--card-border);
 }
 
-.slide[data-slide-type="divider"] .card {
-  border: var(--card-border);
+.speak {
+  border-color: var(--ink);
+}
+
+.speak__icon::before {
+  content: "\266A";
 }
 
 .icon {

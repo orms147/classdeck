@@ -54,6 +54,28 @@ One self-contained file, `<lesson_id>.html`: all CSS and JavaScript inline, ever
 - `export_html(lesson, out_path, *, sources=None, image_root=None, theme="kids") -> Path`; the same `ensure_exportable` gate as the other writers (`fail` blocks the export, `warn` is listed in teacher mode).
 - Tests parse the file: one element per placed block with the right `data-block-id`; images are `data:` URIs and there is no `http://`/`https://` reference; teacher-only elements carry class `teacher`; the fixture deck is under 5 MB.
 
+## Deck themes
+
+A theme is more than a colour swap: it owns typography, layout of each slide type, card shapes, decoration and motion. The renderer emits the same semantic markup for every theme (stable class names per slide type and element — documented in `export/themes/README.md`), and a theme is a single CSS file in `export/themes/` plus a short manifest block at its top (`/* theme: name | label | description | suits: grades */`). Themes may use only system font stacks (no network, no bundled fonts) and CSS drawing (gradients, shapes, SVG-free decoration), so a deck stays one offline file.
+
+The built-in set, chosen to be distinctly different so teachers can pick a taste:
+
+| theme | idea | suits |
+|---|---|---|
+| `sunny` | bold, flat, thick outlines and chunky offset shadows; big rounded type; primary colours per phase — a modern learning-app look | grades 3–4 |
+| `storybook` | warm cream paper, soft watercolour blobs, serif display type, dialogue as speech scrolls, flashcards like picture-book pages | grades 3–4 |
+| `chalkboard` | deep green board with a wooden frame, chalk-white handwriting stack, coloured "sticker" cards and tape | grades 3–5 |
+| `candy` | soft pastel gradients, frosted-glass cards, bubbly pills and floating shapes, gentle bounce motion | grades 3–4 |
+| `studio` | editorial minimalism: big confident type, generous white space, one accent per phase, thin rules — for older pupils and for teachers who dislike "childish" | grades 4–5 |
+
+`sunny` is the default (chosen by teacher review on 2026-10-29). `kids` (the original theme) and `plain` (print-friendly, monochrome) stay available; any theme works with any model, because the model writes only the lesson content and the theme is applied at export. `classdeck gallery <lesson>` renders one lesson in every theme and writes `out/gallery/<lesson>/index.html`, a page that shows them side by side for choosing.
+
+## Pronunciation audio
+
+Every English word, example, sentence pattern, phonics word and dialogue line on a slide gets a 🔊 button (and the flashcard word itself is clickable). It speaks with the browser's own speech synthesis (`speechSynthesis`): British English voice preferred (`en-GB`, then any `en-*`), rate 0.85 for words and 0.95 for sentences, one utterance at a time. Windows, macOS, Android and iOS ship offline English voices, so this works without a network and without licensed audio. When no English voice exists, the buttons hide themselves.
+
+Dictionary audio (for example a learner's dictionary site) is not used: it is licensed content and would need a network at class time. A later option is recorded audio from the teacher (`audio/` next to the lesson, matched by word), which the same button would prefer.
+
 ## Flashcard pictures (`classdeck illustrate`)
 
 Primary-English flashcards live or die by their pictures. The textbook page usually has one scene picture per activity, not one picture per word, so most vocabulary items have no `image` citation and the flashcard slide falls back to word + IPA. `classdeck illustrate` fills that gap with an image model.

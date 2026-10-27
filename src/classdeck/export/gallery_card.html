@@ -1,0 +1,28 @@
+<article class="theme" data-theme="{{id}}">
+  <header>
+    <h2>{{label}}</h2>
+    <p class="desc">{{description}}</p>
+    <p class="suits"><strong>Phù hợp (Suits):</strong> {{suits}}</p>
+  </header>
+  <div class="preview"><iframe src="{{id}}.html" title="{{label}}" loading="lazy"></iframe></div>
+  <div class="controls">
+    <button type="button" class="prev">&larr; Trước (Prev)</button>
+    <span class="counter" aria-live="polite">1 / 1</span>
+    <button type="button" class="next">Sau (Next) &rarr;</button>
+    <a class="open" href="{{id}}.html" target="_blank" rel="noopener">Mở toàn màn hình (Open full screen)</a>
+  </div>
+  <div class="rate">
+    <p class="rate-title">Chấm điểm (Rate)</p>
+    <div class="stars" role="radiogroup" aria-label="Chấm điểm (Rate)">
+      <button type="button" class="star" role="radio" aria-checked="false" data-value="1" aria-label="1 sao">&#9733;</button>
+      <button type="button" class="star" role="radio" aria-checked="false" data-value="2" aria-label="2 sao">&#9733;</button>
+      <button type="button" class="star" role="radio" aria-checked="false" data-value="3" aria-label="3 sao">&#9733;</button>
+      <button type="button" class="star" role="radio" aria-checked="false" data-value="4" aria-label="4 sao">&#9733;</button>
+      <button type="button" class="star" role="radio" aria-checked="false" data-value="5" aria-label="5 sao">&#9733;</button>
+      <button type="button" class="clear" aria-label="Xóa điểm (Clear)">&times;</button>
+    </div>
+    <label class="comment-label">Nhận xét (Comment)
+      <textarea class="comment" rows="2" placeholder="Ví dụ: màu đẹp nhưng chữ hơi nhỏ"></textarea>
+    </label>
+  </div>
+</article>

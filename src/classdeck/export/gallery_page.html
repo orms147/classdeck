@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="ClassDeck">
+<title>Chọn giao diện bài giảng</title>
+<style>
+:root {
+  --bg: #F6F7FB;
+  --ink: #1F2937;
+  --muted: #4B5563;
+  --card: #FFFFFF;
+  --line: #D1D5DB;
+  --accent: #1D4ED8;
+  --star: #B45309;
+  --star-off: #6B7280;
+  --focus: #1D4ED8;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111827;
+    --ink: #F3F4F6;
+    --muted: #D1D5DB;
+    --card: #1F2937;
+    --line: #4B5563;
+    --accent: #93C5FD;
+    --star: #FBBF24;
+    --star-off: #9CA3AF;
+    --focus: #93C5FD;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  line-height: 1.45;
+}
+main { max-width: 1500px; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { margin: 0 0 4px; font-size: 1.7rem; }
+h1 span { font-weight: 400; color: var(--muted); font-size: 1.1rem; }
+.lesson { margin: 0 0 8px; font-weight: 600; }
+.help { margin: 0 0 24px; color: var(--muted); max-width: 70ch; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 600px), 1fr));
+  gap: 24px;
+}
+.theme {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+}
+.theme h2 { margin: 0; font-size: 1.35rem; }
+.theme p { margin: 0; }
+.desc { color: var(--muted); }
+.suits { font-size: 0.95rem; }
+.preview {
+  width: 100%;
+  max-width: 720px;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000000;
+}
+.preview iframe { display: block; width: 100%; height: 100%; border: 0; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.counter { min-width: 5em; text-align: center; font-variant-numeric: tabular-nums; color: var(--muted); }
+button, .open {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+.open { color: var(--accent); font-weight: 600; }
+button:hover, .open:hover { border-color: var(--accent); }
+button:focus-visible, .open:focus-visible, textarea:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.rate-title { margin: 0 0 4px; font-weight: 600; }
+.stars { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.star { width: 48px; padding: 0; justify-content: center; border-color: transparent; background: none; color: var(--star-off); font-size: 2rem; line-height: 1; }
+.star.on { color: var(--star); }
+.clear { padding: 0 14px; font-size: 1.3rem; }
+.comment-label { display: block; margin-top: 8px; font-weight: 600; }
+textarea {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 400;
+  resize: vertical;
+}
+.export { margin-top: 32px; max-width: 720px; }
+#export { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
+#export-status { min-height: 1.5em; margin: 8px 0; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body data-lesson-id="{{lesson_id}}">
+<main>
+<header class="page-head">
+  <h1>Chọn giao diện bài giảng <span>(Choose a deck theme)</span></h1>
+  <p class="lesson">{{title}}</p>
+  <p class="help">Bấm Trước/Sau để xem thử từng trang, chấm sao và ghi nhận xét. Điểm được lưu trong trình duyệt này. Khi xong, bấm <strong>Xuất đánh giá (Export ratings)</strong>.</p>
+</header>
+<section class="grid">
+{{cards}}
+</section>
+<section class="export">
+  <button type="button" id="export">Xuất đánh giá (Export ratings)</button>
+  <p id="export-status" role="status"></p>
+  <textarea id="export-text" rows="8" readonly aria-label="Đánh giá (Ratings)"></textarea>
+</section>
+</main>
+<script>
+(function () {
+  'use strict';
+  var lessonId = document.body.getAttribute('data-lesson-id') || 'lesson';
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.theme'));
+
+  function key(card) { return 'classdeck-gallery:' + lessonId + ':' + card.getAttribute('data-theme'); }
+
+  function load(card) {
+    try {
+      var saved = JSON.parse(window.localStorage.getItem(key(card)) || 'null');
+      if (saved && typeof saved === 'object') return saved;
+    } catch (err) { /* storage can be blocked: the page works without it */ }
+    return { stars: 0, comment: '' };
+  }
+
+  function save(card, data) {
+    try { window.localStorage.setItem(key(card), JSON.stringify(data)); } catch (err) { /* ignore */ }
+  }
+
+  function paint(card, stars) {
+    Array.prototype.forEach.call(card.querySelectorAll('.star'), function (star) {
+      var on = parseInt(star.getAttribute('data-value'), 10) <= stars;
+      star.classList.toggle('on', on);
+      star.setAttribute('aria-checked', parseInt(star.getAttribute('data-value'), 10) === stars ? 'true' : 'false');
+    });
+  }
+
+  cards.forEach(function (card) {
+    var frame = card.querySelector('iframe');
+    var counter = card.querySelector('.counter');
+    var comment = card.querySelector('.comment');
+    var data = load(card);
+    paint(card, data.stars || 0);
+    comment.value = data.comment || '';
+
+    function send(message) {
+      if (frame.contentWindow) frame.contentWindow.postMessage(message, '*');
+    }
+    card.querySelector('.prev').addEventListener('click', function () { send({ type: 'classdeck:prev' }); });
+    card.querySelector('.next').addEventListener('click', function () { send({ type: 'classdeck:next' }); });
+    card.addEventListener('click', function (event) {
+      var star = event.target.closest('.star');
+      if (star) {
+        data.stars = parseInt(star.getAttribute('data-value'), 10);
+      } else if (event.target.closest('.clear')) {
+        data.stars = 0;
+      } else {
+        return;
+      }
+      paint(card, data.stars);
+      save(card, data);
+    });
+    comment.addEventListener('input', function () {
+      data.comment = comment.value;
+      save(card, data);
+    });
+    window.addEventListener('message', function (event) {
+      var message = event.data;
+      if (event.source !== frame.contentWindow || !message || message.type !== 'classdeck:slide') return;
+      counter.textContent = message.slide + ' / ' + message.total;
+    });
+  });
+
+  function summary() {
+    return cards.map(function (card) {
+      var data = load(card);
+      var stars = data.stars ? data.stars + '/5' : 'chưa chấm';
+      var note = (data.comment || '').replace(/\s+/g, ' ').trim();
+      return card.getAttribute('data-theme') + ': ' + stars + (note ? ' — ' + note : '');
+    }).join('\n');
+  }
+
+  var status = document.getElementById('export-status');
+  var output = document.getElementById('export-text');
+
+  function fallbackCopy(text) {
+    output.focus();
+    output.select();
+    try { return document.execCommand('copy'); } catch (err) { return false; }
+  }
+
+  document.getElementById('export').addEventListener('click', function () {
+    var text = summary();
+    output.value = text;
+    var done = function () { status.textContent = 'Đã sao chép vào bộ nhớ tạm (Copied to the clipboard).'; };
+    var failed = function () {
+      status.textContent = fallbackCopy(text)
+        ? 'Đã sao chép vào bộ nhớ tạm (Copied to the clipboard).'
+        : 'Không sao chép được: hãy chép từ ô bên dưới (Copy from the box below).';
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, failed);
+    } else {
+      failed();
+    }
+  });
+})();
+</script>
+</body>
+</html>
