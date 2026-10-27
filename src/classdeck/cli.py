@@ -8,8 +8,10 @@ for a free chat model) and ``eval``. Every command works offline with
 
 from __future__ import annotations
 
+import contextlib
 import difflib
 import json
+import sys
 from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any
@@ -20,6 +22,19 @@ from rich.table import Table
 
 from classdeck import __version__
 from classdeck.config import Settings, get_settings
+
+
+def _utf8_console() -> None:
+    """Make stdout/stderr UTF-8 so Vietnamese glosses and IPA print on legacy Windows consoles."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:
+            continue
+        with contextlib.suppress(ValueError, OSError):  # closed or non-reconfigurable stream
+            reconfigure(encoding="utf-8", errors="replace")
+
+
+_utf8_console()
 
 app = typer.Typer(
     name="classdeck",

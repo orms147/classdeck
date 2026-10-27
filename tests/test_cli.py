@@ -215,3 +215,12 @@ def test_illustrate_then_export_offline(offline_workdir: Path) -> None:
     html = (offline_workdir / "exports" / lesson_id / "lesson.html").read_text(encoding="utf-8")
     assert html.count('data-generated="true"') >= 2
     assert "AI picture" in html and "http" not in html.lower()
+
+
+def test_console_is_utf8_on_import() -> None:
+    import sys
+
+    from classdeck import cli as cli_module
+
+    cli_module._utf8_console()  # idempotent; must never raise
+    assert (sys.stdout.encoding or "").lower().replace("-", "") == "utf8"
