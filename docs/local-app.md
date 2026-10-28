@@ -74,13 +74,13 @@ Requires the `api` extra: `pip install -e ".[api]"`.
 
 Teachers install ClassDeck like any other program and open it from an icon; they never see a terminal, Python or a port number.
 
-**What the teacher does.** Double-click `ClassDeck-Setup.exe` → it copies the program to `%LOCALAPPDATA%\Programs\ClassDeck` (no administrator rights) and puts a *ClassDeck* icon on the desktop and in the Start menu, then starts it. The icon opens the app in its own window; closing the window stops it. The first screen asks for the OpenRouter key once (Settings, as before). Uninstall: *Uninstall ClassDeck* in the Start menu folder (removes the program, keeps the lessons).
+**What the teacher does.** Double-click `ClassDeck-Setup.exe` and follow a standard setup wizard: choose *only for me* (the default, no administrator rights) or *for all users*, choose the folder (default `%LOCALAPPDATA%\Programs\ClassDeck` for one user, `Program Files\ClassDeck` for all), tick or untick the desktop icon, *Install*, and *Launch ClassDeck* on the last page. The icon opens the app in its own window; closing the window stops it. The first screen asks for the OpenRouter key once (Settings, as before). Running a newer setup upgrades in place (same folder; a running ClassDeck is closed first). **Uninstall**: *Uninstall ClassDeck* in the Start menu, Settings > Apps, or `unins000.exe` in the program folder; it removes the program and its icons and keeps the lessons and settings.
 
 **Where things live.**
 
 | what | where |
 |---|---|
-| program | `%LOCALAPPDATA%\Programs\ClassDeck` |
+| program | the folder chosen in setup (default `%LOCALAPPDATA%\Programs\ClassDeck`), with `unins000.exe` |
 | lessons, uploaded pages, exported decks | `Documents\ClassDeck` (the work folder; the teacher can open and back it up) |
 | settings (API key, model) | `%APPDATA%\ClassDeck\settings.json` (unchanged) |
 | curriculum files | `%APPDATA%\ClassDeck\curriculum`, copied from the program on first start (units built from uploaded pages are added there, so it must be writable) |
@@ -88,4 +88,4 @@ Teachers install ClassDeck like any other program and open it from an icon; they
 
 **How it runs** (`classdeck/app/desktop.py`, entry `classdeck-desktop`): set the folders above unless the environment already names them, find a free port from 8765 on 127.0.0.1, start the server in a background thread, open the app in a native window (pywebview on the system WebView2; *Present* opens the deck in the default browser for full-screen projection; downloads are allowed). The built app always has pywebview; run from source without the `desktop` extra, `classdeck-desktop` opens the default browser instead and runs until Ctrl+C. A second start while one is running just opens a new window on the running server.
 
-**Building** (developer, Windows): `packaging/windows/build.ps1` makes the icon (`make_icon.py`, Pillow), runs PyInstaller with `classdeck.spec` (one folder, windowed, the icon, the package data: static files, themes, prompts, word lists, and the `curriculum/` tree), zips `dist/ClassDeck`, and wraps the zip and `install.ps1` into `dist/ClassDeck-Setup.exe` with the Windows IExpress tool. The setup is not code-signed, so Windows SmartScreen shows *Windows protected your PC* on first run (*More info → Run anyway*). Build-only requirements: the `desktop` extra (`pywebview`) and `pyinstaller`.
+**Building** (developer, Windows): `packaging/windows/build.ps1` makes the icon (`make_icon.py`, Pillow), runs PyInstaller with `classdeck.spec` (one folder, windowed, the icon, the package data: static files, themes, prompts, word lists, and the `curriculum/` tree) and compiles `classdeck.iss` with Inno Setup 6 (`ISCC.exe`, found in the per-user or Program Files install) into `dist/ClassDeck-Setup.exe`; the version comes from `pyproject.toml`. The setup is not code-signed, so Windows SmartScreen shows *Windows protected your PC* on first run (*More info > Run anyway*). Build-only requirements: the `desktop` extra (`pywebview`), `pyinstaller` and Inno Setup 6.

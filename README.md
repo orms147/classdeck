@@ -93,7 +93,7 @@ Phase 1 (core library + CLI) is functional end to end: the public fixture goes f
 
 ## Desktop app (Windows)
 
-Teachers can install ClassDeck like any program: run `ClassDeck-Setup.exe` (no administrator rights; it adds a desktop and Start-menu icon) and open it from the icon. Lessons are kept in `Documents\ClassDeck`. To build the installer: `powershell -ExecutionPolicy Bypass -File packaging/windows/build.ps1` (needs `pip install -e ".[desktop]" pyinstaller`); details in [docs/local-app.md](docs/local-app.md#desktop-app-windows).
+Teachers can install ClassDeck like any program: run `ClassDeck-Setup.exe`, a standard setup wizard (for one user without administrator rights, or for all users; choice of folder; desktop and Start-menu icons; an uninstaller in Start menu and Settings > Apps), and open it from the icon. Lessons are kept in `Documents/ClassDeck`. To build the setup: `powershell -ExecutionPolicy Bypass -File packaging/windows/build.ps1` (needs `pip install -e ".[desktop]" pyinstaller` and Inno Setup 6); details in [docs/local-app.md](docs/local-app.md#desktop-app-windows).
 
 ## Quick start
 
