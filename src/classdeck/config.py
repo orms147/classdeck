@@ -2,17 +2,30 @@
 
 Every knob the CLI or the API needs lives here so that nothing else in the package
 reads ``os.environ`` directly. See ``.env.example`` for the documented variables.
+
+Precedence, highest first: explicit environment variables and ``.env`` (developers), the user
+settings file written by the local app (``user_settings_path()``), the built-in defaults. The
+built-in default endpoint is OpenRouter with ``openai/gpt-6-luna``.
 """
 
 from __future__ import annotations
 
+import contextlib
+import json
+import os
+import sys
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field, SecretStr, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic.fields import FieldInfo
+from pydantic_settings import (
+    BaseSettings,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+)
 
 ProviderName = Literal["api", "mock"]
 _LEGACY_PROVIDER_NAMES = {"meta": "api"}
@@ -49,6 +62,99 @@ ENDPOINTS: dict[str, Endpoint] = {
 }
 
 
+DEFAULT_ENDPOINT = "openrouter"
+DEFAULT_MODEL = ENDPOINTS[DEFAULT_ENDPOINT].default_model
+DEFAULT_THEME = "sunny"
+
+USER_SETTINGS_KEYS = ("openrouter_api_key", "model", "default_theme")
+"""What the settings screen of the local app may store in the user settings file."""
+
+_USER_FILE_ALIASES = {
+    "openrouter_api_key": "OPENROUTER_API_KEY",
+    "model": "CLASSDECK_MODEL",
+    "default_theme": "CLASSDECK_THEME",
+}
+
+
+def user_settings_dir() -> Path:
+    """The folder of the user settings file: ``CLASSDECK_HOME``, else the ClassDeck folder in
+    ``%APPDATA%`` on Windows and ``~/.config/classdeck`` elsewhere."""
+    override = os.environ.get("CLASSDECK_HOME", "").strip()
+    if override:
+        return Path(override).expanduser()
+    if sys.platform == "win32":
+        base = os.environ.get("APPDATA", "").strip()
+        return (Path(base) if base else Path.home() / "AppData" / "Roaming") / "ClassDeck"
+    base = os.environ.get("XDG_CONFIG_HOME", "").strip()
+    return (Path(base) if base else Path.home() / ".config") / "classdeck"
+
+
+def user_settings_path() -> Path:
+    return user_settings_dir() / "settings.json"
+
+
+def load_user_settings() -> dict[str, str]:
+    """The stored settings (``USER_SETTINGS_KEYS`` only, non-empty strings); ``{}`` when the
+    file is missing or unreadable."""
+    try:
+        data = json.loads(user_settings_path().read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    return {
+        key: value.strip()
+        for key in USER_SETTINGS_KEYS
+        if isinstance(value := data.get(key), str) and value.strip()
+    }
+
+
+def save_user_settings(updates: dict[str, str | None]) -> dict[str, str]:
+    """Merge ``updates`` into the user settings file and return what is stored.
+
+    A ``None`` or empty value removes the key. Unknown keys are ignored. The file is written
+    atomically and, where the platform supports it, readable by the owner only.
+    """
+    stored = load_user_settings()
+    for key, value in updates.items():
+        if key not in USER_SETTINGS_KEYS:
+            continue
+        text = (value or "").strip()
+        if text:
+            stored[key] = text
+        else:
+            stored.pop(key, None)
+    path = user_settings_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(stored, indent=2, ensure_ascii=False), encoding="utf-8")
+    with contextlib.suppress(OSError):
+        tmp.chmod(0o600)
+    tmp.replace(path)
+    return stored
+
+
+def key_hint(key: str | None) -> str | None:
+    """A masked form of a key for display, ``sk-…abcd``; ``None`` for no key. The middle of the
+    key is never part of it."""
+    if not key:
+        return None
+    if len(key) <= 8:
+        return "…" + key[-2:]
+    return f"{key[:3]}…{key[-4:]}"
+
+
+class _UserFileSource(PydanticBaseSettingsSource):
+    """The user settings file as a settings source: below the environment and ``.env``."""
+
+    def get_field_value(self, field: FieldInfo, field_name: str) -> tuple[Any, str, bool]:
+        return None, field_name, False
+
+    def __call__(self) -> dict[str, Any]:
+        stored = load_user_settings()
+        return {_USER_FILE_ALIASES[key]: value for key, value in stored.items()}
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -60,10 +166,12 @@ class Settings(BaseSettings):
     # Any OpenAI-compatible Chat Completions endpoint; see docs/llm-provider.md for examples.
     model_api_key: SecretStr | None = Field(default=None, validation_alias="MODEL_API_KEY")
     model_api_base_url: str = Field(
-        default="https://api.meta.ai/v1", validation_alias="MODEL_API_BASE_URL"
+        default=ENDPOINTS[DEFAULT_ENDPOINT].base_url, validation_alias="MODEL_API_BASE_URL"
     )
 
-    model: str = Field(default="muse-spark-1.3", validation_alias="CLASSDECK_MODEL")
+    model: str = Field(default=DEFAULT_MODEL, validation_alias="CLASSDECK_MODEL")
+    # The deck theme the local app starts with (settings screen).
+    default_theme: str = Field(default=DEFAULT_THEME, validation_alias="CLASSDECK_THEME")
     # Image model for `classdeck illustrate` (images endpoint of the same endpoint profile).
     image_model: str = Field(default="muse-image-1.0", validation_alias="CLASSDECK_IMAGE_MODEL")
     # "api" calls the endpoint above; "mock" runs the deterministic template pipeline.
@@ -93,6 +201,23 @@ class Settings(BaseSettings):
     curriculum_dir: Path = Field(
         default=Path("curriculum"), validation_alias="CLASSDECK_CURRICULUM_DIR"
     )
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        return (
+            init_settings,
+            env_settings,
+            dotenv_settings,
+            _UserFileSource(settings_cls),
+            file_secret_settings,
+        )
 
     @field_validator("cache_dir", mode="before")
     @classmethod

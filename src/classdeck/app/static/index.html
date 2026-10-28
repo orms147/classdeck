@@ -11,34 +11,26 @@
 <body>
   <a class="skip" href="#view" data-i18n="skip">Skip to content</a>
   <div class="shell">
-    <aside class="nav" aria-label="Navigation">
-      <a class="brand" href="#/">
+    <header class="topbar">
+      <a class="brand" href="#/" aria-label="ClassDeck">
         <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 32 32" width="28" height="28"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M9 12h14M9 17h14M9 22h9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>
+          <svg viewBox="0 0 32 32" width="30" height="30"><rect width="32" height="32" rx="9" fill="currentColor"/><path d="M9 12h14M9 17h14M9 22h9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>
         </span>
         <span class="brand-name">ClassDeck</span>
       </a>
-      <a class="btn primary block" href="#/new" id="navNew"></a>
-      <nav class="nav-group" aria-label="Lessons">
-        <a class="nav-link" href="#/" id="navHome"></a>
-        <div class="nav-label" data-i18n="nav.recent">Recent</div>
-        <div id="navLessons" class="nav-lessons"></div>
+      <nav class="top-nav" aria-label="Navigation">
+        <a class="top-link" href="#/" id="navHome"></a>
       </nav>
-      <div class="nav-foot">
+      <div class="top-right">
+        <span class="top-status" id="topStatus"></span>
         <div class="lang" role="group" aria-label="Language">
           <button type="button" data-lang="vi">VI</button>
           <button type="button" data-lang="en">EN</button>
         </div>
-        <span class="muted small" id="navVersion"></span>
+        <a class="icon-btn gear" href="#/settings" id="navSettings"></a>
       </div>
-    </aside>
-    <div class="main">
-      <header class="topbar">
-        <div class="crumbs" id="crumbs"></div>
-        <div class="top-status" id="topStatus"></div>
-      </header>
-      <main id="view" tabindex="-1"></main>
-    </div>
+    </header>
+    <main id="view" tabindex="-1"></main>
   </div>
   <div id="overlay"></div>
   <div id="toasts" class="toasts" role="status" aria-live="polite"></div>

@@ -41,6 +41,7 @@ from classdeck.export.source_map import (
     origin_text,
 )
 from classdeck.lesson import (
+    EXERCISE_KINDS,
     ActivityBlock,
     Block,
     Citation,
@@ -58,6 +59,13 @@ from classdeck.lesson import (
     TeacherNoteBlock,
     VocabularyBlock,
 )
+from classdeck.lesson.exercises import (
+    answer_pairs,
+    exercise_title,
+    instruction_of,
+    item_groups,
+)
+from classdeck.lesson.labels import lesson_label, unit_line
 
 FONT = "Arial"
 MIN_SIZE = 18
@@ -82,6 +90,8 @@ FOOTER_BOX: Box = (MARGIN, 6.8, CONTENT_WIDTH, 0.5)
 BADGE_BOX: Box = (11.03, 0.45, 1.7, 0.5)
 
 DIALOGUE_LINES_PER_SLIDE = 6
+EXERCISE_ITEMS_PER_SLIDE = 6
+READING_PARAGRAPHS_PER_SLIDE = 3
 NOTES_PER_SLIDE = 8
 MAX_TABLE_ROWS = 12
 TABLE_QUOTE_LIMIT = 60
@@ -443,15 +453,8 @@ class _DeckBuilder:
     # -- framing slides
 
     def _title_slide(self) -> None:
-        ref = self.lesson.curriculum
-        parts = [
-            f"Grade {self.lesson.grade}",
-            ref.unit_id,
-            f"Lesson {ref.lesson_no}" if ref.lesson_no is not None else "",
-            f"Period {ref.period}" if ref.period is not None else "",
-        ]
         slide = self._slide(
-            self.lesson.title,
+            unit_line(self.lesson),
             box=(MARGIN, 2.0, CONTENT_WIDTH, 1.9),
             size=44,
             align=PP_ALIGN.CENTER,
@@ -459,7 +462,7 @@ class _DeckBuilder:
         _add_text(
             slide,
             (MARGIN, 4.1, CONTENT_WIDTH, 0.8),
-            " · ".join(part for part in parts if part),
+            lesson_label(self.lesson),
             size=28,
             color=MUTED,
             align=PP_ALIGN.CENTER,
@@ -514,7 +517,7 @@ class _DeckBuilder:
 
     def _set_properties(self) -> None:
         properties = self.deck.core_properties
-        properties.title = self.lesson.title
+        properties.title = f"{lesson_label(self.lesson)} — {unit_line(self.lesson)}"
         properties.author = "ClassDeck"
         properties.last_modified_by = "ClassDeck"
         properties.created = self.lesson.created_at
@@ -545,6 +548,8 @@ class _DeckBuilder:
                     self._image_ref(block)
                 case TeacherNoteBlock():
                     self._teacher_note(block)
+                case _ if block.kind in EXERCISE_KINDS:
+                    self._exercise(block)
 
     def _objectives(self, blocks: Sequence[ObjectiveBlock]) -> None:
         texts = [block.content.text for block in blocks]
@@ -751,6 +756,76 @@ class _DeckBuilder:
                 size=26,
                 align=PP_ALIGN.CENTER,
             )
+
+    def _exercise(self, block: Block) -> None:
+        """A textbook exercise: the instruction and the items on the slide, the key in the notes.
+
+        Long exercises continue on further slides; a matching exercise keeps its right-hand
+        column whole beside each slice of the left-hand one.
+        """
+        title = exercise_title(block) or "Exercise"
+        parts = item_groups(block)
+        per_slide = (
+            READING_PARAGRAPHS_PER_SLIDE if block.kind == "reading" else EXERCISE_ITEMS_PER_SLIDE
+        )
+        pages = list(_chunks(parts.groups, per_slide)) or [[]]
+        pairs = answer_pairs(block)
+        glossary = getattr(block.content, "glossary", {})
+        picture = self._resolve_image(getattr(block.content, "image", None))
+        offset = 0
+        for number, page in enumerate(pages, start=1):
+            page_title = title if len(pages) == 1 else f"{title} ({number}/{len(pages)})"
+            notes: list[str] = []
+            key = [line for index, line in pairs if offset <= index < offset + len(page)]
+            if key:
+                notes += ["Answer key:", *key]
+            if glossary and number == 1:
+                notes += [
+                    "Glossary:",
+                    *(f"{word}: {meaning}" for word, meaning in glossary.items()),
+                ]
+            slide = self._content_slide(page_title, [block], first=number == 1, notes=notes)
+            offset += len(page)
+
+            top = BODY_TOP
+            instruction = instruction_of(block)
+            if instruction:
+                _add_text(
+                    slide,
+                    (MARGIN, 1.3, CONTENT_WIDTH, 0.6),
+                    instruction,
+                    size=22,
+                    color=MUTED,
+                    italic=True,
+                )
+                top = 2.0
+            header = [] if block.kind in ("reading", "rule_box") else parts.header
+            lines = [line for group in page for line in group]
+            size = _fit_size([*header, *lines], 28)
+            paragraphs = [_para(line, size, bold=True, color=ACCENT) for line in header]
+            for line in lines:
+                if line.startswith("- "):
+                    paragraphs.append(_para(line[2:], size, bullet=True, space_after=10))
+                else:
+                    italic = line.startswith("e.g. ")
+                    paragraphs.append(_para(line, size, italic=italic, space_after=10))
+            height = 6.7 - top
+            if parts.aside:
+                _add_rich(slide, (MARGIN, top, 5.8, height), paragraphs)
+                _add_text(
+                    slide,
+                    (7.0, top, 5.7, height),
+                    parts.aside,
+                    size=_fit_size(parts.aside, 28),
+                    space_after=10,
+                    name="Right-hand column",
+                )
+            elif picture is not None and number == 1:
+                _add_rich(slide, (MARGIN, top, 7.0, height), paragraphs)
+                alt = getattr(block.content, "title", "") or "Reading picture"
+                _add_picture(slide, picture, (7.9, top, 4.83, height), alt=alt)
+            else:
+                _add_rich(slide, (MARGIN, top, CONTENT_WIDTH, height), paragraphs)
 
     def _teacher_note(self, block: TeacherNoteBlock) -> None:
         """Teacher notes get no slide of their own; they join the previous slide's notes."""

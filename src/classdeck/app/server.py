@@ -9,6 +9,10 @@ from __future__ import annotations
 
 import json
 import logging
+import os
+import re
+import subprocess
+import sys
 import threading
 import uuid
 import webbrowser
@@ -17,25 +21,50 @@ from contextlib import contextmanager
 from importlib import resources
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from fastapi import FastAPI, File, Form, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, SecretStr, ValidationError
 from starlette.exceptions import HTTPException
 
 from classdeck import __version__
 from classdeck.app.jobs import Job, JobRegistry, ProposalRegistry
-from classdeck.config import ENDPOINTS, Settings, get_settings
+from classdeck.config import (
+    DEFAULT_ENDPOINT,
+    DEFAULT_MODEL,
+    DEFAULT_THEME,
+    ENDPOINTS,
+    Settings,
+    get_settings,
+    key_hint,
+    load_user_settings,
+    save_user_settings,
+)
 from classdeck.curriculum import Curriculum, list_available, load_curriculum
-from classdeck.editing import EditEngine, EditProposal, EditRejected, EditRequest
+from classdeck.curriculum.auto import (
+    GRADES,
+    curriculum_for,
+    parse_unit_number,
+    unit_id_for,
+)
+from classdeck.editing import (
+    DeckEdit,
+    EditEngine,
+    EditProposal,
+    EditRejected,
+    EditRequest,
+    FieldEditError,
+    apply_deck_edits,
+)
 from classdeck.editing import redo as redo_revision
 from classdeck.editing import undo as undo_revision
 from classdeck.english.presets import EDIT_PRESETS
 from classdeck.export import ExportBlocked, export_docx, export_html, export_pptx
 from classdeck.export.html import available_themes, render_html
-from classdeck.ingest import UnsupportedFormat
+from classdeck.ingest import ScanReport, UnsupportedFormat
 from classdeck.ingest import ingest as ingest_file
 from classdeck.lesson import (
     Block,
@@ -46,8 +75,10 @@ from classdeck.lesson import (
     SourceDocument,
     SourceStore,
 )
+from classdeck.lesson.exercises import exercise_title
+from classdeck.lesson.labels import lesson_label, unit_line, unit_number, unit_title
 from classdeck.lesson.store import LessonNotFound
-from classdeck.llm.base import LLMError, LLMProvider
+from classdeck.llm.base import LLMError, LLMProvider, Message
 from classdeck.llm.images import ImageProvider, build_image_provider
 from classdeck.llm.pricing import estimate_image_cost_usd
 
@@ -58,14 +89,20 @@ OFFLINE = "offline"
 MAX_UPLOAD_BYTES = 30 * 1024 * 1024
 UPLOAD_MAGIC = {".pdf": b"%PDF", ".docx": b"PK", ".pptx": b"PK"}
 DEFAULT_MAX_PICTURES = 4
-DEFAULT_THEME = "sunny"
+MAX_UNIT = 20
+UPLOAD_MAGIC_REFERENCE = {".docx": b"PK"}
 LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1", "testserver"}
+LOOPBACK_CLIENTS = {"127.0.0.1", "::1", "localhost", "testclient"}
+MODEL_ID = re.compile(r"^[\w.\-:/@+]{1,200}$")
 
 ProviderFactory = Callable[[Settings, str | None], LLMProvider | None]
 """``(settings, endpoint) -> provider``; ``endpoint`` is ``None`` (the configured default),
 ``"offline"`` or a name from :data:`~classdeck.config.ENDPOINTS`. ``None`` means no model."""
 
 ImageProviderFactory = Callable[[Settings, str | None], ImageProvider]
+
+FolderOpener = Callable[[Path], None]
+"""Shows a folder in the system file manager (``os.startfile`` on Windows)."""
 
 _EXPORT_TYPES = {
     "html": "text/html; charset=utf-8",
@@ -89,6 +126,17 @@ def default_provider_factory(settings: Settings, endpoint: str | None) -> LLMPro
     return build_provider(resolved)
 
 
+def open_folder_in_system(path: Path) -> None:
+    """Open ``path`` in the file manager of the teacher's computer."""
+    path.mkdir(parents=True, exist_ok=True)
+    if sys.platform == "win32":
+        os.startfile(path)
+    elif sys.platform == "darwin":
+        subprocess.Popen(["open", str(path)])
+    else:
+        subprocess.Popen(["xdg-open", str(path)])
+
+
 def default_image_factory(settings: Settings, endpoint: str | None) -> ImageProvider:
     resolved = settings if endpoint in (None, OFFLINE) else settings.resolved(endpoint)
     return build_image_provider(resolved)
@@ -101,6 +149,19 @@ class ProposalBody(BaseModel):
     block_ids: list[str]
     instruction: str
     endpoint: str | None = None
+
+
+class EditItem(BaseModel):
+    block_id: str
+    field: str
+    value: str
+
+
+class EditsBody(BaseModel):
+    """What Save on the deck sends: the changed fields, and the theme to re-export with."""
+
+    edits: list[EditItem]
+    theme: str | None = None
 
 
 class IllustrateBody(BaseModel):
@@ -117,13 +178,30 @@ class CheckBody(BaseModel):
 class JobParams(BaseModel):
     path: Path
     grade: int
-    unit: str
+    unit_no: int
     lesson_no: int
-    period: int
+    period: int | None
     endpoint: str | None
+    model: str | None = None
+    reference: Path | None = None
     pictures: bool
     max_pictures: int
     theme: str
+
+
+class SettingsBody(BaseModel):
+    """What the settings screen saves. ``None`` leaves a value as it is, ``""`` removes it."""
+
+    api_key: str | None = None
+    model: str | None = None
+    default_theme: str | None = None
+
+
+class SettingsTestBody(BaseModel):
+    """A key and model to try; what is not given is taken from the saved settings."""
+
+    api_key: str | None = None
+    model: str | None = None
 
 
 class ApiError(Exception):
@@ -147,6 +225,12 @@ class _NoModel:
 
 
 # --------------------------------------------------------------------------- helpers
+
+
+def download_stem(lesson: Lesson) -> str:
+    """A file name teachers recognise: ``Grade-3-Lesson-1-Period-1`` (no internal ids)."""
+    label = lesson_label(lesson).replace(" · ", "-").replace(" ", "-")
+    return re.sub(r"[^A-Za-z0-9-]", "", label) or "lesson"
 
 
 def _theme_infos() -> list[dict[str, str]]:
@@ -207,6 +291,10 @@ def _block_label(block: Block) -> str:
             text = content.title
         case "summary":
             text = content.bullets[0] if content.bullets else ""
+        case "reading" | "rule_box":
+            text = content.title or (content.paragraphs[0].text if content.paragraphs else "")
+        case "match" | "gap_fill" | "choice" | "true_false" | "question_set" | "sound_sort":
+            text = content.instruction or exercise_title(block) or ""
         case _:
             text = content.caption or content.alt
     text = " ".join(str(text).split())
@@ -291,11 +379,13 @@ class AppState:
         provider_factory: ProviderFactory,
         image_factory: ImageProviderFactory,
         sample_dir: Path | None,
+        folder_opener: FolderOpener = open_folder_in_system,
     ) -> None:
         self.settings = settings
         self.provider_factory = provider_factory
         self.image_factory = image_factory
         self.sample_dir = sample_dir
+        self.folder_opener = folder_opener
         self.jobs = JobRegistry()
         self.proposals = ProposalRegistry()
         self.lessons = LessonStore(settings.workdir)
@@ -340,12 +430,65 @@ class AppState:
             raise ApiError(400, f"The {name} endpoint has no API key configured.")
         return name
 
-    def provider_for(self, raw: str | None) -> LLMProvider | None:
+    def provider_for(self, raw: str | None, model: str | None = None) -> LLMProvider | None:
+        """The model for ``raw`` (see :meth:`normalise_endpoint`); ``model`` overrides the
+        configured model id for this call."""
         endpoint = self.normalise_endpoint(raw)
+        settings = self.settings
         try:
-            return self.provider_factory(self.settings, endpoint)
+            if model and endpoint not in (None, OFFLINE):
+                # A named profile would reset the model to its default: settle it here.
+                settings = settings.resolved(endpoint, model).model_copy(update={"endpoint": None})
+                endpoint = None
+            elif model:
+                settings = settings.model_copy(update={"model": model})
+            return self.provider_factory(settings, endpoint)
         except ValueError as exc:
             raise ApiError(400, str(exc)) from exc
+
+    # -- the user settings screen
+
+    def api_key(self) -> str:
+        key = self.settings.resolved().model_api_key
+        return key.get_secret_value() if key else ""
+
+    def settings_payload(self) -> dict[str, Any]:
+        """What the settings screen shows. The key itself is never part of it."""
+        cfg = self.settings
+        key = self.api_key()
+        stored = load_user_settings().get("openrouter_api_key", "")
+        return {
+            "key_set": bool(key),
+            "key_hint": key_hint(key),
+            "key_source": None if not key else ("settings" if key == stored else "environment"),
+            "model": cfg.model,
+            "default_model": DEFAULT_MODEL,
+            "default_theme": self.default_theme(),
+            "themes": _theme_ids(),
+            "endpoint": DEFAULT_ENDPOINT,
+            "endpoint_label": ENDPOINTS[DEFAULT_ENDPOINT].label,
+            "workdir": str(cfg.workdir.resolve()),
+            "offline_mode": cfg.provider == "mock",
+        }
+
+    def default_theme(self) -> str:
+        return (
+            self.settings.default_theme
+            if self.settings.default_theme in _theme_ids()
+            else DEFAULT_THEME
+        )
+
+    def apply_user_settings(self) -> None:
+        """Take the saved settings into this running app (the next model call uses them)."""
+        stored = load_user_settings()
+        key = stored.get("openrouter_api_key")
+        self.settings = self.settings.model_copy(
+            update={
+                "openrouter_api_key": SecretStr(key) if key else None,
+                "model": stored.get("model", DEFAULT_MODEL),
+                "default_theme": stored.get("default_theme", DEFAULT_THEME),
+            }
+        )
 
     def default_endpoint(self) -> str:
         configured = self.settings.endpoint
@@ -360,6 +503,7 @@ class AppState:
     # -- data
 
     def curriculum(self, grade: int, version: str = CURRICULUM_VERSION) -> Curriculum:
+        """The grade's curriculum file; ``ApiError`` for a grade without one."""
         key = (version, grade)
         if key not in self._curricula:
             try:
@@ -367,6 +511,20 @@ class AppState:
             except (FileNotFoundError, ValueError) as exc:
                 raise ApiError(400, str(exc)) from exc
         return self._curricula[key]
+
+    def curriculum_of(self, lesson: Lesson) -> Curriculum:
+        """The curriculum of a saved lesson, rebuilt from its pages when its unit is not in the
+        grade's file (``curriculum/auto.py``)."""
+        try:
+            return curriculum_for(
+                lesson.grade,
+                parse_unit_number(lesson.curriculum.unit_id, lesson.grade),
+                self.sources_of(lesson),
+                curriculum_dir=self.settings.curriculum_dir,
+                version=lesson.curriculum.version,
+            )
+        except (FileNotFoundError, ValueError) as exc:
+            raise ApiError(400, str(exc)) from exc
 
     def load_lesson(self, lesson_id: str) -> Lesson:
         try:
@@ -425,6 +583,7 @@ def lesson_payload(state: AppState, lesson: Lesson) -> dict[str, Any]:
     sources = state.sources_of(lesson)
     data = lesson.model_dump(mode="json")
     data["revisions"] = [_revision_summary(r) for r in lesson.revisions]
+    data["title"] = lesson_label(lesson)
     rows = []
     for section in lesson.sections:
         for block_id in section.block_ids:
@@ -445,6 +604,8 @@ def lesson_payload(state: AppState, lesson: Lesson) -> dict[str, Any]:
     return {
         "lesson": data,
         "summary": {
+            "label": lesson_label(lesson),
+            "unit_line": unit_line(lesson),
             "blocks": rows,
             "sections": [
                 {"id": s.id, "phase": s.phase.value, "title": s.title, "minutes": s.minutes}
@@ -503,10 +664,13 @@ def proposal_payload(key: str, lesson_id: str, proposal: EditProposal) -> dict[s
 # --------------------------------------------------------------------------- the job
 
 
-def _save_upload(state: AppState, file: UploadFile) -> Path:
+def _save_upload(
+    state: AppState, file: UploadFile, allowed: Mapping[str, bytes] = UPLOAD_MAGIC
+) -> Path:
     suffix = Path(file.filename or "").suffix.lower()
-    if suffix not in UPLOAD_MAGIC:
-        raise ApiError(400, "Only PDF, DOCX and PPTX files can be used.")
+    if suffix not in allowed:
+        names = ", ".join(sorted(ext[1:].upper() for ext in allowed))
+        raise ApiError(400, f"Only {names} files can be used here.")
     folder = state.settings.workdir / "uploads"
     folder.mkdir(parents=True, exist_ok=True)
     target = folder / f"{uuid.uuid4().hex}{suffix}"
@@ -514,7 +678,7 @@ def _save_upload(state: AppState, file: UploadFile) -> Path:
     try:
         with target.open("wb") as handle:
             while chunk := file.file.read(1024 * 1024):
-                if size == 0 and not chunk.startswith(UPLOAD_MAGIC[suffix]):
+                if size == 0 and not chunk.startswith(allowed[suffix]):
                     raise ApiError(400, f"The file does not look like a {suffix[1:].upper()}.")
                 size += len(chunk)
                 if size > MAX_UPLOAD_BYTES:
@@ -530,37 +694,82 @@ def _save_upload(state: AppState, file: UploadFile) -> Path:
 
 def run_job(state: AppState, job: Job, params: JobParams) -> None:
     """ingest -> outline -> draft -> pictures -> export, as ``classdeck run``."""
-    from classdeck.pipeline import build_lesson
+    from classdeck.pipeline import build_lesson, build_secondary_lesson
     from classdeck.planning import outline as build_outline
 
     settings = state.settings
     try:
-        model = state.provider_for(params.endpoint)
+        model = state.provider_for(params.endpoint, params.model)
         job.begin("ingest")
-        doc = ingest_file(params.path, image_dir=state.image_root)
+        scans: list[ScanReport] = []
+        doc = ingest_file(
+            params.path, image_dir=state.image_root, provider=model, report=scans.append
+        )
+        unread = sorted(item.page for item in scans if not item.ok)
+        for item in scans:
+            if not item.ok:
+                job.warn(f"page {item.page} could not be read: {item.error}")
+        if unread:
+            job.warn(
+                f"{len(unread)} scanned page(s) were not read ({', '.join(map(str, unread))}) "
+                "and are kept as pictures; the lesson may be incomplete. Check the key and the "
+                "connection, then run it again."
+            )
         state.sources.save(doc)
-        curriculum = state.curriculum(params.grade)
         sources = {doc.doc_id: doc}
+        # The unit comes from the grade's file when it lists it, else from the ingested pages.
+        curriculum = curriculum_for(
+            params.grade,
+            params.unit_no,
+            sources,
+            curriculum_dir=settings.curriculum_dir,
+            version=CURRICULUM_VERSION,
+        )
+        unit_id = unit_id_for(params.grade, params.unit_no)
         job.finish_stage("ingest")
 
-        job.begin("outline")
-        plan = build_outline(
-            [doc],
-            curriculum,
-            unit_id=params.unit,
-            lesson_no=params.lesson_no,
-            period=params.period,
-            grade=params.grade,
-            provider=model,
-        )
-        outlines = settings.workdir / "outlines"
-        outlines.mkdir(parents=True, exist_ok=True)
-        name = f"{params.unit}-l{params.lesson_no}-p{params.period}.outline.json"
-        (outlines / name).write_text(plan.model_dump_json(indent=2), encoding="utf-8")
-        job.finish_stage("outline")
+        if curriculum.is_secondary:
+            # Grades 6-9: the textbook lesson is cut by code, one model call fills the rest.
+            job.begin("outline")
+            job.finish_stage("outline", skipped=True)
+            reference_text = ""
+            if params.reference is not None:
+                from classdeck.planning.reference import reference_for_lesson
 
-        job.begin("draft", "draft")
-        lesson = build_lesson(plan, sources, curriculum, model, on_stage=job.note)
+                reference_text = reference_for_lesson(params.reference, params.lesson_no)
+                if not reference_text:
+                    job.warn("reference: no section for this lesson in the plan")
+            job.begin("draft", "draft")
+            lesson, report = build_secondary_lesson(
+                sources,
+                curriculum,
+                model,
+                unit_id=unit_id,
+                lesson_no=params.lesson_no,
+                reference=reference_text,
+                on_stage=job.note,
+            )
+            for key, found in report.problems.items():
+                job.warn(f"draft {key}: {'; '.join(found)}")
+        else:
+            job.begin("outline")
+            plan = build_outline(
+                [doc],
+                curriculum,
+                unit_id=unit_id,
+                lesson_no=params.lesson_no,
+                period=params.period or 1,
+                grade=params.grade,
+                provider=model,
+            )
+            outlines = settings.workdir / "outlines"
+            outlines.mkdir(parents=True, exist_ok=True)
+            name = f"{unit_id}-l{params.lesson_no}-p{params.period or 1}.outline.json"
+            (outlines / name).write_text(plan.model_dump_json(indent=2), encoding="utf-8")
+            job.finish_stage("outline")
+
+            job.begin("draft", "draft")
+            lesson = build_lesson(plan, sources, curriculum, model, on_stage=job.note)
         state.lessons.save(lesson)
         job.finish_stage("draft")
 
@@ -596,8 +805,6 @@ def run_job(state: AppState, job: Job, params: JobParams) -> None:
                 image_root=images,
                 theme=params.theme,
             )
-            export_pptx(lesson, target / "lesson.pptx", sources=sources, image_root=images)
-            export_docx(lesson, target / "lesson.docx", sources=sources, curriculum=curriculum)
         except ExportBlocked as exc:
             job.warn(f"export: {exc}")
         job.finish_stage("export")
@@ -620,6 +827,7 @@ def create_app(
     provider_factory: ProviderFactory | None = None,
     image_factory: ImageProviderFactory | None = None,
     sample_dir: Path | None = None,
+    folder_opener: FolderOpener | None = None,
 ) -> FastAPI:
     """Build the app. The factories are the seams tests use to script the model."""
     state = AppState(
@@ -627,6 +835,7 @@ def create_app(
         provider_factory or default_provider_factory,
         image_factory or default_image_factory,
         sample_dir if sample_dir is not None else _default_sample_dir(),
+        folder_opener or open_folder_in_system,
     )
     app = FastAPI(title="ClassDeck", version=__version__, docs_url=None, redoc_url=None)
     app.state.classdeck = state
@@ -669,35 +878,57 @@ def create_app(
                 {
                     "name": name,
                     "label": profile.label,
+                    "host": urlparse(profile.base_url).hostname,
                     "configured": state.endpoint_configured(name),
                     "model": profile.default_model,
                 }
             )
         if state.default_configured():
+            # The configured endpoint with the configured model (the one the settings screen
+            # sets); it stands for the named profile that has the same host.
+            same = next(
+                (p for p in ENDPOINTS.values() if p.base_url == cfg.model_api_base_url), None
+            )
             endpoints.append(
                 {
                     "name": "default",
-                    "label": cfg.model_api_host,
+                    "label": same.label if same else cfg.model_api_host,
+                    "host": cfg.model_api_host,
                     "configured": True,
                     "model": cfg.model,
                 }
             )
+        available = {g for v, g in list_available(cfg.curriculum_dir) if v == CURRICULUM_VERSION}
         grades = []
-        for version, grade in list_available(cfg.curriculum_dir):
-            if version != CURRICULUM_VERSION:
-                continue
-            units = [
-                {"id": u.id, "title": u.title, "lessons": u.lessons}
-                for u in state.curriculum(grade).file.units
-            ]
-            grades.append({"grade": grade, "units": units})
+        for grade in GRADES:
+            secondary = grade >= 6
+            units = (
+                [
+                    {"id": u.id, "title": u.title, "lessons": u.lessons}
+                    for u in state.curriculum(grade).file.units
+                ]
+                if grade in available
+                else []
+            )
+            grades.append(
+                {
+                    "grade": grade,
+                    "unit_shape": "secondary" if secondary else "primary",
+                    "lessons": 7 if secondary else 3,
+                    "periods": 0 if secondary else 2,
+                    "units": units,
+                }
+            )
         return {
             "version": __version__,
             "provider_mode": cfg.provider,
             "endpoints": endpoints,
             "default_endpoint": state.default_endpoint(),
+            "key_set": bool(state.api_key()),
+            "model": cfg.model,
             "themes": _theme_infos(),
-            "default_theme": DEFAULT_THEME,
+            "default_theme": state.default_theme(),
+            "max_unit": MAX_UNIT,
             "grades": grades,
             "samples": state.samples(),
             "presets": [
@@ -731,7 +962,10 @@ def create_app(
             rows.append(
                 {
                     "id": lesson.id,
-                    "title": lesson.title,
+                    "title": lesson_label(lesson),
+                    "unit": unit_line(lesson),
+                    "unit_no": unit_number(lesson.curriculum),
+                    "unit_title": unit_title(lesson),
                     "grade": lesson.grade,
                     "unit_id": lesson.curriculum.unit_id,
                     "lesson_no": lesson.curriculum.lesson_no,
@@ -746,45 +980,155 @@ def create_app(
         rows.sort(key=lambda r: r["updated_at"], reverse=True)
         return {"lessons": rows}
 
+    # -- settings
+
+    def clean_key(raw: str) -> str:
+        key = raw.strip()
+        if key and (len(key) > 300 or re.search(r"\s", key)):
+            raise ApiError(400, "That does not look like an API key.")
+        return key
+
+    def clean_model(raw: str) -> str:
+        model = raw.strip()
+        if model and not MODEL_ID.match(model):
+            raise ApiError(400, "That does not look like a model id.")
+        return model
+
+    @app.get("/api/settings")
+    def get_user_settings() -> dict[str, Any]:
+        return state.settings_payload()
+
+    @app.put("/api/settings")
+    def put_user_settings(body: SettingsBody) -> dict[str, Any]:
+        updates: dict[str, str | None] = {}
+        if body.api_key is not None:
+            updates["openrouter_api_key"] = clean_key(body.api_key)
+        if body.model is not None:
+            updates["model"] = clean_model(body.model)
+        if body.default_theme is not None:
+            if body.default_theme and body.default_theme not in _theme_ids():
+                raise ApiError(400, f"Unknown theme {body.default_theme!r}.")
+            updates["default_theme"] = body.default_theme
+        try:
+            save_user_settings(updates)
+        except OSError as exc:
+            raise ApiError(500, "The settings could not be saved on this computer.") from exc
+        state.apply_user_settings()
+        return state.settings_payload()
+
+    @app.post("/api/settings/test")
+    def test_user_settings(body: SettingsTestBody | None = None) -> dict[str, Any]:
+        """One tiny request with the key and model on the screen (or the saved ones)."""
+        body = body or SettingsTestBody()
+        key = clean_key(body.api_key) if body.api_key else state.api_key()
+        model = clean_model(body.model) if body.model else state.settings.model
+        if not key and state.settings.provider != "mock":
+            return {
+                "ok": False,
+                "code": "no_key",
+                "model": model,
+                "error": "Add your OpenRouter key first.",
+            }
+        trial = state.settings.model_copy(
+            update={
+                "openrouter_api_key": SecretStr(key) if key else None,
+                "model_api_key": SecretStr(key) if key else None,
+                "model": model,
+                "cache_dir": None,
+            }
+        )
+        try:
+            provider = state.provider_factory(trial, None)
+            if provider is None:
+                return {
+                    "ok": False,
+                    "code": "offline",
+                    "model": model,
+                    "error": "The app is in offline mode.",
+                }
+            reply = provider.complete(
+                [Message(role="user", content="Reply with the single word: pong")],
+                temperature=0.0,
+                max_tokens=64,
+            )
+        except (LLMError, ValueError) as exc:
+            message = str(exc)
+            if key:
+                message = message.replace(key, key_hint(key) or "")
+            return {"ok": False, "model": model, "error": message}
+        text = reply.text.strip() or "(empty reply)"
+        return {"ok": True, "model": reply.model or model, "reply": text[:200]}
+
+    @app.post("/api/open-folder")
+    def open_work_folder(request: Request) -> dict[str, Any]:
+        client = request.client.host if request.client else ""
+        if client not in LOOPBACK_CLIENTS:
+            raise ApiError(403, "The folder can only be opened from this computer.")
+        folder = state.settings.workdir.resolve()
+        try:
+            state.folder_opener(folder)
+        except OSError as exc:
+            raise ApiError(500, f"The folder could not be opened: {exc}") from exc
+        return {"ok": True, "path": str(folder)}
+
     # -- jobs
 
     @app.post("/api/jobs")
     def create_job(
         file: UploadFile | None = File(default=None),  # noqa: B008
+        reference: UploadFile | None = File(default=None),  # noqa: B008
         sample: str | None = Form(default=None),
         grade: int = Form(...),
         unit: str = Form(...),
         lesson: int = Form(default=1),
         period: int = Form(default=1),
         endpoint: str | None = Form(default=None),
+        model: str | None = Form(default=None),
         pictures: bool = Form(default=False),
         max_pictures: int = Form(default=DEFAULT_MAX_PICTURES),
-        theme: str = Form(default=DEFAULT_THEME),
+        theme: str | None = Form(default=None),
     ) -> dict[str, str]:
-        if grade not in (3, 4, 5):
-            raise ApiError(400, "Grade must be 3, 4 or 5.")
-        if lesson not in (1, 2, 3) or period not in (1, 2):
+        if grade not in GRADES:
+            raise ApiError(400, "Grade must be one of 1-9.")
+        try:
+            unit_no = parse_unit_number(unit, grade)
+        except ValueError as exc:
+            raise ApiError(400, str(exc)) from exc
+        if unit_no > MAX_UNIT:
+            raise ApiError(400, f"Unit must be between 1 and {MAX_UNIT}.")
+        secondary = grade >= 6
+        if secondary:
+            if lesson not in range(1, 8):
+                raise ApiError(400, "Lesson must be 1-7 for this grade.")
+        elif lesson not in (1, 2, 3) or period not in (1, 2):
             raise ApiError(400, "Lesson must be 1-3 and period 1-2.")
+        theme = theme or state.default_theme()
         if theme not in _theme_ids():
             raise ApiError(400, f"Unknown theme {theme!r}.")
+        model = (model or "").strip() or None
+        if model and not MODEL_ID.match(model):
+            raise ApiError(400, "That does not look like a model id.")
         state.normalise_endpoint(endpoint)
-        try:
-            state.curriculum(grade).unit(unit)
-        except KeyError as exc:
-            raise ApiError(400, str(exc.args[0])) from exc
         if file is not None and file.filename:
             path = _save_upload(state, file)
         elif sample:
             path = state.sample_path(sample)
         else:
             raise ApiError(400, "Choose a file or a sample unit.")
+        reference_path: Path | None = None
+        if reference is not None and reference.filename:
+            if not secondary:
+                raise ApiError(400, "A reference plan can be used for grades 6-9.")
+            reference_path = _save_upload(state, reference, allowed=UPLOAD_MAGIC_REFERENCE)
         params = JobParams(
             path=path,
             grade=grade,
-            unit=unit,
+            unit_no=unit_no,
             lesson_no=lesson,
-            period=period,
+            period=None if secondary else period,
             endpoint=endpoint,
+            model=model,
+            reference=reference_path,
             pictures=pictures,
             max_pictures=max(0, min(max_pictures, 24)),
             theme=theme,
@@ -846,14 +1190,14 @@ def create_app(
             elif fmt == "pptx":
                 export_pptx(lesson, path, sources=sources, image_root=state.image_root)
             else:
-                curriculum = state.curriculum(lesson.grade, lesson.curriculum.version)
+                curriculum = state.curriculum_of(lesson)
                 export_docx(lesson, path, sources=sources, curriculum=curriculum)
         except ExportBlocked as exc:
             raise ApiError(409, f"The export is blocked by failing checks: {exc}") from exc
         return FileResponse(
             path,
             media_type=_EXPORT_TYPES[fmt],
-            filename=f"{lesson.id}.{fmt}",
+            filename=f"{download_stem(lesson)}.{fmt}",
             headers={"Cache-Control": "no-store"},
         )
 
@@ -873,7 +1217,7 @@ def create_app(
         engine = EditEngine(
             model,
             sources=state.sources_of(lesson),
-            curriculum=state.curriculum(lesson.grade, lesson.curriculum.version),
+            curriculum=state.curriculum_of(lesson),
         )
         try:
             request = EditRequest(target_block_ids=body.block_ids, instruction=body.instruction)
@@ -901,7 +1245,7 @@ def create_app(
             engine = EditEngine(
                 _NoModel(),
                 sources=state.sources_of(lesson),
-                curriculum=state.curriculum(lesson.grade, lesson.curriculum.version),
+                curriculum=state.curriculum_of(lesson),
             )
             try:
                 updated = engine.accept(lesson, stored.proposal)
@@ -949,6 +1293,51 @@ def create_app(
             _write_redo(path, stack[:-1])
             state.lessons.save(restored)
         return lesson_payload(state, restored)
+
+    @app.post("/api/lessons/{lesson_id}/edits")
+    def save_edits(lesson_id: str, body: EditsBody | list[EditItem]) -> dict[str, Any]:
+        """Edits made on the slides (``docs/output-formats.md``): one teacher edit, one revision."""
+        items, theme = (body.edits, body.theme) if isinstance(body, EditsBody) else (body, None)
+        theme_name = theme_of(theme)
+        with state.locked(lesson_id):
+            lesson = state.load_lesson(lesson_id)
+            sources = state.sources_of(lesson)
+            curriculum = state.curriculum_of(lesson)
+            try:
+                result = apply_deck_edits(
+                    lesson,
+                    [DeckEdit(block_id=i.block_id, field=i.field, value=i.value) for i in items],
+                    sources=sources,
+                    curriculum=curriculum,
+                )
+            except FieldEditError as exc:
+                raise ApiError(422, exc.message, block_id=exc.block_id, field=exc.field) from exc
+            notices = [notice.as_json() for notice in result.notices]
+            exported = False
+            if result.changed:
+                path = state.lessons.path_for(lesson_id)
+                state.lessons.save(result.lesson)
+                _write_redo(path, [])
+                target = state.settings.workdir / "exports" / lesson.id
+                try:
+                    export_html(
+                        result.lesson,
+                        target / "lesson.html",
+                        sources=sources,
+                        image_root=state.image_root,
+                        theme=theme_name,
+                    )
+                    exported = True
+                except ExportBlocked as exc:
+                    notices.append(
+                        {"block_id": "", "kind": "export", "message": f"The deck is blocked: {exc}"}
+                    )
+        return {
+            **lesson_payload(state, result.lesson),
+            "notices": notices,
+            "changed": result.changed_block_ids,
+            "exported": exported,
+        }
 
     # -- pictures and checks
 
@@ -998,7 +1387,7 @@ def create_app(
         judge = state.provider_for(body.endpoint if body else OFFLINE)
         with state.locked(lesson_id):
             lesson = state.load_lesson(lesson_id)
-            curriculum = state.curriculum(lesson.grade, lesson.curriculum.version)
+            curriculum = state.curriculum_of(lesson)
             updated = finish_lesson(lesson, state.sources_of(lesson), curriculum, judge)
             state.lessons.save(updated)
         return lesson_payload(state, updated)

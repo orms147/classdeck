@@ -20,6 +20,7 @@ from pathlib import Path
 from classdeck.export.html import ThemeInfo, available_themes, export_html
 from classdeck.export.source_map import ensure_exportable
 from classdeck.lesson import Lesson, SourceDocument
+from classdeck.lesson.labels import lesson_label, unit_line
 
 INDEX_NAME = "index.html"
 PAGE_TEMPLATE = "gallery_page.html"
@@ -93,7 +94,7 @@ def _render_index(lesson: Lesson, infos: Sequence[ThemeInfo]) -> str:
     return _fill(
         _resource(PAGE_TEMPLATE),
         {
-            "title": html.escape(lesson.title),
+            "title": html.escape(f"{lesson_label(lesson)} — {unit_line(lesson)}"),
             "lesson_id": html.escape(lesson.id, quote=True),
             "cards": "\n".join(_card(info) for info in infos),
         },

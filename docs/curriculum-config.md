@@ -17,6 +17,10 @@ curriculum/
 
 The loader (`src/classdeck/curriculum/loader.py`) reads one `(version, grade)` file, validates it with Pydantic, and exposes lookup by `unit_id` / `outcome_id`, the grade word list, the grammar scope, and a simple keyword search used by the outliner.
 
+## Units that are not in a file
+
+Teachers pick a grade (1-9) and a unit *number*; they never edit these files. `curriculum_for(grade, unit_number, sources)` (`src/classdeck/curriculum/auto.py`) returns the curriculum for that choice: the unit `ta{grade}.u{n}` comes from the grade's YAML file when it lists it, else it is built from the ingested pages and added to the grade's file (grades 1, 2 and 6-8 have no file; a blank grade is used). The built unit has the title of the first heading, key words and patterns read from the pages (primary) or the outcomes of the "This unit includes" box (secondary, see [secondary-units.md](secondary-units.md)). A curriculum with such a unit has **no closed word list** (`Curriculum.uses_unit_words`): `english.words_from_unit` replaces `english.vocab_level`, as for every secondary grade. The `--unit` option of `run` and `plan` accepts the number (`--unit 2`) or the old id (`--unit ta3.u2`); saved lessons rebuild their unit from their saved pages, so `check`, `edit` and `export` work on them too.
+
 ## File format
 
 ```yaml
@@ -25,6 +29,7 @@ subject: tieng-anh
 grade: 3
 language: en
 period_minutes: 35
+unit_shape: primary             # primary (default) | secondary; see below
 
 vocabulary:
   level: pre-A1
@@ -83,6 +88,10 @@ units:
       - { sound: "/h/", letters: "h", words: [hello, hi] }
 ```
 
+### Secondary grades
+
+A file for grades 6-9 (`lop-9.yaml`) sets `period_minutes: 45` and `unit_shape: secondary`: a unit has seven textbook lessons (`lessons: 7`) of one period each, see [secondary-units.md](secondary-units.md). There is **no closed word list**: `vocabulary.words` is empty or absent and `english.words_from_unit` replaces `english.vocab_level`. An outcome may name the textbook lessons that serve it (`lessons: [1, 2, 7]`); the drafter makes an objective block of each outcome whose list contains the lesson being drafted. Outcomes of a unit are written from the categories of the book's *This unit includes* box (vocabulary topic, pronunciation, grammar, the four skills, everyday English); a unit whose book pages have not been read yet carries one generic outcome. `grade` runs from 3 to 9; `unit_shape: primary` is for grades 3-5 and `secondary` for 6-9.
+
 ## ID policy
 
 - IDs are stable strings, never renumbered: `ta<grade>.u<unit>.o<outcome>` — `ta3.u1.o2`.
@@ -95,7 +104,7 @@ units:
 | Planning | Outliner receives the unit's outcomes, patterns and vocabulary; must assign ≥ 1 outcome to each section; `objective` blocks are derived from outcome text. |
 | Drafting | `grammar_scope.allowed` and the grade word list go into the prompt; outcome `skills` decide which activity types are needed. |
 | Grounding | None (curriculum is not a source). |
-| Validators | `english.vocab_level` reads `vocabulary.words` ∪ `vocabulary.classroom_language` ∪ unit `vocabulary`; `english.grammar_scope` reads `grammar_scope.forbidden`; `english.timing` reads `period_minutes`; `curriculum.outcome_covered` reads `outcomes`. |
+| Validators | (secondary: `english.words_from_unit` reads the unit's ingested pages instead of the word list) `english.vocab_level` reads `vocabulary.words` ∪ `vocabulary.classroom_language` ∪ unit `vocabulary`; `english.grammar_scope` reads `grammar_scope.forbidden`; `english.timing` reads `period_minutes`; `curriculum.outcome_covered` reads `outcomes`. |
 | Export | Lesson plan header lists outcomes by ID and text, as Vietnamese lesson plans conventionally do. |
 
 ## Sourcing the data

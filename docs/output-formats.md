@@ -1,12 +1,13 @@
 # Output formats
 
+**Scope (decided 2026-10-29): the product output is the HTML lesson deck only** — one lively, interactive file per period. Effort goes into the deck; Word lesson plans and PowerPoint/PDF copies are not part of the default flow.
+
 What a teacher gets out of ClassDeck, in order of importance:
 
 | format | for | module | status |
 |---|---|---|---|
 | **HTML deck** | the classroom — projector, pupils, offline | `export/html.py` | primary; spec below |
-| PPTX | teachers who must hand in or edit PowerPoint | `export/pptx.py` | done, see [english-rules.md](english-rules.md#export-conventions) |
-| DOCX lesson plan | the written plan (two-column Teacher's / Students' activities) | `export/docx.py` | done, see [english-rules.md](english-rules.md#export-conventions) |
+| PPTX, DOCX | optional copies, **off by default** (`classdeck export --pptx --docx`) | `export/pptx.py`, `export/docx.py` | kept, not developed further |
 | Prompt packs | teachers with no API key: hand the generative step to a free chat model in the browser | `handoff/` | spec below |
 | Flashcard pictures | vocabulary items without a textbook picture | `classdeck illustrate` (`llm/images.py`) | spec below |
 
@@ -45,14 +46,40 @@ One self-contained file, `<lesson_id>.html`: all CSS and JavaScript inline, ever
 | `activity` | icon, title, `instructions` (≤ 12 words, large), `student_steps` as numbered cards, countdown for `minutes` |
 | `summary` | grid of the lesson's words (with pictures where available) and the pattern |
 | `image_ref` | the picture with its caption |
+| `reading` | the title and paragraphs on one slide (long texts continue `(1/2)`); highlighted words that have a `glossary` entry are buttons that show their meaning; a speaker button per paragraph |
+| `match` | two columns; tap an item on each side to pair them (numbered, coloured tags); **Check** marks pairs right or wrong, **Show answers** fills the key; with pictures on the left (a word-to-picture exercise) the pictures are a numbered grid and the words are chips beside it |
+| `sound_sort` | word chips with a speaker button, sorted by a tap on a chip and then a sound column (or by dragging); sentences with tappable target words that cycle through the sounds (each sound has its own colour and mark); **Check**, **Show answers** |
+| `gap_fill` | the word box as chips and each blank as a tap-to-reveal chip; a used word greys out in the box |
+| `choice`, `true_false` | big option / True–False buttons with immediate right-or-wrong feedback; **Show answers** |
+| `rule_box` | the *Remember!* box as a highlighted card; examples with a speaker button |
+| `question_set` | questions revealed one at a time with **Next question** |
 | `objective`, `teacher_note` | teacher mode only (notes panel on the cover / previous slide) |
+
+### Exercise slides
+
+An exercise block gets one slide, or several when it has more than six items (`(1/2)` after the instruction). The slide shows the exercise number, the textbook's instruction line and the interaction; the answer key goes to the teacher notes. The controls are plain `<button data-act="...">` elements, so Tab, Enter and Space work as touch does; tapping them never moves the slide, an exercise starts clean every time the slide is entered, and on paper the controls are hidden and the answers are printed. The PPTX writes one readable slide per exercise (items on the slide, answers in the speaker notes) and the DOCX puts the exercise in the *Students' activities* cell and the answer key in the *Teacher's activities* cell.
 
 ### Implementation notes
 
 - Interface text that is not lesson content — navigation hints ("Tap to reveal"), countdown labels, the "Start" button, the cover's "Grade 3" line — is marked `class="ui"`. It is visible to pupils but it is not checked against the word list, by the validators or by `check-deck`; a hand-off deck must use the same class for its own chrome.
+- The pencil, Save, toasts and the field highlight are part of the template and of `export/deck_edit.js` (the editing half of the deck script, inlined at render time); a theme only restyles them (`themes/README.md`, "Editing on the slide").
 - Rendered from `export/deck_template.html` plus `export/themes/<theme>.css` by a small internal renderer (string substitution and escaped HTML fragments; no template-engine dependency). Every rendered block carries `data-block-id`, `data-kind`, `data-provenance`, so the deck can be checked against the lesson later. Pictures are `<img data-block-id="b_02" data-item="0" alt="hello" src="data:…">` — the same attributes a hand-off deck must use as placeholders, so `check-deck` can embed the real pictures.
 - `export_html(lesson, out_path, *, sources=None, image_root=None, theme="kids") -> Path`; the same `ensure_exportable` gate as the other writers (`fail` blocks the export, `warn` is listed in teacher mode).
 - Tests parse the file: one element per placed block with the right `data-block-id`; images are `data:` URIs and there is no `http://`/`https://` reference; teacher-only elements carry class `teacher`; the fixture deck is under 5 MB.
+
+## Editing on the slide (pencil and Save)
+
+A teacher fixes wording while looking at the slide, not in a form.
+
+- **Pencil** (top-left, `.ui`, always visible but small; shortcut `E`): toggles *edit mode*. In edit mode every text element that comes from the lesson is editable in place (`contenteditable="plaintext-only"`): titles, instructions, steps, dialogue lines and speakers, flashcard word / IPA / meaning / example, pattern and examples, exercise items, options, word-box chips, match items, rule-box points, questions, summary words, captions, teacher notes. Hidden content is shown while editing (tap-to-reveal lines, meanings, answers) so it can be edited too; exercise interactions and slide navigation by keys are paused while a field has focus (arrows, Space, T/N/F/P/E do nothing there); Esc leaves the field; clicking outside does not advance the slide. Edited fields get a soft highlight. Leaving edit mode keeps the changes on the page.
+- **Save** (top-right, `.ui`): appears as soon as one field has changed, with a dot/count of unsaved changes; `Ctrl+S` too. Closing or reloading the tab with unsaved changes asks for confirmation (`beforeunload`).
+- **Field map**: the renderer marks each editable element with `data-field-block` (the block id) and `data-field`, a JSON-pointer-like path into the block's content (`content/items/0/word`, `content/lines/3/text`, `content/student_steps/1`, `teacher_note`, …). The block id sits in its own attribute, not in `data-block-id`, which stays one carrier per block (`check-deck`, the source map). Elements that are generated from several fields (a split "(1/2)" title, the "(1/3)" after a dialogue context, a footer, the lesson and section titles on the cover and dividers) are not editable; the same text shown twice (a word on a flashcard and on the summary slide) is one field and both copies follow while typing. Every path is checked by `editing.fields.set_field`, so the page cannot name anything the content model would refuse; the Python setter is the only place that knows the rules.
+  - *Exercises.* A gap sentence is edited as raw text with its blanks (`___`) and its answers appear as small editable chips beside it (`content/items/N/answer`, or `.../answer/J` for several blanks); the page rebuilds the tap-to-reveal chips when edit mode ends. The text must keep its number of blanks, an answer must stay in the word box (change both in one Save), and renaming the right option of a multiple-choice item renames the answer. Matching, true/false, questions (with their sample answers), the rule box and reading paragraphs are edited text by text; the pairs and the right answers are not text and are not editable here.
+  - *Notes.* A teacher note is one field edited as raw lines (first line, then numbered steps) and rebuilt afterwards; the notes panel is visible only in teacher mode (`T`), so editing notes happens there.
+  - *Not editable:* pictures, citations, ids, numbers (minutes), enumerations (skills, interaction), the order of items, answer flags and the glossary meanings. Text that is missing (an absent IPA, an empty caption) has no element to type into, except a question's sample answer.
+- **Testing and screenshots**: `?edit=1` opens the deck already in edit mode.
+- **Saving when the deck is served by the local app** (`/api/lessons/{id}/deck`, detected through a `<meta name="classdeck-lesson" content="<id>">` and same-origin API): Save sends `[{block_id, field, value}]` to `POST /api/lessons/{id}/edits`; the server applies them as one teacher direct edit (a Revision, so *Undo* works), re-runs grounding and checks (an edited `extracted` block may become `generated` — shown as a toast), saves the lesson and re-exports `lesson.html`; the page then reloads on the same slide. A refused edit (an unknown path, a gap sentence that lost a blank, an empty required text) comes back as a toast and the field is outlined in red; nothing is saved. Inside the app's preview pane the deck hands the new lesson to the page, which refreshes its block list, checks and Undo and reopens the deck on the same slide.
+- **Saving a standalone file** (`file://` or anything without the app): Save serialises the current page with the edits baked in (edit mode off, reveal state reset, the edit list also embedded as JSON in `<script type="application/json" id="classdeck-edits">` so the app can import it later: `{lesson_id, edits: [{block_id, field, value, original}]}`, cumulative since the export, so a field changed back to its original drops out of the list, also after the file is reopened) and writes it with the File System Access API (`showSaveFilePicker`, suggested name `lesson.html`, remembered handle so later saves overwrite silently) where available (Chrome, Edge); elsewhere it downloads the file. `classdeck import-edits <lesson> <edited.html>` applies an embedded edit list back to the lesson.
 
 ## Deck themes
 

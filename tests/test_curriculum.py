@@ -230,7 +230,7 @@ def test_curriculum_path() -> None:
 
 
 def test_list_available() -> None:
-    assert list_available(ROOT) == [("gdpt-2018", grade) for grade in (3, 4, 5)]
+    assert list_available(ROOT) == [("gdpt-2018", grade) for grade in (3, 4, 5, 9)]
     assert list_available(ROOT / "does-not-exist") == []
 
 
@@ -255,3 +255,42 @@ def test_word_list_includes_classroom_language(curriculum) -> None:
     words = curriculum.word_list("ta3.u1")
     assert {"listen", "partner", "picture", "swap"} <= words
     assert "classroom_language" not in words
+
+
+# --- secondary grades -------------------------------------------------------------------------
+
+
+def test_grade_9_is_a_secondary_seed_without_a_word_list() -> None:
+    curriculum = load_curriculum(ROOT, "gdpt-2018", 9)
+    assert curriculum.is_secondary and curriculum.period_minutes == 45
+    assert curriculum.file.unit_shape == "secondary" and curriculum.file.status == "seed"
+    assert curriculum.file.vocabulary.words == []
+    assert curriculum.word_list("ta9.u1") == frozenset()
+    titles = [unit.title for unit in curriculum.file.units]
+    assert [unit.id for unit in curriculum.file.units] == [f"ta9.u{n}" for n in range(1, 13)]
+    assert titles[0] == "Local community" and titles[-1] == "Career choices"
+    assert all(unit.lessons == 7 for unit in curriculum.file.units)
+
+
+def test_secondary_outcomes_name_the_lessons_that_serve_them() -> None:
+    curriculum = load_curriculum(ROOT, "gdpt-2018", 9)
+    for unit_id in ("ta9.u1", "ta9.u2"):
+        unit = curriculum.unit(unit_id)
+        assert len(unit.outcomes) == 8
+        assert {n for outcome in unit.outcomes for n in outcome.lessons} == set(range(1, 8))
+    first = curriculum.unit("ta9.u1").outcomes
+    assert [o.id for o in first if 1 in o.lessons] == ["ta9.u1.o1"]
+    assert (
+        len(curriculum.unit("ta9.u7").outcomes) == 1
+    )  # a generic outcome until its pages are read
+
+
+def test_primary_is_the_default_unit_shape_and_the_shape_must_fit_the_grade() -> None:
+    assert CurriculumFile.model_validate(_minimal()).unit_shape == "primary"
+    assert not load_curriculum(ROOT, "gdpt-2018", 3).is_secondary
+    with pytest.raises(ValidationError):
+        CurriculumFile.model_validate(_minimal(grade=9))  # primary shape, grade 9
+    with pytest.raises(ValidationError):
+        CurriculumFile.model_validate(_minimal(unit_shape="secondary"))  # secondary, grade 3
+    secondary = _minimal(grade=7, unit_shape="secondary", vocabulary={"level": "A2"})
+    assert CurriculumFile.model_validate(secondary).vocabulary.words == []

@@ -1132,3 +1132,7 @@ body.teacher-mode.notes-open .divider__minutes { font-size: 40px; }
   .bubble__avatar { background: #FFFFFF; }
   .countdown, .flashcard.card, .step.card, .summary-card.card, .notes { box-shadow: none; }
 }
+
+/* ---- exercises: the score sits on the green board, not on a black card ------------------------ */
+
+.ex__score { color: var(--ink); }

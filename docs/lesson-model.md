@@ -46,7 +46,7 @@ Produced by `ingest/`. A span is the smallest unit a citation can point at.
 ```
 
 - `span_id` is stable for a given `(sha256, extraction_version)`: re-ingesting the same file yields the same IDs, so citations survive.
-- `kind` ∈ `paragraph | heading | list_item | table | caption | image`. Primary English pages are picture-driven, so `image` spans are first-class: they carry a cropped image file (`image_path`, relative to the ingest image directory — `<workdir>/images/` by default) and can be cited by vocabulary items and `image_ref` blocks.
+- `kind` ∈ `paragraph | heading | list_item | instruction | table | caption | image`. `instruction` is a numbered exercise line of a scanned page read by the vision model (`2. Read the conversation again ...`), kept apart from the numbered items inside an exercise (`list_item`); text PDFs, DOCX and PPTX never produce it. An `image` span of a scanned page carries the vision model's short description as its `text` (the alt text of the picture). Primary English pages are picture-driven, so `image` spans are first-class: they carry a cropped image file (`image_path`, relative to the ingest image directory — `<workdir>/images/` by default) and can be cited by vocabulary items and `image_ref` blocks.
 - `bbox` is optional (DOCX/PPTX have no reliable coordinates); `page` for DOCX is a synthetic page based on section breaks, for PPTX it is the slide number.
 
 ### Lesson
@@ -173,6 +173,17 @@ An activity the model added on its own, depending on the pattern it drills:
 | `teacher_note` | `text` | generated |
 | `summary` | `bullets[]` | derived |
 | `image_ref` | `caption`, `alt` (the image itself is the cited span) | extracted |
+| `reading` | `title`, `instruction`, `exercise_no`, `paragraphs[]: {text, highlight[]}`, `glossary: {word: meaning}`, `image?` (a cited picture); each highlight must occur in its paragraph | extracted |
+| `match` | `instruction`, `exercise_no`, `left[]`, `right[]` (may hold extra distractors), optional `left_images[]` / `right_images[]` (a cited image span or null per item; a picture item keeps its description in `left` / `right`), `answer: {left_index: right_index}`; every left item is matched, indices in range, no right item twice | extracted / generated |
+| `gap_fill` | `instruction`, `exercise_no`, `items[]: {text with ___, answer}` (one answer per blank; a list for several blanks), `word_box[]` (when given, every answer is in it) | extracted / generated |
+| `choice` | `instruction`, `exercise_no`, `items[]: {stem, options[], answer}` (the answer is one of the options; no duplicate options) | extracted / generated |
+| `true_false` | `instruction`, `exercise_no`, `items[]: {statement, answer: bool}` | extracted / generated |
+| `rule_box` | `title`, `points[]`, `examples[]` (the textbook's *Remember!* box) | extracted |
+| `question_set` | `instruction`, `exercise_no`, `prompt`, `questions[]: {question, answer}` (a bare string is a question with no answer; `answer` is a sample answer for the teacher) | extracted / generated |
+
+| `sound_sort` | `instruction`, `exercise_no`, `sounds[]` (IPA without slashes), `words[]: {word, sound}`, `sentences[]: {text, targets[]: {word, sound}}`; every sound is one of `sounds`, every target occurs in its sentence, at least one of words and sentences | extracted / generated |
+
+The last eight kinds are the **interactive exercise blocks** (see [secondary-units.md](secondary-units.md#interactive-exercise-blocks)): a textbook's own exercises, kept in its order and wording, that the deck runs in class and the PPTX and DOCX print with an answer key. They are additive (no schema migration); the primary drafter does not emit them (`DRAFTABLE_BLOCK_KINDS` stays the first nine). Answer fields are validated by the schema, so a key that points outside its exercise is rejected on load. `lesson/exercises.py` holds the text views every writer, the level checks and the prompt packs share (the pupil-facing strings, the numbered lines, the answer key).
 
 An `activity` of type `listen_and_do` or `look_complete_read` ends its `teacher_steps` with an answer key (`Answer key: ...`, or a step to play the audio twice and check on the board when the key cannot be derived).
 

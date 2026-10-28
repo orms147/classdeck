@@ -69,6 +69,17 @@ class Curriculum:
     def period_minutes(self) -> int:
         return self.file.period_minutes
 
+    @property
+    def is_secondary(self) -> bool:
+        """Whether units are seven one-period lessons without a closed word list."""
+        return self.file.unit_shape == "secondary"
+
+    @property
+    def uses_unit_words(self) -> bool:
+        """Whether new words are judged against the unit's own pages: the grade has no closed
+        word list (every secondary grade, and any unit built from the pages)."""
+        return self.is_secondary or not self.file.vocabulary.words
+
     def unit(self, unit_id: str) -> Unit:
         try:
             return self._units[unit_id]

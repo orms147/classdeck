@@ -47,7 +47,9 @@ class GrammarScope(_Strict):
 
 class VocabularyScope(_Strict):
     level: str
-    words: list[str]
+    # Primary grades list the words of the grade; a secondary grade has no closed list (the unit's
+    # own pages are the reference) and leaves this empty.
+    words: list[str] = []
     # Instruction language pupils hear every lesson (listen, point, partner, …): receptive,
     # not taught as new words, but allowed wherever the word list is enforced.
     classroom_language: list[str] = []
@@ -79,6 +81,8 @@ class Outcome(_Strict):
     text: str
     skills: list[Skill] = []
     keywords: list[str] = []
+    # Secondary grades: the textbook lessons (1-7) whose period serves this outcome.
+    lessons: list[int] = []
 
 
 class Unit(_Strict):
@@ -95,14 +99,25 @@ class Unit(_Strict):
 class CurriculumFile(_Strict):
     version: str
     subject: Literal["tieng-anh"]
-    grade: int = Field(ge=3, le=5)
+    grade: int = Field(ge=1, le=9)
     language: str = "en"
     status: Literal["seed", "verified"] = "seed"
     period_minutes: int = Field(default=35, gt=0)
+    # ``primary``: three lessons of two periods built from six numbered activities;
+    # ``secondary``: seven textbook lessons of one period each (docs/secondary-units.md).
+    unit_shape: Literal["primary", "secondary"] = "primary"
     vocabulary: VocabularyScope
     grammar_scope: GrammarScope = Field(default_factory=GrammarScope)
     textbooks: list[TextbookRef] = []
     units: list[Unit]
+
+    @model_validator(mode="after")
+    def _shape_fits_grade(self) -> Self:
+        if self.unit_shape == "primary" and self.grade > 5:
+            raise ValueError("a primary unit shape is for grades 1-5; use unit_shape: secondary")
+        if self.unit_shape == "secondary" and self.grade < 6:
+            raise ValueError("a secondary unit shape is for grades 6-9")
+        return self
 
     @model_validator(mode="after")
     def _ids_are_unique(self) -> Self:

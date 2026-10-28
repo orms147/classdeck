@@ -11,7 +11,7 @@ Goal: a teacher looking at any block can answer "where did this come from?" in o
 | PDF | PyMuPDF | physical page | text block from `page.get_text("dict")`, merged into paragraphs by vertical gap and font size; each embedded picture becomes an `image` span with a cropped PNG | bbox kept; headings detected by font size ratio; numbered activity lines ("1. Look, listen and repeat.") detected as `list_item` |
 | DOCX | python-docx | synthetic page per section break (or every N paragraphs) | paragraph / table | heading from style name |
 | PPTX | python-pptx | slide number | text frame / table | title placeholder → `heading` |
-| scanned PDF | Muse Spark vision (phase 3) | physical page | model-produced paragraphs with page-relative positions | lower confidence; flagged |
+| scanned PDF | vision chat model (see [secondary-units.md](secondary-units.md#scanned-pages)) | physical page | model-read blocks (headings, exercise lines, dialogue turns, table rows) with page-relative positions; pictures cropped from the page | lower confidence; without a model the page is one `image` span |
 
 Span IDs are `p<page>.s<order>`. Stability: the same file (same `sha256`) with the same `extraction_version` always produces the same IDs. Changing the extraction algorithm bumps `extraction_version` and invalidates stored citations for that document — the lesson then shows `stale` grounding checks until re-linked.
 
@@ -43,6 +43,10 @@ For an activity the comparison text is its title and instructions; when that doe
 - `HIGH`/`LOW` are set in `english/rules.py` — `(0.20, 0.60)`. Dialogues, patterns and vocabulary are near-verbatim and usually clear `HIGH`; activities paraphrase and extend, so the judge is consulted for them more often.
 - `llm_judge` is a short yes/no prompt with the two texts and nothing else, run with the mock-friendly provider so eval is reproducible.
 - A block with no supported citation is **downgraded to `provenance = generated`**, regardless of what the drafter claimed.
+
+### Several citations together
+
+A textbook exercise or conversation is copied from many spans (an instruction and its numbered lines, one span per turn), so no single span resembles the whole block. When a block cites two or more text spans, all of which resolve, and at least 90% of the block's words occur in those spans together, every citation counts as supported (method `lexical`, detail "N cited spans together contain X% of the block's words") and no judge call is made. Otherwise each citation is verified on its own, as above.
 
 ## 4. Labelling
 

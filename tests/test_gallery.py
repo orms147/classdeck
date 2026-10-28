@@ -156,9 +156,11 @@ def test_unknown_theme_and_blocked_lesson_write_nothing(tmp_path: Path, lesson: 
 
 
 def test_titles_are_escaped(tmp_path: Path, lesson: Lesson) -> None:
-    lesson.title = 'Unit <b>1</b> & "more"'
+    lesson.curriculum.unit_title = '<b>1</b> & "more"'
     index = build_gallery(lesson, tmp_path / "g", themes=["kids"])
     text = index.read_text(encoding="utf-8")
     assert "<b>1</b>" not in text
-    assert "Unit &lt;b&gt;1&lt;/b&gt; &amp; &quot;more&quot;" in text or "&amp; " in text
-    assert page(index).root.one(class_="lesson").text() == lesson.title
+    assert "&lt;b&gt;1&lt;/b&gt; &amp; &quot;more&quot;" in text or "&amp; " in text
+    assert page(index).root.one(class_="lesson").text() == (
+        'Grade 3 · Lesson 1 · Period 1 — Unit 1 · <b>1</b> & "more"'
+    )

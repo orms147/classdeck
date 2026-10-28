@@ -9,7 +9,6 @@ map in the appendix; blocks the model added on its own also carry an AI-added ba
 
 from __future__ import annotations
 
-import contextlib
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
@@ -36,6 +35,7 @@ from classdeck.export.source_map import (
     origin_text,
 )
 from classdeck.lesson import (
+    EXERCISE_KINDS,
     ActivityBlock,
     Block,
     BlockKind,
@@ -53,6 +53,13 @@ from classdeck.lesson import (
     VocabItem,
     VocabularyBlock,
 )
+from classdeck.lesson.exercises import (
+    answer_key,
+    exercise_lines,
+    exercise_title,
+    instruction_of,
+)
+from classdeck.lesson.labels import lesson_label, unit_line, unit_number, unit_title
 
 FONT = "Arial"
 FONT_SIZE = 12
@@ -103,7 +110,7 @@ def _new_document(lesson: Lesson) -> DocxDocument:
     section.top_margin = section.bottom_margin = Cm(2)
 
     properties = document.core_properties
-    properties.title = lesson.title
+    properties.title = f"{lesson_label(lesson)} — {unit_line(lesson)}"
     properties.author = "ClassDeck"
     properties.last_modified_by = "ClassDeck"
     properties.created = lesson.created_at
@@ -237,6 +244,25 @@ def _summary_cells(block: SummaryBlock) -> _Cells:
     return teacher, [_Line("Recall with the teacher")]
 
 
+def _exercise_cells(block: Block) -> _Cells:
+    """The exercise itself for the students, with its answer key for the teacher."""
+    teacher = [_Line(f"{exercise_title(block)} (exercise)", bold=True)]
+    instruction = instruction_of(block)
+    if instruction:
+        teacher.append(_Line(f"Instructions: {instruction}"))
+    key = answer_key(block)
+    if key:
+        teacher.append(_Line("Answer key:", bold=True))
+        teacher.extend(_Line(line) for line in key)
+    glossary = getattr(block.content, "glossary", {})
+    if glossary:
+        teacher.append(_Line("Glossary:", bold=True))
+        teacher.extend(_Line(f"{word}: {meaning}") for word, meaning in glossary.items())
+    students = [_Line(instruction, italic=True)] if instruction else []
+    students.extend(_Line(line) for line in exercise_lines(block))
+    return teacher, students
+
+
 def _cells_for(block: Block) -> _Cells | None:
     """The two cells of the block's procedure row, or ``None`` if it has no row."""
     match block:
@@ -252,6 +278,8 @@ def _cells_for(block: Block) -> _Cells | None:
             return _phonics_cells(block)
         case SummaryBlock():
             return _summary_cells(block)
+        case _ if block.kind in EXERCISE_KINDS:
+            return _exercise_cells(block)
         case _:
             return None
 
@@ -308,17 +336,15 @@ class _DocxBuilder:
 
     def _header(self) -> None:
         lesson, ref = self.lesson, self.lesson.curriculum
-        self.document.add_heading(lesson.title, level=0)
+        self.document.add_heading(unit_line(lesson), level=0)
 
-        unit = ref.unit_id
-        if self.curriculum is not None:
-            with contextlib.suppress(KeyError):
-                unit = f"{ref.unit_id} — {self.curriculum.unit(ref.unit_id).title}"
+        number, name = unit_number(ref), unit_title(lesson)
+        unit = " · ".join(str(part) for part in (number, name) if part)
         fields = [
-            ("Unit", unit),
+            ("Unit", unit or "______"),
             ("Grade", str(lesson.grade)),
             ("Lesson", str(ref.lesson_no) if ref.lesson_no is not None else "______"),
-            ("Period", str(ref.period) if ref.period is not None else "______"),
+            self._period_field(),
             ("Date", "______"),
             ("Class", "______"),
         ]
@@ -328,6 +354,13 @@ class _DocxBuilder:
             paragraph = table.cell(index // 2, index % 2).paragraphs[0]
             paragraph.add_run(f"{label}: ").bold = True
             paragraph.add_run(value)
+
+    def _period_field(self) -> tuple[str, str]:
+        """``Period: 2`` for a primary lesson; a secondary lesson is one period: its length."""
+        lesson, ref = self.lesson, self.lesson.curriculum
+        if lesson.grade > 5 and ref.period is None:
+            return "Time", f"{sum(section.minutes for section in lesson.sections)} min"
+        return "Period", str(ref.period) if ref.period is not None else "______"
 
     def _objectives(self) -> None:
         self.document.add_heading("I. Objectives", level=1)

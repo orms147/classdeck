@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 import statistics
-from collections.abc import Iterable
+from collections.abc import Callable, Collection, Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -22,7 +22,9 @@ from classdeck.ingest.base import (
     normalize_text,
     table_text,
 )
+from classdeck.ingest.vision import ScanReport, extract_scanned_page, is_scanned_page
 from classdeck.lesson import Page, SpanKind
+from classdeck.llm import LLMProvider
 
 logger = logging.getLogger(__name__)
 
@@ -50,14 +52,39 @@ class _Line:
 
 
 class PdfExtractor:
+    """Text pages are read from the text layer; scanned pages (no text, one full-page picture)
+    go to ``provider`` when there is one, else become a single picture span.
+
+    ``pages`` limits extraction to those 1-based page numbers; ``report`` is called once per
+    scanned page that was sent to the model.
+    """
+
     media_type = "application/pdf"
+
+    def __init__(
+        self,
+        provider: LLMProvider | None = None,
+        *,
+        pages: Collection[int] | None = None,
+        report: Callable[[ScanReport], None] | None = None,
+    ) -> None:
+        self._provider = provider
+        self._pages = None if pages is None else frozenset(pages)
+        self._report = report
 
     def extract(self, path: Path, *, doc_id: str, image_dir: Path | None) -> list[Page]:
         sink = ImageSink(image_dir, doc_id)
         with pymupdf.open(path) as document:
             return [
-                _extract_page(page, number, sink) for number, page in enumerate(document, start=1)
+                self._extract(page, number, sink)
+                for number, page in enumerate(document, start=1)
+                if self._pages is None or number in self._pages
             ]
+
+    def _extract(self, page: pymupdf.Page, number: int, sink: ImageSink) -> Page:
+        if is_scanned_page(page):
+            return extract_scanned_page(page, number, sink, self._provider, self._report)
+        return _extract_page(page, number, sink)
 
 
 def _extract_page(page: pymupdf.Page, number: int, sink: ImageSink) -> Page:

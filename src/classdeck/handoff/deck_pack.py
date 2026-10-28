@@ -91,6 +91,16 @@ SLIDE_TYPES: list[tuple[str, str]] = [
     ("summary", "grid of the lesson's words (with their placeholder pictures) and the pattern"),
     ("image_ref", "the picture (placeholder <img>) with its caption"),
     (
+        "reading, rule_box",
+        "the text (paragraphs, highlighted words) or the highlighted Remember! box with its "
+        "examples, large and readable",
+    ),
+    (
+        "match, gap_fill, choice, true_false, question_set, sound_sort",
+        "the textbook instruction line as the heading, then the items large; answers stay hidden "
+        "until a tap (a reveal button) and are never printed on the slide face",
+    ),
+    (
         "objective, teacher_note",
         'no slide of their own: a class="teacher" note (carrying the block\'s data-block-id) on '
         "the cover or on the previous slide",

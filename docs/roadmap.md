@@ -42,6 +42,43 @@ Primary English material is pictures and audio as much as text; this phase uses 
 - Word-level selection in the editor.
 - Teacher study: 3–5 teachers, review sheet, `time_to_ready_min` and `manual_fix_ratio`.
 
+## Next (design notes, not built)
+
+A review of the seven Unit 1 decks found the same problems in most lessons: a tap colours an answer right or wrong at once (the first pupil gives the answer away), short exercises are cut over two slides, speaking prompts are shown one at a time, answer keys the page cannot confirm are shown as fact, and homework is only in the teacher's notes. The rules below are the planned fix; none of it is implemented.
+
+### Classroom interaction rules
+
+The deck is projected and driven by the teacher; one pupil's tap must never give the answer away to the class. Every interactive slide follows the same rules (export, all themes).
+
+1. **Select, then Check.** In a choice, true/false, matching, picture matching or sound-sort exercise a tap only *selects* (a neutral outline in the theme's accent; a second tap on the same item clears it; in matching the pair gets a pair colour, the same on both sides, no number badges). Nothing is coloured right or wrong until **Check**, the slide's one primary button. Check marks each answered item right (✓ and green) or wrong (✗, red outline and the word *Try again*): colour is never the only cue. **Try again** clears the marks and the selections. **Show answers** is a teacher-mode control.
+2. **Gap fill.** Blanks are neutral (no dashed red), the same width whatever the answer, with a large touch area. The word box is shown whenever the exercise has one; a used word is struck out. A blank shows its answer only through Show answers (all) or, in teacher mode, a tap on that blank.
+3. **One exercise, one slide, when it fits.** An exercise of five items or fewer stays on one slide unless it cannot fit at 85% size; a cut never leaves a slide with a single item. When a matching exercise is cut, each slide's right column holds only the right items of that slide's pairs. The right column keeps the book's labels (a–e).
+4. **Question sets.** `mode: prompts` (questions pupils talk or write about): all the questions on one slide as large numbered rows, no buttons, the prompt line under them, the activity timer when it has minutes. `mode: reveal` (a quiz, a rewrite, comprehension with a key): each row has its own **Reveal** that shows the answer under the question. There is no "Next question" / "Show all".
+5. **Answer keys the page cannot confirm** (`key_source: ai`, e.g. a listening task without its script) are teacher-only: in pupil view the slide has no Check and no Show answers; teacher mode shows the key with a chip *AI key – check with the recording*. Keys from the page show a chip *Key: page* in teacher mode.
+6. **Speech buttons** only where hearing the model matters: vocabulary words, dialogue lines, model phrases and reading paragraphs; never on exercise prompts or questions.
+7. **Wrap-up is visible.** The recap slide shows pairs where the data has them (word – meaning, rule – first example, phrase – function; a summary bullet written `left – right`, with a spaced en dash, is a pair), and `summary.homework` is a pupil-facing **Homework** slide after it.
+8. **Dialogue.** Each speaker's full name next to the avatar, one colour per speaker; lines not yet revealed are not drawn (no empty placeholders).
+9. **Pictures that a task is about are big.** A warm-up or pre-reading slide with a picture gives it at least 60% of the stage; its pupil steps are questions for the pupils, never instructions copied from the teacher's steps.
+
+### Frames: what code fixes and what the model fills
+
+The cheap daily model should only fill short slots; everything that must be the same every time is code. For each lesson type (`planning/blueprints.py`) code builds the whole slide sequence: the phases and minutes, the exercises from the page in book order with their wording, the interaction of each exercise, the teacher steps of each exercise (templates per exercise kind and phase, with *Play track N.* first when the page has a track), the warm-up shape, the production shape, the recap shape and the homework slide. The model's reply holds only:
+
+| slot | used by | shape |
+|---|---|---|
+| answer keys | every book exercise whose key is not deterministic from the page | as today; `key_source` is `ai` for listening tasks and general-knowledge quizzes, `page` otherwise |
+| warm-up questions | types 1, 4, 5, 6 (about the page's picture: the code attaches it) | 2–3 pupil questions |
+| quiz clues | type 2 (last lesson's words) and type 7 (the whole unit's words) warm-up | 6–8 clue → word items, rendered as a `reveal` question set; each word must be in the unit's pages |
+| sentence game | type 3 warm-up | 3–4 sentences on the unit topic with a gap for the rule of the lesson |
+| gist / prediction question | types 5, 6 | one question |
+| sentence starters | production of types 1, 4, 5, 6 (speaking/writing frame) | 4–6 starters |
+| model paragraph | type 6 | 60–90 words, using only facts from the lesson's pages, AI-added |
+| recap pairs | wrap-up, every type | 3–6 pairs (left, right) |
+| homework | wrap-up, every type | 1–2 lines |
+| glosses / IPA | vocabulary of types 1, 2 | as today |
+
+The model no longer writes teacher steps, pupil steps, activity titles or timings. A slot that fails validation after one re-prompt falls back to a template (a warm-up falls back to the page picture with *What can you see? What do you think the lesson is about?*); a lesson is always complete. Pupil-facing lines are validated: they must not repeat the instruction or the teacher steps, and lines such as *Listen to me* or *Remember …* are rejected.
+
 ## Out of scope
 
 - Other subjects. The pipeline is written against the lesson model and the English rules are isolated in `english/`, so a second subject is possible, but no plugin interface is built until one exists.

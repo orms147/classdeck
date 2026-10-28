@@ -29,6 +29,8 @@ Reasoning-style models (DeepSeek v4.1 flash among them) may return an empty `con
 
 Three profiles are built in (`config.ENDPOINTS`): `meta` (Meta Model API, key `META_API_KEY`, default `muse-spark-1.3`), `openrouter` (`OPENROUTER_API_KEY`, default `openai/gpt-6-luna`) and `deepseek` (`DEEPSEEK_API_KEY`, default `deepseek-chat`). Select one with `CLASSDECK_ENDPOINT` or per command with `--endpoint meta --model muse-spark-1.2`; without a profile, `MODEL_API_*` apply and a missing `MODEL_API_KEY` is taken from the profile whose base URL matches.
 
+The built-in defaults are OpenRouter (`MODEL_API_BASE_URL=https://openrouter.ai/api/v1`) and `openai/gpt-6-luna`. Settings come from, highest first: environment variables and `.env`, the **user settings file** written by the local app's Settings screen (`%APPDATA%\ClassDeck\settings.json` on Windows, `~/.config/classdeck/settings.json` elsewhere, `CLASSDECK_HOME` overrides; it holds the OpenRouter key, the model and the default theme), then the defaults. Keys are never logged or returned by the API (only a masked hint).
+
 The pipeline is designed so that a cheap model is enough — few calls, small prompts, deterministic fallbacks (see [output-formats.md → Token economy](output-formats.md#token-economy-on-api-runs)). With no API key at all, the prompt packs in `handoff/` move the generative step to a free chat model in the browser.
 
 ## Meta Model API (hackathon endpoint)
@@ -60,11 +62,13 @@ The judge should be a **different model family** from the generator — a model 
 ```python
 class Message(BaseModel):
     role: Literal["system", "user", "assistant"]
-    content: str | list[TextPart | ImagePart]      # parts for multimodal input (phase 3)
+    content: str | list[TextPart | ImagePart]  # parts for multimodal input (phase 3)
+
 
 class Usage(BaseModel):
     input_tokens: int | None
     output_tokens: int | None
+
 
 class LLMResponse(BaseModel):
     text: str
@@ -73,8 +77,10 @@ class LLMResponse(BaseModel):
     cached: bool = False
     latency_s: float | None = None
 
+
 class LLMProvider(Protocol):
     name: str
+
     def complete(
         self,
         messages: list[Message],

@@ -14,6 +14,7 @@ from pydantic import Field
 
 from classdeck.curriculum.loader import Curriculum
 from classdeck.lesson.schema import (
+    EXERCISE_KINDS,
     ActivityType,
     BlockKind,
     Interaction,
@@ -28,7 +29,9 @@ GROUNDING_THRESHOLDS: tuple[float, float] = (0.20, 0.60)
 
 CONTENT_LANGUAGE = "en"
 
-DRAFTABLE_BLOCK_KINDS: frozenset[BlockKind] = frozenset(BlockKind)
+# The primary drafter writes the nine primary kinds; the exercise kinds come from a textbook's
+# own exercises (docs/secondary-units.md), not from the drafting prompt.
+DRAFTABLE_BLOCK_KINDS: frozenset[BlockKind] = frozenset(BlockKind) - EXERCISE_KINDS
 NON_CONTENT_KINDS: frozenset[BlockKind] = frozenset(
     {BlockKind.OBJECTIVE, BlockKind.TEACHER_NOTE, BlockKind.SUMMARY}
 )
@@ -120,6 +123,11 @@ def phase_for(activity_type: ActivityType) -> Phase:
 # --- prompt fragments --------------------------------------------------------------------------
 
 _GRADE_SCOPE: dict[int, str] = {
+    1: "greetings, short imperatives, this / that, What's this?, numbers 1-10, colours",
+    2: (
+        "the grade 1 scope plus I'm / my, simple present with be, have got, numbers 1-20, "
+        "classroom objects, family members"
+    ),
     3: (
         "present simple with be and have, imperatives, this / that, What's ...? questions, "
         "numbers 1-20"
@@ -135,19 +143,31 @@ _GRADE_SCOPE: dict[int, str] = {
 }
 
 
+SECONDARY_SCOPE = "the grammar of the unit's own textbook pages"
+"""The language scope of grades 6-9: the unit's pages, not a fixed list."""
+
+
 def prompt_rules(grade: int, curriculum: Curriculum | None = None) -> str:
     """The rule fragment injected into the outliner, drafter and editor prompts.
 
     The language-scope line comes from the curriculum's ``grammar_scope.allowed`` when a
     curriculum with such a list is given, else from the built-in description of the grade.
     """
-    if grade not in _GRADE_SCOPE:
-        raise ValueError(f"grade must be 3, 4 or 5, got {grade}")
+    secondary = 6 <= grade <= 9
+    if grade not in _GRADE_SCOPE and not secondary:
+        raise ValueError(f"grade must be 1 to 9, got {grade}")
+    pages_only = secondary or (curriculum is not None and curriculum.uses_unit_words)
     allowed = curriculum.file.grammar_scope.allowed if curriculum is not None else []
-    scope = "; ".join(allowed) if allowed else _GRADE_SCOPE[grade]
+    scope = "; ".join(allowed) if allowed else _GRADE_SCOPE.get(grade, SECONDARY_SCOPE)
+    vocabulary_rule = (
+        "Vocabulary and structures come from the unit's textbook pages; a word the pages never "
+        "use must not appear in pupil-facing text."
+        if pages_only
+        else "Vocabulary and sentence patterns come from the cited unit. New words beyond the "
+        "source are allowed only with `sources: []` and only if they are in the grade word list."
+    )
     rules = [
-        "Vocabulary and sentence patterns come from the cited unit. New words beyond the source "
-        "are allowed only with `sources: []` and only if they are in the grade word list.",
+        vocabulary_rule,
         "Every activity names its type, at least one skill, the interaction pattern, and "
         "separate teacher_steps and student_steps written as imperatives.",
         f"Language scope for grade {grade}: {scope}. Stay inside this scope.",

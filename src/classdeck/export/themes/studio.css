@@ -302,7 +302,7 @@ mark { padding: 0 6px; border-radius: 0; background: var(--mark); }
   border-radius: 0;
 }
 
-.divider__phase { order: 0; color: #FFFFFF; padding-top: 28px; border-top: 6px solid #FFFFFF; width: 220px; }
+.divider__phase { order: 0; color: #FFFFFF; padding-top: 28px; border-top: 6px solid #FFFFFF; width: fit-content; min-width: 220px; }
 
 .divider__title {
   order: 1;
@@ -389,7 +389,7 @@ mark { padding: 0 6px; border-radius: 0; background: var(--mark); }
   object-fit: contain;
 }
 
-.flashcard.has-example .flashcard__picture { max-height: none; }
+.flashcard.has-example .flashcard__picture { max-height: 660px; }
 
 .flashcard__wordline, .flashcard__ipa, .flashcard__meaning, .flashcard__example, .flashcard__hint { grid-column: 2; }
 
@@ -908,3 +908,8 @@ body.notes-open .summary__pattern-text { font-size: 56px; }
   .slide--divider .divider__title,
   .slide--divider .divider__minutes { color: var(--ink); border-color: var(--ink); }
 }
+
+/* ---- editing on the slide: the section label sits top left, so only the pencil is shown there --- */
+
+.edit-toggle { top: 14px; left: 14px; width: 56px; height: 56px; font-size: 30px; }
+body.editing .edit-bar { display: none; }

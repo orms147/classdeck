@@ -90,7 +90,7 @@ def test_skeleton_shape_and_timing(document: SourceDocument) -> None:
     assert [section.phase for section in result.sections] == PHASES_PERIOD_1
     assert [section.minutes for section in result.sections] == [5, 10, 12, 6, 2]
     assert result.total_minutes() == CURRICULUM.period_minutes == 35
-    assert result.title == "Unit 1 Hello — Lesson 1, Period 1"
+    assert result.title == "Grade 3 · Lesson 1 · Period 1"
     assert result.grade == 3
     assert result.doc_ids == [document.doc_id]
     ref = result.curriculum
@@ -266,7 +266,7 @@ def test_outcomes_fall_back_to_the_skills_when_no_chunk_mentions_one(
     assert lets_write.outcome_ids == ["ta3.u2.o3"]
     assert project.outcome_ids == ["ta3.u2.o1", "ta3.u2.o2", "ta3.u2.o3"]
     assert result.curriculum.outcome_ids == ["ta3.u2.o1", "ta3.u2.o2", "ta3.u2.o3"]
-    assert result.title == "Unit 2 Our names — Lesson 3, Period 2"
+    assert result.title == "Grade 3 · Lesson 3 · Period 2"
     assert "assigning outcomes by skill" in caplog.text
 
 
@@ -665,8 +665,11 @@ def test_missing_lesson_run_falls_back_to_the_first_with_a_warning(
     assert "fewer than 3 lessons" in caplog.text
 
 
-def test_titles_carry_the_textbook_unit_number(document: SourceDocument) -> None:
-    assert skeleton(document).title == "Unit 1 Hello — Lesson 1, Period 1"
+def test_titles_are_grade_and_lesson_and_the_unit_is_kept_apart(document: SourceDocument) -> None:
+    result = skeleton(document)
+    assert result.title == "Grade 3 · Lesson 1 · Period 1"
+    assert "ta3" not in result.title
+    assert (result.curriculum.unit_no, result.curriculum.unit_title) == (1, "Hello")
 
 
 def test_multi_source_fallback_ranks_jointly_and_labels_spans_by_document() -> None:

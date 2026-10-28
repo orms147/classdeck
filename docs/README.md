@@ -23,3 +23,4 @@ Conventions used in these documents:
 - Textbook excerpts in examples are invented stand-ins with the same shape as the real thing, not copies.
 
 App: [local-app.md](local-app.md) — `classdeck serve`, the teacher-facing local web app.
+Secondary grades and scanned books: [secondary-units.md](secondary-units.md).

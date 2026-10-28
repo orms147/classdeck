@@ -8,7 +8,9 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 
+from classdeck.lesson.exercises import page_strings
 from classdeck.lesson.schema import (
+    EXERCISE_KINDS,
     ActivityBlock,
     Block,
     Citation,
@@ -65,6 +67,8 @@ def comparable_text(block: Block) -> str:
             return _join(block.content.bullets)
         case ImageRefBlock():
             return _join([block.content.caption])
+        case _ if block.kind in EXERCISE_KINDS:
+            return _join(page_strings(block))
         case _:
             return ""
 

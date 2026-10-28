@@ -7,7 +7,7 @@ import pytest
 from classdeck import english
 from classdeck.curriculum import Curriculum, load_curriculum
 from classdeck.english import presets, rules, validators
-from classdeck.lesson import ActivityType, BlockKind, Interaction, Phase, Skill
+from classdeck.lesson import EXERCISE_KINDS, ActivityType, BlockKind, Interaction, Phase, Skill
 
 ROOT = Path(__file__).resolve().parents[1] / "curriculum"
 CURRICULUM = load_curriculum(ROOT, "gdpt-2018", 3)
@@ -27,7 +27,7 @@ def test_constants() -> None:
     assert rules.PERIOD_MINUTES_TOLERANCE == 2
     assert rules.GROUNDING_THRESHOLDS == (0.20, 0.60)
     assert rules.CONTENT_LANGUAGE == "en"
-    assert frozenset(BlockKind) == rules.DRAFTABLE_BLOCK_KINDS
+    assert frozenset(BlockKind) - EXERCISE_KINDS == rules.DRAFTABLE_BLOCK_KINDS
     assert len(rules.DRAFTABLE_BLOCK_KINDS) == 9
     assert {
         BlockKind.OBJECTIVE,
@@ -135,9 +135,15 @@ def test_prompt_rules_scope_line_depends_on_the_grade() -> None:
 
 
 def test_prompt_rules_rejects_other_grades() -> None:
-    for grade in (2, 6):
+    for grade in (0, 10):
         with pytest.raises(ValueError, match="grade"):
             rules.prompt_rules(grade)
+
+
+def test_prompt_rules_for_a_secondary_grade_point_at_the_units_pages() -> None:
+    text = rules.prompt_rules(9)
+    assert "textbook pages" in text and "grade word list" not in text
+    assert "Language scope for grade 9: the grammar of the unit's own textbook pages" in text
 
 
 def test_prompt_rules_takes_the_scope_from_the_curriculum() -> None:

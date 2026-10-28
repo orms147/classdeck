@@ -373,7 +373,7 @@ def test_pptx_is_written_and_reopens_as_16_by_9(
     assert path == target
     deck = Presentation(str(path))
     assert deck.slide_width / deck.slide_height == pytest.approx(16 / 9, abs=0.001)
-    assert deck.core_properties.title == lesson.title
+    assert deck.core_properties.title == "Grade 3 · Lesson 1 · Period 1 — Unit 1 · Hello"
 
 
 def test_slide_count(deck: Deck, lesson: Lesson) -> None:
@@ -385,8 +385,9 @@ def test_slide_count(deck: Deck, lesson: Lesson) -> None:
 
 def test_title_slide(deck: Deck, lesson: Lesson) -> None:
     text = slide_text(deck.slides[0])
-    assert lesson.title in text
-    assert "Grade 3 · ta3.u1 · Lesson 1 · Period 1" in text
+    assert "Unit 1 · Hello" in text
+    assert "Grade 3 · Lesson 1 · Period 1" in text
+    assert "ta3.u1" not in text
 
 
 def test_title_slide_skips_missing_parts(
@@ -395,7 +396,9 @@ def test_title_slide_skips_missing_parts(
     lesson.curriculum.lesson_no = None
     lesson.curriculum.period = None
     path = export_pptx(lesson, tmp_path / "slides.pptx", sources=sources)
-    assert "Grade 3 · ta3.u1" in shape_texts(Presentation(str(path)).slides[0])
+    texts = shape_texts(Presentation(str(path)).slides[0])
+    assert "Grade 3" in texts
+    assert not any("ta3.u1" in text for text in texts)
 
 
 def test_each_section_gets_a_divider_before_its_blocks(deck: Deck, lesson: Lesson) -> None:
@@ -741,8 +744,8 @@ def test_docx_is_written_and_reopens(
     path = export_docx(lesson, target, sources=sources)
     assert path == target
     document = Document(str(path))
-    assert document.core_properties.title == lesson.title
-    assert lesson.title in headings(document)
+    assert document.core_properties.title == "Grade 3 · Lesson 1 · Period 1 — Unit 1 · Hello"
+    assert "Unit 1 · Hello" in headings(document)
 
 
 def test_docx_uses_arial_12_so_vietnamese_diacritics_render(plan: Any) -> None:
@@ -767,7 +770,7 @@ def test_docx_has_the_four_parts_in_order(plan: Any) -> None:
 def test_docx_header_block(plan: Any) -> None:
     cells = [cell.text for row in plan.tables[0].rows for cell in row.cells]
     assert cells == [
-        "Unit: ta3.u1",
+        "Unit: 1 · Hello",
         "Grade: 3",
         "Lesson: 1",
         "Period: 1",
@@ -790,7 +793,7 @@ def test_docx_expands_curriculum_outcomes_when_a_curriculum_is_given(
     texts = [p.text for p in paragraphs_under(document, "I. Objectives")]
     assert "Curriculum outcomes:" in texts
     assert "ta3.u1.o1 — Greet and respond to greetings using Hello / Hi." in texts
-    assert document.tables[0].cell(0, 0).text == "Unit: ta3.u1 — Hello"
+    assert document.tables[0].cell(0, 0).text == "Unit: 1 · Hello"
 
     plain = Document(str(export_docx(lesson, tmp_path / "plain.docx")))
     assert "Curriculum outcomes:" not in [p.text for p in plain.paragraphs]

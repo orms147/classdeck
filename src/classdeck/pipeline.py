@@ -20,6 +20,7 @@ from classdeck.llm.base import LLMError, LLMProvider
 from classdeck.planning.drafter import draft_lesson_report
 from classdeck.planning.models import Outline
 from classdeck.planning.repair import repair_lesson
+from classdeck.planning.secondary import SecondaryReport, draft_secondary_lesson
 
 logger = logging.getLogger(__name__)
 
@@ -98,3 +99,36 @@ def build_lesson(
     if repaired.replaced:
         lesson = run_all(lesson, curriculum, sources=sources)
     return lesson
+
+
+def build_secondary_lesson(
+    sources: Sources,
+    curriculum: Curriculum,
+    provider: LLMProvider | None,
+    *,
+    unit_id: str,
+    lesson_no: int,
+    reference: str = "",
+    judge: LLMProvider | None = None,
+    on_stage: StageCallback | None = None,
+) -> tuple[Lesson, SecondaryReport]:
+    """Draft one lesson of a secondary unit and finish it (grounding, checks).
+
+    ``docs/secondary-units.md``: the exercises come from the page by code, one model call adds
+    the answers and the teacher layer. ``provider`` is that model (``None``: the offline lesson
+    without answer keys); ``reference`` is the cleaned text of a teacher's plan. Grounding
+    verifies the citations; borderline ones go to ``judge`` or, without one, to ``provider``.
+    """
+    stage = on_stage or _no_stage
+    stage("draft")
+    lesson, report = draft_secondary_lesson(
+        list(sources.values()),
+        curriculum,
+        unit_id=unit_id,
+        lesson_no=lesson_no,
+        provider=provider,
+        reference=reference,
+    )
+    grounding_judge = judge if judge is not None else provider
+    lesson = finish_lesson(lesson, sources, curriculum, grounding_judge, on_stage=on_stage)
+    return lesson, report

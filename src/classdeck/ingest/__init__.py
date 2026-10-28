@@ -9,11 +9,16 @@ from classdeck.ingest.base import (
     ingest,
     sha256_of,
 )
+from classdeck.ingest.vision import PageLayout, ScanReport, is_scanned_page, read_page
 
 __all__ = [
     "EXTRACTION_VERSION",
     "Extractor",
+    "PageLayout",
+    "ScanReport",
     "UnsupportedFormat",
     "ingest",
+    "is_scanned_page",
+    "read_page",
     "sha256_of",
 ]

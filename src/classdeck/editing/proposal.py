@@ -120,28 +120,59 @@ def direct_edit(
     as for a model edit, so an ``extracted`` block whose text drifted from its citation is
     downgraded in ``after``.
     """
-    if block_id not in lesson.blocks:
-        raise KeyError(f"unknown block {block_id!r}")
-    original = lesson.blocks[block_id]
+    return direct_edit_many(
+        lesson,
+        {block_id: new_block},
+        sources=sources,
+        curriculum=curriculum,
+        grounding_provider=grounding_provider,
+    )
+
+
+def direct_edit_many(
+    lesson: Lesson,
+    new_blocks: Mapping[str, Block],
+    *,
+    instruction: str | None = None,
+    sources: Sources | None = None,
+    curriculum: Curriculum | None = None,
+    grounding_provider: LLMProvider | None = None,
+) -> EditProposal:
+    """A teacher's hand edit of several blocks as ONE proposal, so accepting it is one revision.
+
+    Same rules as :func:`direct_edit` for every block. ``instruction`` is only a label for the
+    history (``None`` shows as a direct edit).
+    """
+    if not new_blocks:
+        raise EditRejected(["no block to edit"])
     violations: list[str] = []
-    if new_block.id != block_id:
-        violations.append(f"the edited block has id {new_block.id!r}; it must stay {block_id!r}")
-    if new_block.kind != original.kind:
-        violations.append(
-            f"the edited block changes kind from {original.kind!r} to {new_block.kind!r}"
-        )
-    unknown = [dependency for dependency in new_block.depends_on if dependency not in lesson.blocks]
-    if unknown:
-        violations.append(f"the edited block depends on unknown block(s): {', '.join(unknown)}")
+    for block_id, new_block in new_blocks.items():
+        if block_id not in lesson.blocks:
+            raise KeyError(f"unknown block {block_id!r}")
+        original = lesson.blocks[block_id]
+        if new_block.id != block_id:
+            violations.append(
+                f"the edited block has id {new_block.id!r}; it must stay {block_id!r}"
+            )
+        if new_block.kind != original.kind:
+            violations.append(
+                f"the edited block {block_id!r} changes kind from "
+                f"{original.kind!r} to {new_block.kind!r}"
+            )
+        unknown = [dep for dep in new_block.depends_on if dep not in lesson.blocks]
+        if unknown:
+            violations.append(
+                f"the edited block {block_id!r} depends on unknown block(s): {', '.join(unknown)}"
+            )
     if violations:
         raise EditRejected(violations)
-    validated = ValidatedDraft({block_id: new_block}, [], [])
+    validated = ValidatedDraft(dict(new_blocks), [], [])
     return _build_proposal(
         lesson,
-        [block_id],
+        list(new_blocks),
         validated,
         actor="teacher",
-        instruction=None,
+        instruction=instruction,
         rationale="",
         sources=sources,
         curriculum=curriculum,

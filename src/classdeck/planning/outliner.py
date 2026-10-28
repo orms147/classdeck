@@ -25,6 +25,7 @@ from classdeck.english.rules import (
     prompt_rules,
 )
 from classdeck.english.validators import word_forms
+from classdeck.lesson.labels import lesson_label_for
 from classdeck.lesson.schema import ActivityType, CurriculumRef, Phase, SourceDocument, SpanKind
 from classdeck.llm.base import LLMProvider, Message
 from classdeck.llm.prompts import load_prompt
@@ -354,11 +355,13 @@ def build_skeleton(
         for section, value in zip(sections, minutes, strict=True)
     ]
     return Outline(
-        title=f"{_unit_label(unit)} — Lesson {lesson_no}, Period {period}",
+        title=lesson_label_for(grade, lesson_no, period),
         grade=grade,
         curriculum=CurriculumRef(
             version=curriculum.file.version,
             unit_id=unit.id,
+            unit_no=unit.textbook_units[0].unit if unit.textbook_units else None,
+            unit_title=unit.title,
             lesson_no=lesson_no,
             period=period,
             outcome_ids=_unit_outcome_ids(unit, sections),

@@ -44,8 +44,13 @@ from classdeck.llm.structured import StructuredOutputError, complete_json
 CITATION_SUPPORTED = "grounding.citation_supported"
 JUDGE_PROMPT = "grounding_judge"
 
-IMAGE_CITING_KINDS: frozenset[BlockKind] = frozenset({BlockKind.IMAGE_REF, BlockKind.VOCABULARY})
+IMAGE_CITING_KINDS: frozenset[BlockKind] = frozenset(
+    {BlockKind.IMAGE_REF, BlockKind.VOCABULARY, BlockKind.GALLERY}
+)
 """Block kinds an image span can support: the picture itself is reused (spec section 6)."""
+
+CONTAINMENT = 0.90
+"""Share of a block's words that its cited spans together must contain (see :func:`_together`)."""
 
 Method = Literal["lexical", "judge", "midpoint", "image", "dangling"]
 
@@ -189,6 +194,43 @@ def _verify_one(
     return CitationVerdict(block_id=block.id, citation=citation, **outcome._asdict())
 
 
+def _together(block: Block, text: str, sources: Sources) -> list[CitationVerdict] | None:
+    """Verdicts for a block that cites several text spans which together contain its words.
+
+    A textbook exercise or conversation is copied from many spans (an instruction and its numbered
+    lines, one span per turn), so no single span resembles the whole block. When every citation
+    resolves to a text span and at least :data:`CONTAINMENT` of the block's words occur in the
+    spans together, each citation is supported. ``None`` when this does not apply.
+    """
+    if len(block.sources) < 2:
+        return None
+    spans: list[Span] = []
+    for citation in block.sources:
+        span = resolve_citation(citation, sources)
+        if span is None or span.kind is SpanKind.IMAGE or not span.text.strip():
+            return None
+        spans.append(span)
+    wanted = set(_TOKEN.findall(text.lower()))
+    if not wanted:
+        return None
+    have = set(_TOKEN.findall(" ".join(span.text for span in spans).lower()))
+    share = len(wanted & have) / len(wanted)
+    if share < CONTAINMENT:
+        return None
+    detail = f"{len(spans)} cited spans together contain {share:.0%} of the block's words"
+    return [
+        CitationVerdict(
+            block_id=block.id,
+            citation=citation,
+            supported=True,
+            confidence=share,
+            method="lexical",
+            detail=detail,
+        )
+        for citation in block.sources
+    ]
+
+
 def _check_for(block: Block, verdicts: Sequence[CitationVerdict]) -> CheckResult:
     """One ``grounding.citation_supported`` result from the verdicts of a block's citations.
 
@@ -246,13 +288,12 @@ def verify_lesson(
         if not block.sources:
             continue
         text = comparable_text(block)
-        block_verdicts: list[CitationVerdict] = []
-        for citation in block.sources:
-            verdict = _verify_one(
-                block, text, citation, sources, provider, thresholds, steps_text(block)
-            )
+        block_verdicts = _together(block, text, sources) or [
+            _verify_one(block, text, citation, sources, provider, thresholds, steps_text(block))
+            for citation in block.sources
+        ]
+        for citation, verdict in zip(block.sources, block_verdicts, strict=True):
             citation.confidence = verdict.confidence
-            block_verdicts.append(verdict)
         verdicts.extend(block_verdicts)
         outcomes.append((block.id, _check_for(block, block_verdicts)))
     result = assign_provenance(apply_outcomes(result, outcomes), verdicts)

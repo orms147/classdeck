@@ -180,7 +180,7 @@ def test_document_shell(deck: Deck, lesson: Lesson) -> None:
     assert deck.doctype is not None
     assert deck.doctype.lower() == "doctype html"
     assert deck.root.one("html").attrs["lang"] == "en"
-    assert deck.root.one("title").text() == lesson.title
+    assert deck.root.one("title").text() == "Grade 3 · Lesson 1 · Period 1 — Unit 1 · Hello"
     assert deck.root.one("meta", name="viewport").attrs["content"]
     assert len(deck.root.find("style")) == 2
     assert len(deck.root.find("script")) == 1
@@ -218,8 +218,8 @@ def test_every_block_is_rendered_with_its_kind_and_provenance(deck: Deck, lesson
 
 def test_cover_slide(deck: Deck, lesson: Lesson) -> None:
     cover = deck.slides()[0]
-    assert cover.one("h1").text() == lesson.title
-    assert cover.one(class_="cover__meta").text() == "Grade 3 · ta3.u1 · Lesson 1 · Period 1"
+    assert cover.one("h1").text() == "Unit 1 · Hello"
+    assert cover.one(class_="cover__meta").text() == "Grade 3 · Lesson 1 · Period 1"
     strip = cover.one("ol", "phase-strip").find("li")
     assert [li.attrs["data-phase"] for li in strip] == [s.phase.value for s in lesson.sections]
     assert [li.one(class_="phase-strip__minutes").text() for li in strip] == [
@@ -235,7 +235,7 @@ def test_cover_meta_skips_missing_parts(
     lesson.curriculum.lesson_no = None
     lesson.curriculum.period = None
     deck = load(export_html(lesson, tmp_path / "x.html", sources=sources))
-    assert deck.slides()[0].one(class_="cover__meta").text() == "Grade 3 · ta3.u1"
+    assert deck.slides()[0].one(class_="cover__meta").text() == "Grade 3"
 
 
 def test_divider_has_icon_title_minutes_and_a_countdown(deck: Deck, lesson: Lesson) -> None:
@@ -1200,3 +1200,19 @@ def test_default_theme_is_sunny(
     assert DEFAULT_THEME == "sunny"
     path = export_html(lesson, tmp_path / "default.html", sources=sources, image_root=image_root)
     assert "theme: sunny" in path.read_text(encoding="utf-8")
+
+
+def test_sound_sort_marks_follow_the_instruction() -> None:
+    from classdeck.export.html import _sort_marks
+
+    alpha, long_mark, ae = chr(0x251), chr(0x2D0), chr(0xE6)
+    said = f"Underline the words with /{ae}/, circle /{alpha}:/ and tick the words with /e/."
+    assert _sort_marks(said, [ae, alpha + long_mark, "e"]) == ["underline", "circle", "tick"]
+    assert _sort_marks("Circle /s/ and underline /z/.", ["z", "s"]) == ["underline", "circle"]
+    # no marks in the instruction: underline, circle, tick in order
+    assert _sort_marks("Listen and repeat.", ["p", "b", "t", "d"]) == [
+        "underline",
+        "circle",
+        "tick",
+        "mark",
+    ]

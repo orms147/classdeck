@@ -11,9 +11,9 @@ from __future__ import annotations
 import hashlib
 import logging
 import re
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Collection, Iterable, Sequence
 from pathlib import Path
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from classdeck.lesson import (
     Page,
@@ -24,10 +24,19 @@ from classdeck.lesson import (
     span_id,
 )
 
+if TYPE_CHECKING:
+    from classdeck.ingest.vision import ScanReport
+    from classdeck.llm import LLMProvider
+
 logger = logging.getLogger(__name__)
 
 EXTRACTION_VERSION = 1
-"""Bump whenever span segmentation changes: stored citations then go stale."""
+"""Bump whenever span segmentation changes: stored citations then go stale.
+
+Not bumped for scanned pages: before they were read by a vision model they produced one picture
+span and nothing could cite it, so no stored citation depends on the old result. Text pages are
+segmented exactly as before.
+"""
 
 _WHITESPACE = re.compile(r"\s+")
 _LIST_START = re.compile(r"^\s*(?:\d{1,2}[.)]\s|[\u2022\u25cf\u25aa\u25e6\uf0b7]|[-\u2013]\s)")
@@ -55,15 +64,26 @@ def sha256_of(path: Path) -> str:
     return digest.hexdigest()
 
 
-def ingest(path: Path, *, image_dir: Path | None = None) -> SourceDocument:
+def ingest(
+    path: Path,
+    *,
+    image_dir: Path | None = None,
+    provider: LLMProvider | None = None,
+    pages: Collection[int] | None = None,
+    report: Callable[[ScanReport], None] | None = None,
+) -> SourceDocument:
     """Extract ``path`` into a ``SourceDocument``.
 
     Images are written to ``image_dir / doc_id / p<page>_img<n>.<ext>`` and the spans carry the
     path relative to ``image_dir``. Without ``image_dir`` image spans are still emitted, with
     ``image_path=None``.
+
+    PDF only: ``provider`` (a vision-capable model, ideally the caching wrapper) reads scanned
+    pages into text spans; without it a scanned page is one picture span. ``pages`` keeps only
+    those 1-based page numbers; ``report`` receives the cost of each scanned page read.
     """
     path = Path(path)
-    extractor = _extractor_for(path.suffix.lower())
+    extractor = _extractor_for(path.suffix.lower(), provider=provider, pages=pages, report=report)
     sha256 = sha256_of(path)
     doc_id = doc_id_from_sha256(sha256)
     pages = extractor.extract(path, doc_id=doc_id, image_dir=image_dir)
@@ -77,12 +97,18 @@ def ingest(path: Path, *, image_dir: Path | None = None) -> SourceDocument:
     )
 
 
-def _extractor_for(suffix: str) -> Extractor:
+def _extractor_for(
+    suffix: str,
+    *,
+    provider: LLMProvider | None = None,
+    pages: Collection[int] | None = None,
+    report: Callable[[ScanReport], None] | None = None,
+) -> Extractor:
     # Imported on demand: the format libraries are heavy and each is needed only for its format.
     if suffix == ".pdf":
         from classdeck.ingest.pdf import PdfExtractor
 
-        return PdfExtractor()
+        return PdfExtractor(provider, pages=pages, report=report)
     if suffix == ".docx":
         from classdeck.ingest.docx import DocxExtractor
 
@@ -135,6 +161,8 @@ class PageBuilder:
         *,
         bbox: Sequence[float] | None = None,
         image_path: str | None = None,
+        highlights: Sequence[str] = (),
+        track: int | None = None,
     ) -> None:
         """Append a span. Only ``image`` spans may be empty; other empty spans are dropped."""
         if kind is SpanKind.IMAGE:
@@ -150,6 +178,8 @@ class PageBuilder:
                 order=order,
                 bbox=_round_bbox(bbox),
                 image_path=image_path,
+                highlights=list(highlights),
+                track=track,
             )
         )
 

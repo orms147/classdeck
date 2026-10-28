@@ -58,7 +58,7 @@ def test_api_generator_uses_the_configured_endpoint() -> None:
     settings = _settings(model_api_key="secret-key", model="muse-test")
     provider = build_provider(settings)
     assert isinstance(provider, OpenAICompatibleProvider)
-    assert (provider.name, provider.model) == ("api:api.meta.ai", "muse-test")
+    assert (provider.name, provider.model) == ("api:openrouter.ai", "muse-test")
 
 
 def test_api_generator_is_named_after_the_endpoint_host() -> None:
@@ -87,7 +87,7 @@ def test_judge_falls_back_to_the_generator_with_a_warning(
         mock_judge = build_provider(_settings(provider="mock"), "judge")
         api_judge = build_provider(_settings(model_api_key="k"), "judge")
     assert mock_judge.name == "mock"
-    assert api_judge.name == "api:api.meta.ai"
+    assert api_judge.name == "api:openrouter.ai"
     assert sum("judge" in r.getMessage().lower() for r in caplog.records) == 2
 
 

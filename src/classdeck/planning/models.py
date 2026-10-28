@@ -40,7 +40,7 @@ class OutlineSection(Strict):
 
 class Outline(Strict):
     title: str = Field(min_length=1)
-    grade: int = Field(ge=3, le=5)
+    grade: int = Field(ge=1, le=5)
     curriculum: CurriculumRef
     doc_ids: list[str] = []
     sections: list[OutlineSection]

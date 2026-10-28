@@ -140,6 +140,7 @@ def test_all_validators_run_in_the_documented_order() -> None:
         "english.steps_present",
         "english.timing",
         "curriculum.outcome_covered",
+        "english.words_from_unit",
     } == v.OWNED_CHECKS
 
 
@@ -555,14 +556,12 @@ def test_pattern_used_skips_other_phases_and_unplaced_activities() -> None:
     assert set(by_block(v.pattern_used(lesson, CURRICULUM))) == {"b_07"}
 
 
-def test_pattern_used_warns_when_the_lesson_has_no_pattern() -> None:
+def test_pattern_used_is_silent_when_the_lesson_has_no_pattern() -> None:
     lesson = clean_lesson()
     lesson.sections[0].block_ids.remove("b_03")
     del lesson.blocks["b_03"]
     lesson.blocks["b_07"].depends_on = []
-    result = by_block(v.pattern_used(lesson, CURRICULUM))["b_07"]
-    assert result.status is WARN
-    assert "no sentence_pattern block" in (result.detail or "")
+    assert v.pattern_used(lesson, CURRICULUM) == []
 
 
 def test_pattern_regex_builds_a_slot_filled_match() -> None:

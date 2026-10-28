@@ -93,12 +93,12 @@ Phase 1 (core library + CLI) is functional end to end: the public fixture goes f
 
 ## Quick start
 
-One command does everything — ingest, outline, draft, checks, flashcard pictures, export — and opens the deck:
+One command does everything — ingest (scanned books included), outline, draft, checks, flashcard pictures — and opens the lesson, a single interactive HTML deck:
 
 ```bash
 pip install -e .
 cp .env.example .env                       # put a key in META_API_KEY or OPENROUTER_API_KEY
-classdeck run eval/fixtures/public/gs3-unit2.pdf --grade 3 --unit ta3.u2 --endpoint meta
+classdeck run eval/fixtures/public/gs3-unit2.pdf --grade 3 --unit 2 --endpoint meta
 ```
 
 Add `--provider mock` to try it with no key at all (template pipeline, placeholder pictures). The pieces behind it:
@@ -124,7 +124,7 @@ classdeck draft out/outlines/ta3.u1-l1-p1.outline.json         # -> l_xxxxxx (bl
 classdeck export l_xxxxxx                                       # out/exports/l_xxxxxx/lesson.{html,pptx,docx}
 ```
 
-Open `lesson.html` in a browser: arrow keys to move, tap to reveal, `T` for teacher mode (sources, notes, AI-added badges).
+Open `lesson.html` in a browser: arrow keys to move, tap to reveal, `T` for teacher mode (sources, notes, AI-added badges), `E` (or the pencil, top left) to fix wording on the slide itself, then Save (`Ctrl+S`). In the local app the edit becomes one revision you can undo; for a standalone file, `classdeck import-edits l_xxxxxx edited.html` brings the saved edits back into the lesson.
 
 With a model (`CLASSDECK_PROVIDER=api`), `plan` refines the outline, `draft` writes richer blocks, and `edit` works:
 

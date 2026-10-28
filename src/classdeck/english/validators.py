@@ -21,7 +21,9 @@ import simplemma
 from classdeck.curriculum.loader import Curriculum
 from classdeck.curriculum.models import GrammarRule
 from classdeck.english.rules import PERIOD_MINUTES_TOLERANCE
+from classdeck.lesson.exercises import english_strings, pupil_strings
 from classdeck.lesson.schema import (
+    EXERCISE_KINDS,
     ActivityBlock,
     Block,
     BlockKind,
@@ -34,6 +36,7 @@ from classdeck.lesson.schema import (
     PhonicsBlock,
     SentencePatternBlock,
     SourceDocument,
+    SpanKind,
     SummaryBlock,
     VocabularyBlock,
 )
@@ -44,6 +47,7 @@ CheckOutcome = tuple[str | None, CheckResult]
 Sources = Mapping[str, SourceDocument]
 
 VOCAB_LEVEL = "english.vocab_level"
+WORDS_FROM_UNIT = "english.words_from_unit"
 GRAMMAR_SCOPE = "english.grammar_scope"
 SKILL_COVERAGE = "english.skill_coverage"
 IPA_PRESENT = "english.ipa_present"
@@ -57,6 +61,7 @@ OUTCOME_COVERED = "curriculum.outcome_covered"
 OWNED_CHECKS: frozenset[str] = frozenset(
     {
         VOCAB_LEVEL,
+        WORDS_FROM_UNIT,
         GRAMMAR_SCOPE,
         SKILL_COVERAGE,
         IPA_PRESENT,
@@ -101,6 +106,25 @@ FUNCTION_WORDS: frozenset[str] = frozenset(
 )
 """Function words that are never reported by ``english.vocab_level``."""
 
+COMMON_WORDS: frozenset[str] = frozenset(
+    """
+    look listen read write say tell talk ask answer work share choose match circle tick think
+    discuss check find name draw point repeat practise practice try use give take make show guess
+    play game team group pair partner class board book page picture word sentence question
+    example idea minute time first second third next last now again also not no yes
+    one two three four five six seven eight nine ten many much more most some any few
+    what who where when why how which can could will would should may must
+    good great nice well very too so just only still even already
+    teacher pupil pupils student students people person friend friends classmate classmates
+    home school lesson unit topic place day week year today
+    like want need know see hear get go come put help start finish
+    recall review remember revise summarise recap repeat
+    new another other same different own together each both after before about
+    """.split()  # noqa: SIM905
+)
+"""Plain classroom and everyday words allowed in model-written pupil text of a secondary unit
+(``english.words_from_unit``) even when the unit's pages do not use them."""
+
 
 # --- text extraction ---------------------------------------------------------------------------
 
@@ -144,6 +168,8 @@ def english_text_of(block: Block) -> list[str]:
             )
         case SummaryBlock():
             return _clean(block.content.bullets)
+        case _ if block.kind in EXERCISE_KINDS:
+            return _clean(english_strings(block))
         case _:
             return []
 
@@ -153,11 +179,14 @@ def pupil_text_of(block: Block) -> list[str]:
 
     The level checks read only this. For an activity that is the ``instructions`` and the
     ``student_steps``; its title, teacher steps and materials are written for the teacher.
-    Every other kind is entirely pupil-facing.
+    For an exercise block (reading, match, gap-fill ...) it leaves out the teacher's sample
+    answers. Every other kind is entirely pupil-facing.
     """
     if isinstance(block, ActivityBlock):
         task = block.content
         return _clean([task.instructions, *task.student_steps])
+    if block.kind in EXERCISE_KINDS:
+        return _clean(pupil_strings(block))
     return english_text_of(block)
 
 
@@ -341,6 +370,50 @@ def vocab_level(
     return outcomes
 
 
+# --- english.words_from_unit -------------------------------------------------------------------
+
+
+def unit_forms(lesson: Lesson, sources: Sources | None) -> frozenset[str]:
+    """The word forms of the unit's own pages (text spans of the lesson's sources)."""
+    texts: list[str] = []
+    for ref in lesson.sources:
+        document = (sources or {}).get(ref.doc_id)
+        if document is None:
+            continue
+        texts.extend(
+            span.text
+            for page in document.pages
+            for span in page.spans
+            if span.kind is not SpanKind.IMAGE and span.text.strip()
+        )
+    return frozenset(_forms_of_texts(texts) | FUNCTION_WORDS | _forms_of_texts(COMMON_WORDS))
+
+
+def words_from_unit(
+    lesson: Lesson, curriculum: Curriculum, *, sources: Sources | None = None
+) -> list[CheckOutcome]:
+    """Secondary units: pupil-facing words of model-written blocks come from the unit's pages.
+
+    Replaces :func:`vocab_level` when the curriculum is secondary (no closed word list). A word
+    passes when its lemma occurs in an ingested page of the unit, in the block's own cited spans,
+    among the function and plain classroom words, or when it is a name or a number. A dialogue is
+    the book's own wording and is not judged; the exercise blocks are not judged either, they
+    are copied from the page.
+    """
+    base_allowed = unit_forms(lesson, sources)
+    outcomes: list[CheckOutcome] = []
+    for block in _blocks(lesson):
+        if block.kind not in VOCAB_LEVEL_KINDS or block.kind is BlockKind.DIALOGUE:
+            continue
+        offenders = vocab_offenders(block, base_allowed, sources)
+        if offenders:
+            detail = f"not in the unit's pages or cited spans: {', '.join(offenders)}"
+            outcomes.append(_outcome(block.id, WORDS_FROM_UNIT, CheckStatus.WARN, detail))
+        else:
+            outcomes.append(_outcome(block.id, WORDS_FROM_UNIT, CheckStatus.PASS))
+    return outcomes
+
+
 # --- english.grammar_scope ---------------------------------------------------------------------
 
 
@@ -386,18 +459,38 @@ def _outcome_skills(curriculum: Curriculum, outcome_id: str) -> set[str] | None:
         return None
 
 
-def skill_coverage(
-    lesson: Lesson, curriculum: Curriculum, *, sources: Sources | None = None
-) -> list[CheckOutcome]:
-    """Every skill named by the period's outcomes needs at least one activity."""
-    required: set[str] = set()
-    for outcome_id in lesson.curriculum.outcome_ids:
-        required |= _outcome_skills(curriculum, outcome_id) or set()
+_EXERCISE_SKILLS: dict[BlockKind, frozenset[str]] = {
+    BlockKind.DIALOGUE: frozenset({"listening", "reading"}),
+    BlockKind.READING: frozenset({"reading"}),
+    BlockKind.MATCH: frozenset({"reading"}),
+    BlockKind.GAP_FILL: frozenset({"reading", "writing"}),
+    BlockKind.CHOICE: frozenset({"reading"}),
+    BlockKind.TRUE_FALSE: frozenset({"reading"}),
+    BlockKind.QUESTION_SET: frozenset({"speaking"}),
+    BlockKind.SOUND_SORT: frozenset({"listening", "speaking"}),
+}
+"""Skills a textbook exercise block practises, besides those of the lesson's activities."""
+
+
+def practised_skills(lesson: Lesson) -> set[str]:
+    """The skills the lesson's activities and exercise blocks practise."""
     present: set[str] = set()
     for block in lesson.blocks.values():
         if isinstance(block, ActivityBlock):
             present |= _skill_names(block.content.skills)
-    missing = required - present
+        else:
+            present |= _EXERCISE_SKILLS.get(BlockKind(block.kind), frozenset())
+    return present
+
+
+def skill_coverage(
+    lesson: Lesson, curriculum: Curriculum, *, sources: Sources | None = None
+) -> list[CheckOutcome]:
+    """Every skill named by the period's outcomes needs at least one activity or exercise."""
+    required: set[str] = set()
+    for outcome_id in lesson.curriculum.outcome_ids:
+        required |= _outcome_skills(curriculum, outcome_id) or set()
+    missing = required - practised_skills(lesson)
     if missing:
         detail = f"no activity practises: {', '.join(_sort_skills(missing))}"
         return [_outcome(None, SKILL_COVERAGE, CheckStatus.WARN, detail)]
@@ -655,7 +748,11 @@ def patterns_of(lesson: Lesson) -> list[tuple[SentencePatternBlock, re.Pattern[s
 def pattern_used(
     lesson: Lesson, curriculum: Curriculum, *, sources: Sources | None = None
 ) -> list[CheckOutcome]:
-    """Practice and production activities must use a pattern taught in the lesson."""
+    """Practice and production activities must use a pattern taught in the lesson.
+
+    A lesson with no ``sentence_pattern`` block (every lower-secondary lesson) has nothing to
+    check: there is no outcome, so no warning.
+    """
     patterns = patterns_of(lesson)
     outcomes: list[CheckOutcome] = []
     for block in _blocks(lesson):
@@ -675,9 +772,6 @@ def pattern_used(
             outcomes.append(_outcome(block.id, PATTERN_USED, CheckStatus.PASS, detail))
         elif patterns:
             detail = "does not use any sentence pattern of the lesson"
-            outcomes.append(_outcome(block.id, PATTERN_USED, CheckStatus.WARN, detail))
-        else:
-            detail = "the lesson has no sentence_pattern block to practise"
             outcomes.append(_outcome(block.id, PATTERN_USED, CheckStatus.WARN, detail))
     return outcomes
 
@@ -739,7 +833,11 @@ def outcome_covered(
         if isinstance(block, ObjectiveBlock)
         for outcome_id in block.content.outcome_ids
     }
-    activities = [b for b in lesson.blocks.values() if isinstance(b, ActivityBlock)]
+    practised_by_lesson = practised_skills(lesson)
+    any_practice = any(
+        isinstance(b, ActivityBlock) or BlockKind(b.kind) in _EXERCISE_SKILLS
+        for b in lesson.blocks.values()
+    )
     problems: list[str] = []
     for outcome_id in lesson.curriculum.outcome_ids:
         skills = _outcome_skills(curriculum, outcome_id)
@@ -749,10 +847,7 @@ def outcome_covered(
         else:
             if outcome_id not in referenced:
                 reasons.append("no objective")
-            practised = any(
-                not skills or skills & _skill_names(activity.content.skills)
-                for activity in activities
-            )
+            practised = bool(skills & practised_by_lesson) if skills else any_practice
             if not practised:
                 reasons.append("no activity")
         if reasons:
@@ -785,6 +880,12 @@ ALL_VALIDATORS: list[Validator] = [
     timing,
     outcome_covered,
 ]
+
+
+SECONDARY_VALIDATORS: list[Validator] = [
+    words_from_unit if validator is vocab_level else validator for validator in ALL_VALIDATORS
+]
+"""A secondary curriculum has no closed word list: ``words_from_unit`` replaces ``vocab_level``."""
 
 
 def _upsert(checks: list[CheckResult], result: CheckResult) -> None:
@@ -821,7 +922,7 @@ def run_all(lesson: Lesson, curriculum: Curriculum, *, sources: Sources | None =
     """
     filled = fill_glosses(fill_ipa(lesson))
     outcomes: list[CheckOutcome] = []
-    for validator in ALL_VALIDATORS:
+    for validator in SECONDARY_VALIDATORS if curriculum.uses_unit_words else ALL_VALIDATORS:
         outcomes.extend(validator(filled, curriculum, sources=sources))
     filled.checks = [check for check in filled.checks if check.name not in OWNED_CHECKS]
     for block in filled.blocks.values():

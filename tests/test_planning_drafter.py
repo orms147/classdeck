@@ -174,7 +174,7 @@ def test_template_lesson_validates_and_round_trips(
     template_lesson: Lesson, document: SourceDocument, outline: Outline
 ) -> None:
     assert Lesson.model_validate(template_lesson.model_dump(mode="json")) == template_lesson
-    assert template_lesson.title == "Unit 1 Hello — Lesson 1, Period 1"
+    assert template_lesson.title == "Grade 3 · Lesson 1 · Period 1"
     assert template_lesson.grade == 3
     assert template_lesson.curriculum == outline.curriculum
     assert [source.doc_id for source in template_lesson.sources] == [document.doc_id]

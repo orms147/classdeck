@@ -46,7 +46,7 @@ Minutes are defaults the outliner starts from; the `english.timing` check keeps 
 
 ## Block kinds
 
-See [lesson-model.md](lesson-model.md#block-kinds). The drafter may emit: `objective, vocabulary, sentence_pattern, dialogue, phonics, activity, teacher_note, summary, image_ref`.
+See [lesson-model.md](lesson-model.md#block-kinds). The drafter may emit: `objective, vocabulary, sentence_pattern, dialogue, phonics, activity, teacher_note, summary, image_ref` (the interactive exercise kinds are not drafted; they come from a textbook's own exercises).
 
 ## Prompt rules
 
@@ -73,6 +73,7 @@ All validators are deterministic (no model call). They run after drafting and af
 | name | applies to | what it does | status on failure |
 |---|---|---|---|
 | `english.vocab_level` | `vocabulary, sentence_pattern, dialogue, activity, summary` | Tokenise and lemmatise the block's English text (`simplemma`); every lemma must be in the grade word list (curriculum config `vocabulary.words` ∪ `vocabulary.classroom_language` ∪ the unit's `vocabulary`), in the cited spans, a proper noun, or a number. `classroom_language` is the instruction language pupils hear every lesson — *listen, point, partner, picture, swap* — which is receptive, not taught as new words, and therefore allowed in instructions and student steps. Offenders listed. | `warn` |
+| `english.words_from_unit` | `vocabulary, sentence_pattern, activity, summary` (a *secondary* curriculum, in place of `english.vocab_level`) | There is no closed word list for grades 6-9. Pupil-facing words of the blocks must occur in the unit's ingested pages (any span of the lesson's sources), in the block's cited spans, among the function words and a short list of plain classroom words (`COMMON_WORDS`), or be a proper noun or number. Offenders listed. Exercise blocks and dialogues are the book's own wording and are not judged. | `warn` |
 | `english.grammar_scope` | `sentence_pattern, dialogue, activity` | Regex patterns per grade from curriculum config `grammar_scope.forbidden` (e.g. `\b(has|have|had) \w+ed\b`, `\b(was|were|is|are) \w+ed by\b`). | `warn` |
 | `english.skill_coverage` | lesson | Every skill named in the period's outcomes has ≥ 1 activity. | `warn` |
 | `english.ipa_present` | `vocabulary` | Every item has `ipa`; the validator fills it from a bundled dictionary when the model omitted it, and warns only if still missing. | `warn` |

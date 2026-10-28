@@ -1,0 +1,206 @@
+# Seed data for a lower-secondary grade. Units follow Global Success 9 (seven textbook lessons per
+# unit, one 45-minute period each); the outcomes of units 1 and 2 are written from the categories of
+# each unit's "This unit includes" box. Units 3-12 carry one generic outcome until their book pages
+# have been ingested. There is no closed word list: the unit's own pages are the reference
+# (english.words_from_unit). See docs/secondary-units.md and docs/curriculum-config.md.
+version: gdpt-2018
+subject: tieng-anh
+grade: 9
+language: en
+status: seed
+period_minutes: 45
+unit_shape: secondary
+
+vocabulary:
+  level: A2-B1                    # informational only; no word list is enforced for this grade
+
+grammar_scope:
+  allowed: []
+  forbidden: []
+
+textbooks:
+  - series: global-success
+    volume: 9
+
+units:
+  - id: ta9.u1
+    title: "Local community"
+    textbook_units: [ { series: global-success, unit: 1 } ]
+    lessons: 7
+    outcomes:
+      - id: ta9.u1.o1
+        text: Talk about a local community with words for community helpers and traditional handicrafts, met first in a conversation.
+        skills: [listening, reading]
+        keywords: [community, neighbourhood, helpers, handicrafts, craft, village]
+        lessons: [1, 2, 7]
+      - id: ta9.u1.o2
+        text: Tell apart and pronounce the vowels /æ/, /ɑː/ and /e/.
+        skills: [listening, speaking]
+        keywords: [pronunciation, vowels]
+        lessons: [2, 7]
+      - id: ta9.u1.o3
+        text: Use question words before to-infinitives and a first group of phrasal verbs.
+        skills: [speaking, writing]
+        keywords: [question words, to-infinitive, phrasal verbs]
+        lessons: [3, 7]
+      - id: ta9.u1.o4
+        text: Read for specific information about special products of different areas.
+        skills: [reading]
+        keywords: [reading, special products]
+        lessons: [5]
+      - id: ta9.u1.o5
+        text: Give a short presentation about a speciality of an area.
+        skills: [speaking]
+        keywords: [presentation, speciality]
+        lessons: [5]
+      - id: ta9.u1.o6
+        text: Listen for specific information about a community helper.
+        skills: [listening]
+        keywords: [listening, community helper]
+        lessons: [6]
+      - id: ta9.u1.o7
+        text: Write a paragraph about a community helper.
+        skills: [writing]
+        keywords: [writing, paragraph, community helper]
+        lessons: [6]
+      - id: ta9.u1.o8
+        text: Ask for help and respond to a request in everyday conversation.
+        skills: [speaking, listening]
+        keywords: [seeking help, responding]
+        lessons: [4]
+
+  - id: ta9.u2
+    title: "City life"
+    textbook_units: [ { series: global-success, unit: 2 } ]
+    lessons: 7
+    outcomes:
+      - id: ta9.u2.o1
+        text: Talk about city life with the words of the unit, met first in a conversation about getting around.
+        skills: [listening, reading]
+        keywords: [city, traffic, underground, bus]
+        lessons: [1, 2, 7]
+      - id: ta9.u2.o2
+        text: Tell apart and pronounce the diphthongs /aʊ/, /əʊ/ and /eə/.
+        skills: [listening, speaking]
+        keywords: [pronunciation, diphthongs]
+        lessons: [2, 7]
+      - id: ta9.u2.o3
+        text: Use double comparatives and a second group of phrasal verbs.
+        skills: [speaking, writing]
+        keywords: [double comparatives, phrasal verbs]
+        lessons: [3, 7]
+      - id: ta9.u2.o4
+        text: Read an announcement about a competition to find solutions to city problems.
+        skills: [reading]
+        keywords: [reading, announcement, competition]
+        lessons: [5]
+      - id: ta9.u2.o5
+        text: Talk about city problems and their solutions.
+        skills: [speaking]
+        keywords: [problems, solutions]
+        lessons: [5]
+      - id: ta9.u2.o6
+        text: Listen to an interview about life in some cities.
+        skills: [listening]
+        keywords: [listening, interview]
+        lessons: [6]
+      - id: ta9.u2.o7
+        text: Write a paragraph about what you like or dislike about city life.
+        skills: [writing]
+        keywords: [writing, paragraph, likes, dislikes]
+        lessons: [6]
+      - id: ta9.u2.o8
+        text: Offer help and respond to an offer in everyday conversation.
+        skills: [speaking, listening]
+        keywords: [offering help, responding]
+        lessons: [4]
+
+  - id: ta9.u3
+    title: "Healthy living for teens"
+    textbook_units: [ { series: global-success, unit: 3 } ]
+    lessons: 7
+    outcomes:
+      - id: ta9.u3.o1
+        text: Learn the vocabulary, grammar and skills of Unit 3 from its textbook pages.
+        lessons: [1, 2, 3, 4, 5, 6, 7]
+
+  - id: ta9.u4
+    title: "Remembering the past"
+    textbook_units: [ { series: global-success, unit: 4 } ]
+    lessons: 7
+    outcomes:
+      - id: ta9.u4.o1
+        text: Learn the vocabulary, grammar and skills of Unit 4 from its textbook pages.
+        lessons: [1, 2, 3, 4, 5, 6, 7]
+
+  - id: ta9.u5
+    title: "Our experiences"
+    textbook_units: [ { series: global-success, unit: 5 } ]
+    lessons: 7
+    outcomes:
+      - id: ta9.u5.o1
+        text: Learn the vocabulary, grammar and skills of Unit 5 from its textbook pages.
+        lessons: [1, 2, 3, 4, 5, 6, 7]
+
+  - id: ta9.u6
+    title: "Vietnamese lifestyle: then and now"
+    textbook_units: [ { series: global-success, unit: 6 } ]
+    lessons: 7
+    outcomes:
+      - id: ta9.u6.o1
+        text: Learn the vocabulary, grammar and skills of Unit 6 from its textbook pages.
+        lessons: [1, 2, 3, 4, 5, 6, 7]
+
+  - id: ta9.u7
+    title: "Natural wonders of the world"
+    textbook_units: [ { series: global-success, unit: 7 } ]
+    lessons: 7
+    outcomes:
+      - id: ta9.u7.o1
+        text: Learn the vocabulary, grammar and skills of Unit 7 from its textbook pages.
+        lessons: [1, 2, 3, 4, 5, 6, 7]
+
+  - id: ta9.u8
+    title: "Tourism"
+    textbook_units: [ { series: global-success, unit: 8 } ]
+    lessons: 7
+    outcomes:
+      - id: ta9.u8.o1
+        text: Learn the vocabulary, grammar and skills of Unit 8 from its textbook pages.
+        lessons: [1, 2, 3, 4, 5, 6, 7]
+
+  - id: ta9.u9
+    title: "World Englishes"
+    textbook_units: [ { series: global-success, unit: 9 } ]
+    lessons: 7
+    outcomes:
+      - id: ta9.u9.o1
+        text: Learn the vocabulary, grammar and skills of Unit 9 from its textbook pages.
+        lessons: [1, 2, 3, 4, 5, 6, 7]
+
+  - id: ta9.u10
+    title: "Planet Earth"
+    textbook_units: [ { series: global-success, unit: 10 } ]
+    lessons: 7
+    outcomes:
+      - id: ta9.u10.o1
+        text: Learn the vocabulary, grammar and skills of Unit 10 from its textbook pages.
+        lessons: [1, 2, 3, 4, 5, 6, 7]
+
+  - id: ta9.u11
+    title: "Electronic devices"
+    textbook_units: [ { series: global-success, unit: 11 } ]
+    lessons: 7
+    outcomes:
+      - id: ta9.u11.o1
+        text: Learn the vocabulary, grammar and skills of Unit 11 from its textbook pages.
+        lessons: [1, 2, 3, 4, 5, 6, 7]
+
+  - id: ta9.u12
+    title: "Career choices"
+    textbook_units: [ { series: global-success, unit: 12 } ]
+    lessons: 7
+    outcomes:
+      - id: ta9.u12.o1
+        text: Learn the vocabulary, grammar and skills of Unit 12 from its textbook pages.
+        lessons: [1, 2, 3, 4, 5, 6, 7]

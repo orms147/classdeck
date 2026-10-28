@@ -43,6 +43,7 @@ from classdeck.lesson import (
     SpanKind,
     VocabularyBlock,
 )
+from classdeck.lesson.labels import unit_line
 
 NO_BLOCK = "(no block)"
 """Key of ``out_of_list_words`` for pupil text outside any ``data-block-id`` element."""
@@ -249,6 +250,7 @@ def _slide_texts(lesson: Lesson, curriculum: Curriculum | None) -> list[str]:
     """
     texts = [
         lesson.title,
+        unit_line(lesson),
         *(section.title for section in lesson.sections),
         *PHASE_LABEL.values(),
         "min minutes",

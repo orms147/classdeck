@@ -39,7 +39,7 @@ def by_doc_id(sources: Iterable[SourceDocument]) -> dict[str, SourceDocument]:
 
 def instruction_number(span: Span) -> int | None:
     """The activity number of an instruction line, or ``None`` for any other span."""
-    if span.kind is not SpanKind.LIST_ITEM:
+    if span.kind not in (SpanKind.LIST_ITEM, SpanKind.INSTRUCTION):
         return None
     match = INSTRUCTION_RE.match(span.text)
     return int(match.group(1)) if match else None

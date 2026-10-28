@@ -332,6 +332,20 @@ def test_union_covers_every_block_kind() -> None:
         "teacher_note": {"text": "t"},
         "summary": {"bullets": ["b"]},
         "image_ref": {"caption": "c", "alt": "a"},
+        "reading": {"paragraphs": ["Text."]},
+        "match": {"left": ["a", "b"], "right": ["1", "2"], "answer": {"0": 1, "1": 0}},
+        "gap_fill": {"items": [{"text": "A ___.", "answer": "b"}]},
+        "choice": {"items": [{"stem": "Q", "options": ["a", "b"], "answer": "a"}]},
+        "true_false": {"items": [{"statement": "S", "answer": True}]},
+        "rule_box": {"title": "Remember!"},
+        "question_set": {"questions": ["Why?"]},
+        "sound_sort": {
+            "sounds": ["a", "e"],
+            "words": [{"word": "cat", "sound": "a"}, {"word": "pen", "sound": "e"}],
+        },
+        "gallery": {"images": [{"image": {"doc_id": "d", "page": 1, "span_id": "p1.s1"}}]},
+        "grid": {"header": ["Name", "Answer"], "blank_rows": 2},
+        "self_check": {"items": ["use the words"]},
     }
     assert set(shapes) == {kind.value for kind in BlockKind}
     for kind, content in shapes.items():
@@ -378,7 +392,7 @@ def test_citation_confidence_is_bounded() -> None:
 
 
 def test_lesson_grade_and_subject_are_constrained() -> None:
-    for bad in (2, 6):
+    for bad in (0, 10):
         data = lesson_data()
         data["grade"] = bad
         with pytest.raises(ValidationError):

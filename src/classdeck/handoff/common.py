@@ -21,6 +21,7 @@ from classdeck.export.source_map import (
     format_citation,
 )
 from classdeck.lesson import (
+    EXERCISE_KINDS,
     ActivityBlock,
     Block,
     Citation,
@@ -37,6 +38,7 @@ from classdeck.lesson import (
     TeacherNoteBlock,
     VocabularyBlock,
 )
+from classdeck.lesson.exercises import answer_key, exercise_lines, instruction_of
 
 Sources = Mapping[str, SourceDocument]
 
@@ -282,6 +284,18 @@ def _render_block(block: Block, sources: Sources | None) -> list[str]:
                 body.append(f"- caption: {t(content.caption)}")
         case TeacherNoteBlock():
             teacher.append(f"note: {t(block.content.text)}")
+        case _ if block.kind in EXERCISE_KINDS:
+            if instruction_of(block):
+                body.append(f"- instruction: {t(instruction_of(block))}")
+            body.extend(f"- {t(line)}" for line in exercise_lines(block))
+            glossary = getattr(block.content, "glossary", {})
+            if glossary:
+                pairs = "; ".join(f"{t(word)} = {t(meaning)}" for word, meaning in glossary.items())
+                body.append(f"- glossary: {pairs}")
+            key = answer_key(block)
+            if key:
+                teacher.append("answer key:")
+                teacher.extend(f"  {t(line)}" for line in key)
     if block.teacher_note:
         teacher.append(f"note: {t(block.teacher_note)}")
     lines = [header, *body]
