@@ -36,9 +36,14 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8.2", "ruff>=0.6", "mypy>=1.11", "types-PyYAML"]
 api = ["fastapi>=0.115", "uvicorn[standard]>=0.30", "python-multipart>=0.0.9"]
+# the app in its own window (packaging/windows builds it into ClassDeck.exe)
+desktop = ["classdeck[api]", "pywebview>=5"]
 
 [project.scripts]
 classdeck = "classdeck.cli:app"
+
+[project.gui-scripts]
+classdeck-desktop = "classdeck.app.desktop:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/classdeck"]

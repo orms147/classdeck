@@ -91,6 +91,10 @@ web/                  block-level web editor (phase 2)
 
 Phase 1 (core library + CLI) is functional end to end: the public fixture goes from PDF to an HTML deck, PPTX and DOCX offline, and the same pipeline runs on any OpenAI-compatible model — measured at about $0.002 per period on `openai/gpt-6-luna` through OpenRouter ([docs/llm-provider.md](docs/llm-provider.md)). See [docs/roadmap.md](docs/roadmap.md) for what is next (web editor, multimodal ingest).
 
+## Desktop app (Windows)
+
+Teachers can install ClassDeck like any program: run `ClassDeck-Setup.exe` (no administrator rights; it adds a desktop and Start-menu icon) and open it from the icon. Lessons are kept in `Documents\ClassDeck`. To build the installer: `powershell -ExecutionPolicy Bypass -File packaging/windows/build.ps1` (needs `pip install -e ".[desktop]" pyinstaller`); details in [docs/local-app.md](docs/local-app.md#desktop-app-windows).
+
 ## Quick start
 
 One command does everything — ingest (scanned books included), outline, draft, checks, flashcard pictures — and opens the lesson, a single interactive HTML deck:
