@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import socket
+import sys
 from pathlib import Path
 
 import pytest
@@ -64,3 +65,15 @@ def test_a_busy_port_is_skipped() -> None:
         busy.listen()
         taken = busy.getsockname()[1]
         assert desktop._free_port() != taken
+
+
+def test_a_windowed_program_logs_to_a_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
+    monkeypatch.setattr("sys.stdout", None)
+    monkeypatch.setattr("sys.stderr", None)
+    desktop.ensure_streams()
+    assert sys.stdout is not None and not sys.stdout.isatty()
+    print("started", file=sys.stderr)
+    sys.stderr.flush()
+    assert "started" in (tmp_path / "ClassDeck" / "classdeck.log").read_text(encoding="utf-8")
+    sys.stdout.close()

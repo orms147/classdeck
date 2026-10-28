@@ -62,6 +62,22 @@ def prepare_folders() -> None:
     os.chdir(work)
 
 
+def ensure_streams() -> None:
+    """Give a windowed program (no console: ``sys.stdout`` is None) a log file to write to.
+
+    Uvicorn's log formatter asks the stream whether it is a terminal and fails on None.
+    """
+    if sys.stdout is not None and sys.stderr is not None:
+        return
+    folder = _local_appdata() / APP_NAME
+    folder.mkdir(parents=True, exist_ok=True)
+    log = (folder / "classdeck.log").open("a", encoding="utf-8", buffering=1)
+    if sys.stdout is None:
+        sys.stdout = log
+    if sys.stderr is None:
+        sys.stderr = log
+
+
 def _running_url() -> str | None:
     """The URL of a ClassDeck already serving on this machine, if any."""
     for port in range(FIRST_PORT, FIRST_PORT + 10):
@@ -117,6 +133,7 @@ def _open_window(url: str) -> bool:
 
 
 def main() -> None:
+    ensure_streams()
     prepare_folders()
     url = _running_url()
     if url:
